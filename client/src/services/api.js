@@ -7,11 +7,18 @@ const api = axios.create({
   }
 });
 
-// Attach Authorization token for Admin calls
+// Attach Authorization token
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('zeba_admin_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (!config.headers.Authorization) {
+    const adminToken = localStorage.getItem('zeba_admin_token');
+    const customerToken = localStorage.getItem('zeba_customer_token');
+    if (adminToken && config.url?.includes('/admin')) {
+      config.headers.Authorization = `Bearer ${adminToken}`;
+    } else if (customerToken && config.url?.includes('/customer')) {
+      config.headers.Authorization = `Bearer ${customerToken}`;
+    } else if (adminToken) {
+      config.headers.Authorization = `Bearer ${adminToken}`;
+    }
   }
   return config;
 }, (error) => {

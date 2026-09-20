@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import { useToast } from './ToastContext';
 
 const CustomerAuthContext = createContext(null);
@@ -18,11 +18,9 @@ export function CustomerAuthProvider({ children }) {
         return;
       }
       try {
-        const res = await axios.get('/api/customer/me', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (res.data?.success && res.data?.customer) {
-          setCustomer(res.data.customer);
+        const res = await api.get('/customer/me');
+        if (res.success && res.customer) {
+          setCustomer(res.customer);
         } else {
           logout();
         }
@@ -39,17 +37,17 @@ export function CustomerAuthProvider({ children }) {
 
   const login = async (identifier, password) => {
     try {
-      const res = await axios.post('/api/customer/login', { identifier, password });
-      if (res.data?.success && res.data?.token) {
-        localStorage.setItem('zeba_customer_token', res.data.token);
-        setToken(res.data.token);
-        setCustomer(res.data.customer);
-        addToast(res.data.message || 'Welcome back to ZEBA!', 'success');
+      const res = await api.post('/customer/login', { identifier, password });
+      if (res.success && res.token) {
+        localStorage.setItem('zeba_customer_token', res.token);
+        setToken(res.token);
+        setCustomer(res.customer);
+        addToast(res.message || 'Welcome back to ZEBA!', 'success');
         return { success: true };
       }
-      return { success: false, message: res.data?.message || 'Sign in failed.' };
+      return { success: false, message: res.message || 'Sign in failed.' };
     } catch (err) {
-      const msg = err.response?.data?.message || err.message || 'Invalid credentials.';
+      const msg = err.message || 'Invalid credentials.';
       addToast(msg, 'error');
       return { success: false, message: msg };
     }
@@ -57,17 +55,17 @@ export function CustomerAuthProvider({ children }) {
 
   const register = async (name, email, phone, password) => {
     try {
-      const res = await axios.post('/api/customer/register', { name, email, phone, password });
-      if (res.data?.success && res.data?.token) {
-        localStorage.setItem('zeba_customer_token', res.data.token);
-        setToken(res.data.token);
-        setCustomer(res.data.customer);
-        addToast(res.data.message || 'Welcome to ZEBA!', 'success');
+      const res = await api.post('/customer/register', { name, email, phone, password });
+      if (res.success && res.token) {
+        localStorage.setItem('zeba_customer_token', res.token);
+        setToken(res.token);
+        setCustomer(res.customer);
+        addToast(res.message || 'Welcome to ZEBA!', 'success');
         return { success: true };
       }
-      return { success: false, message: res.data?.message || 'Registration failed.' };
+      return { success: false, message: res.message || 'Registration failed.' };
     } catch (err) {
-      const msg = err.response?.data?.message || err.message || 'Registration failed.';
+      const msg = err.message || 'Registration failed.';
       addToast(msg, 'error');
       return { success: false, message: msg };
     }

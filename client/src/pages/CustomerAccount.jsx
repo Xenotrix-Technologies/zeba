@@ -16,7 +16,7 @@ import {
   MessageCircle,
   Sparkles
 } from 'lucide-react';
-import axios from 'axios';
+import api from '../services/api';
 import { useCustomerAuth } from '../context/CustomerAuthContext';
 import { useCart } from '../context/CartContext';
 
@@ -32,11 +32,9 @@ export default function CustomerAccount() {
     async function fetchOrders() {
       if (!token) return;
       try {
-        const res = await axios.get('/api/customer/orders', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (res.data?.success) {
-          setOrders(res.data.orders);
+        const res = await api.get('/customer/orders');
+        if (res.success) {
+          setOrders(res.orders || []);
         }
       } catch (err) {
         console.error('Failed to load customer orders', err);
