@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import { query } from '../config/db.js';
 import { config } from '../config/env.js';
 import { razorpayInstance, verifyRazorpaySignature } from '../config/razorpay.js';
+import { sendOrderConfirmationToCustomer, sendNewOrderAlertToOwner } from '../services/notificationService.js';
 
 /**
  * Generate a unique order number (e.g., ZEBA-2026-8942)
@@ -286,6 +287,50 @@ export async function verifyPayment(req, res, next) {
       ]
     );
 
+    // 8. Dispatch Real-Time Notifications
+    // 8a. Send Order Confirmation Email to Customer
+    try {
+      await sendOrderConfirmationToCustomer({
+        orderId,
+        orderNumber,
+        customer: {
+          name: customer.name.trim(),
+          email: customer.email.toLowerCase().trim(),
+          phone: customer.phone.trim()
+        },
+        address,
+        items: verifiedItems,
+        subtotal,
+        shippingFee,
+        totalAmount,
+        razorpayPaymentId: razorpay_payment_id
+      });
+    } catch (custNotifErr) {
+      console.error('Failed to dispatch customer order confirmation:', custNotifErr.message);
+    }
+
+    // 8b. Send New Order Alert Email to Store Owner / Admin with Full Address and Order Details
+    try {
+      await sendNewOrderAlertToOwner({
+        orderId,
+        orderNumber,
+        customer: {
+          name: customer.name.trim(),
+          email: customer.email.toLowerCase().trim(),
+          phone: customer.phone.trim()
+        },
+        address,
+        items: verifiedItems,
+        subtotal,
+        shippingFee,
+        totalAmount,
+        razorpayPaymentId: razorpay_payment_id,
+        razorpayOrderId: razorpay_order_id
+      });
+    } catch (ownerNotifErr) {
+      console.error('Failed to dispatch owner order alert:', ownerNotifErr.message);
+    }
+
     res.status(201).json({
       success: true,
       message: 'Payment verified and order placed successfully!',
@@ -311,3 +356,4 @@ export async function verifyPayment(req, res, next) {
     next(err);
   }
 }
+

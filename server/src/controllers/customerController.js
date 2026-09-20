@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { query } from '../config/db.js';
 import { config } from '../config/env.js';
+import { sendCustomerWelcomeEmail } from '../services/notificationService.js';
 
 export async function registerCustomer(req, res, next) {
   try {
@@ -63,9 +64,17 @@ export async function registerCustomer(req, res, next) {
       { expiresIn: '30d' }
     );
 
+    // Send and log congratulation welcome email
+    await sendCustomerWelcomeEmail({
+      customerId,
+      name: name.trim(),
+      email: cleanEmail,
+      phone: cleanPhone
+    });
+
     res.status(201).json({
       success: true,
-      message: 'Welcome to ZEBA! Your account has been created.',
+      message: `Congratulations ${name.trim()}! Welcome to ZEBA. A welcome email has been sent to ${cleanEmail}.`,
       token,
       customer: {
         id: customerId,
