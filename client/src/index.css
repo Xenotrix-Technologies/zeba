@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --zeba-navy: #0E1B4D;
+    --zeba-dark-navy: #081033;
+    --zeba-deep-navy: #172A6B;
+    --zeba-magenta: #FF2D78;
+    --zeba-deep-magenta: #D00A52;
+    --zeba-gold: #E5C06E;
+    --zeba-lavender: #9F7AEA;
+    --zeba-blush: #FFF0F6;
+  }
+
+  body {
+    @apply bg-[#FAF8FB] text-[#0E1B4D] antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight text-[#0E1B4D];
+  }
+}
+
+.font-serif-brand {
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.09em;
+}
+
+/* ZEBA Pack Color Gradients & Styles */
+.pack-navy-gradient {
+  background: linear-gradient(145deg, #0E1B4D 0%, #172A6B 50%, #081033 100%);
+}
+
+.pack-magenta-gradient {
+  background: linear-gradient(135deg, #FF2D78 0%, #F51E6E 50%, #D00A52 100%);
+}
+
+.pack-gold-gradient {
+  background: linear-gradient(135deg, #FDF1C7 0%, #E5C06E 50%, #B88B2A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.pack-lavender-gradient {
+  background: linear-gradient(135deg, #EDE9FE 0%, #DDD6FE 50%, #C4B5FD 100%);
+}
+
+.pack-safe-stamp {
+  background: #FF2D78;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 4px 12px rgba(255, 45, 120, 0.4);
+}
+
+/* Glassmorphism helpers */
+.glass-nav {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 45, 120, 0.12);
+}
+
+/* Continuous scrolling ticker */
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-ticker {
+  display: flex;
+  width: 200%;
+  animation: ticker 25s linear infinite;
+}
+
+.animate-ticker:hover {
+  animation-play-state: paused;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
