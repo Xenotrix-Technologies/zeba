@@ -40,7 +40,7 @@ export async function getDb() {
   }
 
   // Fallback to embedded PGlite (Real PostgreSQL 16 engine)
-  const dataDir = path.resolve(__dirname, '../../data/postgres');
+  const dataDir = process.env.VERCEL ? '/tmp/postgres' : path.resolve(__dirname, '../../data/postgres');
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
   }

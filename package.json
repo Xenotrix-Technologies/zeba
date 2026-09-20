@@ -1,13 +1,28 @@
 {
-  "name": "zeba-root",
+  "name": "zeba",
   "version": "1.0.0",
   "description": "ZEBA Period Pain Relief Heating Pad E-commerce Platform",
   "private": true,
+  "type": "module",
   "scripts": {
-    "install:all": "npm install --prefix server && npm install --prefix client",
+    "build": "cd client && npm install && npm run build",
+    "install:all": "npm install && npm install --prefix server && npm install --prefix client",
     "dev:server": "npm run dev --prefix server",
     "dev:client": "npm run dev --prefix client",
     "build:client": "npm run build --prefix client",
     "start": "npm start --prefix server"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.2.14",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^6.10.0",
+    "pg": "^8.13.1",
+    "razorpay": "^2.9.5"
   }
 }
