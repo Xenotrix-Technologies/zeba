@@ -138,7 +138,7 @@ export async function sendCustomerWelcomeEmail({ customerId, name, email, phone 
           </div>
 
           <div style="text-align: center; margin: 28px 0;">
-            <a href="http://localhost:5173/account" style="display: inline-block; background: linear-gradient(135deg, #FF2D78 0%, #D00A52 100%); color: #FFFFFF; text-decoration: none; padding: 13px 32px; border-radius: 12px; font-weight: bold; font-size: 14px; box-shadow: 0 4px 14px rgba(255, 45, 120, 0.35);">
+            <a href="${config.APP_URL || 'https://www.zebaofficial.in'}/account" style="display: inline-block; background: linear-gradient(135deg, #FF2D78 0%, #D00A52 100%); color: #FFFFFF; text-decoration: none; padding: 13px 32px; border-radius: 12px; font-weight: bold; font-size: 14px; box-shadow: 0 4px 14px rgba(255, 45, 120, 0.35);">
               Access Your Account Dashboard →
             </a>
           </div>
@@ -166,7 +166,7 @@ export async function sendCustomerWelcomeEmail({ customerId, name, email, phone 
       to: email,
       subject,
       html: emailHtml,
-      text: `Congratulations ${name}! Welcome to ZEBA Period Pain Relief. Visit http://localhost:5173/account to manage your account and orders.`
+      text: `Congratulations ${name}! Welcome to ZEBA Period Pain Relief. Visit ${config.APP_URL || 'https://www.zebaofficial.in'}/account to manage your account and orders.`
     });
 
     console.log(`🎉 Congratulation welcome email sent and logged for ${name} (${email})`);
@@ -277,7 +277,7 @@ export async function sendOrderConfirmationToCustomer({
           </div>
 
           <div style="text-align: center; margin: 28px 0;">
-            <a href="http://localhost:5173/account" style="display: inline-block; background: linear-gradient(135deg, #FF2D78 0%, #D00A52 100%); color: #FFFFFF; text-decoration: none; padding: 13px 32px; border-radius: 12px; font-weight: bold; font-size: 14px; box-shadow: 0 4px 14px rgba(255, 45, 120, 0.35);">
+            <a href="${config.APP_URL || 'https://www.zebaofficial.in'}/account" style="display: inline-block; background: linear-gradient(135deg, #FF2D78 0%, #D00A52 100%); color: #FFFFFF; text-decoration: none; padding: 13px 32px; border-radius: 12px; font-weight: bold; font-size: 14px; box-shadow: 0 4px 14px rgba(255, 45, 120, 0.35);">
               Track Your Order Live →
             </a>
           </div>
@@ -305,7 +305,7 @@ export async function sendOrderConfirmationToCustomer({
       to: customer.email,
       subject,
       html: emailHtml,
-      text: `Order Confirmed: ZEBA Order #${orderNumber}. Total: ₹${parseFloat(totalAmount).toFixed(2)}. Track your parcel at http://localhost:5173/account`
+      text: `Order Confirmed: ZEBA Order #${orderNumber}. Total: ₹${parseFloat(totalAmount).toFixed(2)}. Track your parcel at ${config.APP_URL || 'https://www.zebaofficial.in'}/account`
     });
 
     console.log(`✉️ Dispatched Order Confirmation email to customer: ${customer.email} (Order: ${orderNumber})`);
@@ -402,7 +402,7 @@ export async function sendNewOrderAlertToOwner({
 
           {/* Action CTA */}
           <div style="text-align: center; margin: 26px 0;">
-            <a href="http://localhost:5173/admin/orders/${orderId}" style="display: inline-block; background: linear-gradient(135deg, #FF2D78 0%, #D00A52 100%); color: #FFFFFF; text-decoration: none; padding: 14px 34px; border-radius: 12px; font-weight: bold; font-size: 14px; box-shadow: 0 4px 14px rgba(255, 45, 120, 0.4);">
+            <a href="${config.APP_URL || 'https://www.zebaofficial.in'}/admin/orders/${orderId}" style="display: inline-block; background: linear-gradient(135deg, #FF2D78 0%, #D00A52 100%); color: #FFFFFF; text-decoration: none; padding: 14px 34px; border-radius: 12px; font-weight: bold; font-size: 14px; box-shadow: 0 4px 14px rgba(255, 45, 120, 0.4);">
               Open in Admin Portal & Dispatch Parcel →
             </a>
           </div>
@@ -427,7 +427,7 @@ export async function sendNewOrderAlertToOwner({
       to: ownerEmail,
       subject,
       html: emailHtml,
-      text: `NEW ORDER #${orderNumber} - ₹${parseFloat(totalAmount).toFixed(2)} from ${customer.name} (${customer.phone}). Delivery to: ${address.house_building || address.houseBuilding}, ${address.city}, ${address.state} - ${address.pincode}. View: http://localhost:5173/admin/orders/${orderId}`
+      text: `NEW ORDER #${orderNumber} - ₹${parseFloat(totalAmount).toFixed(2)} from ${customer.name} (${customer.phone}). Delivery to: ${address.house_building || address.houseBuilding}, ${address.city}, ${address.state} - ${address.pincode}. View: ${config.APP_URL || 'https://www.zebaofficial.in'}/admin/orders/${orderId}`
     });
 
     console.log(`🚨 Dispatched New Order alert email to Owner: ${ownerEmail} (Order: ${orderNumber} - ₹${totalAmount})`);
@@ -476,7 +476,7 @@ export async function sendCustomerStatusNotification({
     const whatsappMessage = generateWhatsAppMessage(orderObj, status, notes);
 
     const emailSubject = `🔔 Status Update: Your ZEBA Order #${orderNumber} is ${status.toUpperCase()}`;
-    const emailBody = `Dear ${customerName},\n\nYour order #${orderNumber} status has been updated to: ${status.toUpperCase()}.\n${notes ? `Delivery / Tracking Notes: ${notes}\n` : ''}\nTotal Amount: ₹${parseFloat(totalAmount).toFixed(2)}\n\nThank you for choosing ZEBA Periods Pain Relief.\nTrack your order anytime: http://localhost:5173/account`;
+    const emailBody = `Dear ${customerName},\n\nYour order #${orderNumber} status has been updated to: ${status.toUpperCase()}.\n${notes ? `Delivery / Tracking Notes: ${notes}\n` : ''}\nTotal Amount: ₹${parseFloat(totalAmount).toFixed(2)}\n\nThank you for choosing ZEBA Periods Pain Relief.\nTrack your order anytime: ${config.APP_URL || 'https://www.zebaofficial.in'}/account`;
 
     const statusHtml = `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #FAF8FB; padding: 28px; border-radius: 20px; border: 1px solid #FFE4EF;">
@@ -499,7 +499,7 @@ export async function sendCustomerStatusNotification({
           </div>
 
           <div style="text-align: center; margin: 28px 0;">
-            <a href="http://localhost:5173/account" style="display: inline-block; background: linear-gradient(135deg, #FF2D78 0%, #D00A52 100%); color: #FFFFFF; text-decoration: none; padding: 13px 32px; border-radius: 12px; font-weight: bold; font-size: 14px; box-shadow: 0 4px 14px rgba(255, 45, 120, 0.35);">
+            <a href="${config.APP_URL || 'https://www.zebaofficial.in'}/account" style="display: inline-block; background: linear-gradient(135deg, #FF2D78 0%, #D00A52 100%); color: #FFFFFF; text-decoration: none; padding: 13px 32px; border-radius: 12px; font-weight: bold; font-size: 14px; box-shadow: 0 4px 14px rgba(255, 45, 120, 0.35);">
               View Order in Account Portal →
             </a>
           </div>
