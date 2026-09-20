@@ -4,13 +4,16 @@
   "description": "ZEBA Period Pain Relief Heating Pad E-commerce Platform",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "client",
+    "server"
+  ],
   "scripts": {
-    "build": "cd client && npm install && npm run build",
-    "install:all": "npm install && npm install --prefix server && npm install --prefix client",
-    "dev:server": "npm run dev --prefix server",
-    "dev:client": "npm run dev --prefix client",
-    "build:client": "npm run build --prefix client",
-    "start": "npm start --prefix server"
+    "build": "npm run build --workspace=client && node -e \"import fs from 'fs'; fs.cpSync('client/dist', 'dist', { recursive: true, force: true });\"",
+    "dev": "npm run dev --workspace=client",
+    "dev:server": "npm run dev --workspace=server",
+    "dev:client": "npm run dev --workspace=client",
+    "start": "npm start --workspace=server"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.2.14",
@@ -26,7 +29,12 @@
     "razorpay": "^2.9.5"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^6.1.1",
-    "vite": "^8.3.0"
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.2",
+    "tailwindcss": "^3.4.17",
+    "vite": "^6.1.0"
   }
 }
