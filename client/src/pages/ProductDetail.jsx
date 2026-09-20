@@ -16,7 +16,10 @@ import {
   MessageCircle,
   HelpCircle,
   Layers,
-  Heart
+  Heart,
+  Award,
+  TrendingDown,
+  Sun
 } from 'lucide-react';
 import api from '../services/api';
 import { useCart } from '../context/CartContext';
@@ -27,7 +30,7 @@ export default function ProductDetail() {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('benefits');
+  const [activeTab, setActiveTab] = useState('how_to_use');
 
   const { addToCart } = useCart();
   const navigate = useNavigate();
@@ -84,38 +87,39 @@ export default function ProductDetail() {
     );
   }
 
-  const images = Array.isArray(selectedProduct.images)
+  const baseImages = Array.isArray(selectedProduct.images)
     ? selectedProduct.images
     : (typeof selectedProduct.images === 'string' ? JSON.parse(selectedProduct.images || '[]') : ['/images/zeba-real-packaging-1.jpg']);
+
+  // Combine authentic product packaging + official educational infographics
+  const allImages = [
+    ...baseImages,
+    '/images/zeba-how-to-use-guide.jpg',
+    '/images/zeba-how-it-works-timeline.jpg',
+    '/images/zeba-whats-inside-ingredients.jpg',
+    '/images/zeba-got-questions-faq.jpg'
+  ];
 
   const benefits = Array.isArray(selectedProduct.benefits)
     ? selectedProduct.benefits
     : (typeof selectedProduct.benefits === 'string' ? JSON.parse(selectedProduct.benefits || '[]') : []);
-
-  const howToUse = Array.isArray(selectedProduct.how_to_use)
-    ? selectedProduct.how_to_use
-    : (typeof selectedProduct.how_to_use === 'string' ? JSON.parse(selectedProduct.how_to_use || '[]') : []);
-
-  const features = Array.isArray(selectedProduct.features)
-    ? selectedProduct.features
-    : (typeof selectedProduct.features === 'string' ? JSON.parse(selectedProduct.features || '[]') : []);
 
   const discountPercent = selectedProduct.original_price > selectedProduct.price
     ? Math.round(((selectedProduct.original_price - selectedProduct.price) / selectedProduct.original_price) * 100)
     : 0;
 
   return (
-    <div className="bg-[#FCFCFE] py-8 sm:py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="bg-[#FAF8FB] py-8 sm:py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         
-        {/* Product Details Section */}
+        {/* Product Hero Top Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
           
           {/* Left Column: Image Gallery */}
           <div className="lg:col-span-6 space-y-4">
             
-            {/* Main Image */}
-            <div className="rounded-3xl bg-white p-4 border border-slate-200/80 shadow-lg relative overflow-hidden aspect-square flex items-center justify-center">
+            {/* Main Image View */}
+            <div className="rounded-3xl bg-white p-4 border border-slate-200/90 shadow-lg relative overflow-hidden aspect-square flex items-center justify-center">
               {selectedProduct.badge_text && (
                 <div className="absolute top-4 left-4 z-10">
                   <span className="px-3.5 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-brand-pink text-white shadow-md">
@@ -124,37 +128,35 @@ export default function ProductDetail() {
                 </div>
               )}
               <img
-                src={images[activeImageIndex] || images[0]}
+                src={allImages[activeImageIndex] || allImages[0]}
                 alt={selectedProduct.name}
                 className="w-full h-full object-contain transition-all duration-300 transform hover:scale-105"
               />
             </div>
 
             {/* Thumbnail selector */}
-            {images.length > 1 && (
-              <div className="grid grid-cols-4 gap-3">
-                {images.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setActiveImageIndex(idx)}
-                    className={`rounded-2xl p-1.5 bg-white border transition-all aspect-square flex items-center justify-center overflow-hidden ${
-                      activeImageIndex === idx
-                        ? 'border-brand-pink ring-2 ring-brand-pink/30 shadow-md'
-                        : 'border-slate-200 hover:border-slate-300 opacity-70 hover:opacity-100'
-                    }`}
-                  >
-                    <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover rounded-xl" />
-                  </button>
-                ))}
-              </div>
-            )}
+            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2.5">
+              {allImages.slice(0, 6).map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setActiveImageIndex(idx)}
+                  className={`rounded-2xl p-1 bg-white border transition-all aspect-square flex items-center justify-center overflow-hidden ${
+                    activeImageIndex === idx
+                      ? 'border-brand-pink ring-2 ring-brand-pink/30 shadow-md'
+                      : 'border-slate-200 hover:border-slate-300 opacity-70 hover:opacity-100'
+                  }`}
+                >
+                  <img src={img} alt={`Thumb ${idx + 1}`} className="w-full h-full object-cover rounded-xl" />
+                </button>
+              ))}
+            </div>
 
             {/* Discreet Packaging Guarantee */}
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center space-x-3 text-xs text-slate-600">
-              <Truck className="w-5 h-5 text-[#0A192F] flex-shrink-0" />
+            <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center space-x-3 text-xs text-slate-600">
+              <Truck className="w-5 h-5 text-brand-navy flex-shrink-0" />
               <div>
-                <span className="font-bold text-[#0A192F]">100% Discreet Packaging:</span>
-                <span className="ml-1">Delivered in a plain, confidential parcel with no external product markings.</span>
+                <span className="font-bold text-brand-navy">100% Discreet Packaging:</span>
+                <span className="ml-1">Delivered in plain confidential packaging with zero product markings.</span>
               </div>
             </div>
 
@@ -172,7 +174,7 @@ export default function ProductDetail() {
                   ))}
                 </div>
                 <span>4.9 / 5.0</span>
-                <span className="text-slate-400 font-normal text-xs">(480+ Verified Reviews)</span>
+                <span className="text-slate-400 font-normal text-xs">(520+ Reviews)</span>
               </div>
 
               <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200/60">
@@ -180,17 +182,17 @@ export default function ProductDetail() {
               </span>
             </div>
 
-            {/* Product Name */}
+            {/* Product Title */}
             <div>
               <h1 className="font-display font-extrabold text-2xl sm:text-3xl lg:text-4xl text-brand-navy">
                 {selectedProduct.name}
               </h1>
-              <p className="text-xs sm:text-sm text-slate-500 mt-2 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
                 {selectedProduct.short_description}
               </p>
             </div>
 
-            {/* Price Box */}
+            {/* Price Card */}
             <div className="p-4 rounded-2xl bg-brand-roseBg border border-brand-pink/20 flex items-baseline justify-between">
               <div>
                 <div className="flex items-baseline space-x-3">
@@ -215,7 +217,7 @@ export default function ProductDetail() {
             </div>
 
             {/* DYNAMIC PACK SELECTOR */}
-            <div className="space-y-3 pt-2">
+            <div className="space-y-3 pt-1">
               <label className="block text-xs font-bold uppercase tracking-wider text-brand-navy">
                 Select Pack Size:
               </label>
@@ -250,7 +252,7 @@ export default function ProductDetail() {
                       </div>
 
                       <div className="text-[11px] text-slate-500 mt-1">
-                        {prod.pack_count === 1 ? '1 Single Use Pad' : '3 Individually Sealed Pads'}
+                        {prod.pack_count === 1 ? '1 Single Use Heating Pad' : '3 Individually Sealed Heating Pads'}
                       </div>
 
                       {savings > 0 && (
@@ -264,8 +266,8 @@ export default function ProductDetail() {
               </div>
             </div>
 
-            {/* Quantity Stepper & Add to Bag */}
-            <div className="space-y-3 pt-2">
+            {/* Quantity Stepper & Buttons */}
+            <div className="space-y-3 pt-1">
               <div className="flex items-center space-x-4">
                 <span className="text-xs font-bold uppercase tracking-wider text-brand-navy">Quantity:</span>
                 <div className="flex items-center border border-slate-300 rounded-xl bg-white p-1">
@@ -304,114 +306,226 @@ export default function ProductDetail() {
                 </button>
               </div>
 
-              {/* WhatsApp Quick Order Help */}
+              {/* WhatsApp Support Button */}
               <a
-                href={`https://wa.me/919876543210?text=Hi%20ZEBA%20Team%2C%20I%20want%20to%20order%20the%20${encodeURIComponent(selectedProduct.name)}`}
+                href={`https://wa.me/919876543210?text=Hi%20ZEBA%20Team%2C%20I%20have%20a%20question%20about%20the%20${encodeURIComponent(selectedProduct.name)}`}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full py-3 px-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 font-bold text-xs flex items-center justify-center space-x-2 transition-colors"
               >
                 <MessageCircle className="w-4 h-4 text-emerald-600" />
-                <span>Need Help Choosing? Ask Us on WhatsApp</span>
+                <span>Need Advice? Chat with ZEBA Care on WhatsApp</span>
               </a>
             </div>
 
-            {/* Highlights Grid */}
-            <div className="grid grid-cols-3 gap-2 pt-4 border-t border-slate-100 text-center">
-              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
+            {/* Value Highlights */}
+            <div className="grid grid-cols-3 gap-2 pt-4 border-t border-slate-200 text-center">
+              <div className="p-3 rounded-2xl bg-white border border-slate-200 shadow-sm">
                 <Flame className="w-4 h-4 text-brand-pink mx-auto mb-1" />
-                <span className="text-[11px] font-bold text-brand-navy block">Heats in 5 Mins</span>
+                <span className="text-[11px] font-bold text-brand-navy block">Heats in 10-15 Mins</span>
               </div>
-              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                <Clock className="w-4 h-4 text-brand-gold mx-auto mb-1" />
+              <div className="p-3 rounded-2xl bg-white border border-slate-200 shadow-sm">
+                <Clock className="w-4 h-4 text-amber-500 mx-auto mb-1" />
                 <span className="text-[11px] font-bold text-brand-navy block">Up to 8 Hours</span>
               </div>
-              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
+              <div className="p-3 rounded-2xl bg-white border border-slate-200 shadow-sm">
                 <ShieldCheck className="w-4 h-4 text-emerald-600 mx-auto mb-1" />
-                <span className="text-[11px] font-bold text-brand-navy block">100% Safe</span>
+                <span className="text-[11px] font-bold text-brand-navy block">100% Safe Natural</span>
               </div>
             </div>
 
           </div>
         </div>
 
-        {/* Tabbed Product Details */}
-        <div className="mt-16 bg-white rounded-3xl p-6 sm:p-10 border border-slate-200/80 shadow-md">
-          <div className="flex border-b border-slate-200 space-x-8">
-            <button
-              onClick={() => setActiveTab('benefits')}
-              className={`pb-4 text-sm font-bold transition-colors border-b-2 -mb-px ${
-                activeTab === 'benefits'
-                  ? 'border-brand-pink text-brand-pink'
-                  : 'border-transparent text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              Key Benefits
-            </button>
+        {/* Tabbed Interactive Deep-Dive Sections */}
+        <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200/90 shadow-md space-y-8">
+          
+          <div className="flex border-b border-slate-200 space-x-4 sm:space-x-8 overflow-x-auto">
             <button
               onClick={() => setActiveTab('how_to_use')}
-              className={`pb-4 text-sm font-bold transition-colors border-b-2 -mb-px ${
+              className={`pb-4 text-xs sm:text-sm font-bold whitespace-nowrap transition-colors border-b-2 -mb-px ${
                 activeTab === 'how_to_use'
                   ? 'border-brand-pink text-brand-pink'
                   : 'border-transparent text-slate-500 hover:text-slate-800'
               }`}
             >
-              How to Use (Box Guide)
+              How to Use (4 Steps)
             </button>
             <button
-              onClick={() => setActiveTab('safety')}
-              className={`pb-4 text-sm font-bold transition-colors border-b-2 -mb-px ${
-                activeTab === 'safety'
+              onClick={() => setActiveTab('timeline')}
+              className={`pb-4 text-xs sm:text-sm font-bold whitespace-nowrap transition-colors border-b-2 -mb-px ${
+                activeTab === 'timeline'
                   ? 'border-brand-pink text-brand-pink'
                   : 'border-transparent text-slate-500 hover:text-slate-800'
               }`}
             >
-              Ingredients & Safety Notice
+              How It Works Over Time
+            </button>
+            <button
+              onClick={() => setActiveTab('ingredients')}
+              className={`pb-4 text-xs sm:text-sm font-bold whitespace-nowrap transition-colors border-b-2 -mb-px ${
+                activeTab === 'ingredients'
+                  ? 'border-brand-pink text-brand-pink'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              What's Inside (Ingredients)
+            </button>
+            <button
+              onClick={() => setActiveTab('faq')}
+              className={`pb-4 text-xs sm:text-sm font-bold whitespace-nowrap transition-colors border-b-2 -mb-px ${
+                activeTab === 'faq'
+                  ? 'border-brand-pink text-brand-pink'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              Got Questions (FAQ)
             </button>
           </div>
 
-          <div className="pt-6">
-            {activeTab === 'benefits' && (
-              <div className="space-y-4 animate-fade-in">
-                <h3 className="font-display font-bold text-lg text-brand-navy">Why Choose Authentic ZEBA Heating Pads?</h3>
-                <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-slate-700">
-                  {benefits.map((b, idx) => (
-                    <li key={idx} className="flex items-start space-x-2.5 p-3 rounded-xl bg-slate-50 border border-slate-100">
-                      <CheckCircle2 className="w-4 h-4 text-brand-pink flex-shrink-0 mt-0.5" />
-                      <span>{b}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
+          <div>
+            {/* TAB 1: HOW TO USE */}
             {activeTab === 'how_to_use' && (
-              <div className="space-y-4 animate-fade-in">
-                <h3 className="font-display font-bold text-lg text-brand-navy">Official 3-Step Application Guide</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {howToUse.map((step, idx) => (
-                    <div key={idx} className="p-4 rounded-2xl bg-brand-roseBg border border-brand-pink/20 space-y-2">
-                      <span className="w-7 h-7 rounded-full bg-brand-pink text-white font-bold text-xs flex items-center justify-center">
-                        {idx + 1}
-                      </span>
-                      <p className="text-xs text-slate-700 leading-relaxed">{step}</p>
+              <div className="space-y-6 animate-fade-in">
+                <div className="flex flex-col lg:flex-row items-center gap-8">
+                  <div className="w-full lg:w-1/2 rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+                    <img
+                      src="/images/zeba-how-to-use-guide.jpg"
+                      alt="ZEBA How to Use Guide"
+                      className="w-full h-auto object-cover"
+                    />
+                  </div>
+                  <div className="w-full lg:w-1/2 space-y-4">
+                    <h3 className="font-display font-extrabold text-xl text-brand-navy">
+                      4 Simple Steps to Period Relief
+                    </h3>
+                    <div className="space-y-3 text-xs">
+                      <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200">
+                        <strong className="text-brand-pink font-bold block mb-0.5">Step 1: Peel & Stick</strong>
+                        <span className="text-slate-700">Apply to underwear, NOT skin. Stick adhesive backing to undergarments.</span>
+                      </div>
+                      <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200">
+                        <strong className="text-amber-800 font-bold block mb-0.5">Step 2: It Warms Up</strong>
+                        <span className="text-slate-700">Starts heating in 10-15 minutes upon air contact.</span>
+                      </div>
+                      <div className="p-3.5 rounded-xl bg-purple-50 border border-purple-200">
+                        <strong className="text-purple-800 font-bold block mb-0.5">Step 3: Enjoy Relief</strong>
+                        <span className="text-slate-700">Soothes for up to 8 continuous hours of uninterrupted comfort.</span>
+                      </div>
+                      <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200">
+                        <strong className="text-emerald-800 font-bold block mb-0.5">Step 4: Live Your Day</strong>
+                        <span className="text-slate-700">Forget the pain and get on with your work, study, and life.</span>
+                      </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
               </div>
             )}
 
-            {activeTab === 'safety' && (
-              <div className="space-y-4 animate-fade-in text-xs text-slate-700 leading-relaxed max-w-3xl">
-                <h3 className="font-display font-bold text-lg text-brand-navy">100% Safe Natural Ingredients</h3>
-                <p>
-                  ZEBA heating pads contain a safe, natural blend of <strong>Iron Powder, Activated Carbon, Vermiculite, Salt, and Purified Moisture</strong>. When exposed to oxygen, it produces gentle, continuous thermal energy.
-                </p>
-                <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 space-y-1">
-                  <span className="font-bold block">Important Safety Notice:</span>
-                  <p>• External use only. Always stick the adhesive onto the outside of your underwear or undergarment.</p>
-                  <p>• Do not stick directly to bare skin.</p>
-                  <p>• Every few hours, remove for 5 minutes to allow skin to breathe, then reattach.</p>
+            {/* TAB 2: TIMELINE */}
+            {activeTab === 'timeline' && (
+              <div className="space-y-6 animate-fade-in">
+                <div className="flex flex-col lg:flex-row items-center gap-8">
+                  <div className="w-full lg:w-1/2 rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+                    <img
+                      src="/images/zeba-how-it-works-timeline.jpg"
+                      alt="ZEBA How It Works Over Time"
+                      className="w-full h-auto object-cover"
+                    />
+                  </div>
+                  <div className="w-full lg:w-1/2 space-y-4">
+                    <h3 className="font-display font-extrabold text-xl text-brand-navy">
+                      Relief Progression Over Time
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-center">
+                        <strong className="text-brand-navy font-mono font-bold block mb-1">Minute 0</strong>
+                        <span className="text-slate-600">Apply patch to underwear</span>
+                      </div>
+                      <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-center">
+                        <strong className="text-amber-800 font-mono font-bold block mb-1">Minute 15</strong>
+                        <span className="text-slate-600">Warmth kicks in & relief begins</span>
+                      </div>
+                      <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-center">
+                        <strong className="text-brand-pink font-mono font-bold block mb-1">Hour 1</strong>
+                        <span className="text-slate-600">Pain drops from a 10 down to a 2</span>
+                      </div>
+                      <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-center">
+                        <strong className="text-emerald-800 font-mono font-bold block mb-1">Hour 8</strong>
+                        <span className="text-slate-600">Lasts for a full day</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: INGREDIENTS */}
+            {activeTab === 'ingredients' && (
+              <div className="space-y-6 animate-fade-in">
+                <div className="flex flex-col lg:flex-row items-center gap-8">
+                  <div className="w-full lg:w-1/2 rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+                    <img
+                      src="/images/zeba-whats-inside-ingredients.jpg"
+                      alt="ZEBA What's Inside Pure Natural Goodness"
+                      className="w-full h-auto object-cover"
+                    />
+                  </div>
+                  <div className="w-full lg:w-1/2 space-y-3 text-xs">
+                    <h3 className="font-display font-extrabold text-xl text-brand-navy">
+                      100% Pure Natural Formula
+                    </h3>
+                    <ul className="space-y-2.5">
+                      <li className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                        <strong className="text-brand-navy font-bold">1. Iron Powder:</strong> Creates gentle, consistent heat when exposed to air.
+                      </li>
+                      <li className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                        <strong className="text-brand-navy font-bold">2. Vermiculite:</strong> Natural mineral that retains and distributes heat evenly.
+                      </li>
+                      <li className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                        <strong className="text-brand-navy font-bold">3. Salt:</strong> Catalyst for heat reaction, ensures 8+ hours of relief.
+                      </li>
+                      <li className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                        <strong className="text-brand-navy font-bold">4. Activated Carbon:</strong> Regulates temperature for consistent warmth.
+                      </li>
+                    </ul>
+                    <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 font-medium">
+                      ✓ Dermatologically tested • Drug-free • No artificial fragrance • No parabens
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 4: FAQ */}
+            {activeTab === 'faq' && (
+              <div className="space-y-6 animate-fade-in">
+                <div className="flex flex-col lg:flex-row items-center gap-8">
+                  <div className="w-full lg:w-1/2 rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+                    <img
+                      src="/images/zeba-got-questions-faq.jpg"
+                      alt="ZEBA Got Questions We Got Answers"
+                      className="w-full h-auto object-cover"
+                    />
+                  </div>
+                  <div className="w-full lg:w-1/2 space-y-3 text-xs">
+                    <div className="p-3.5 rounded-xl bg-orange-50 border border-orange-200">
+                      <strong className="text-orange-900 font-bold block">Q: Is it safe for teenagers?</strong>
+                      <span className="text-slate-700">A: Yes, 13+. Natural heat, no drugs.</span>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200">
+                      <strong className="text-emerald-900 font-bold block">Q: Is it visible under clothes?</strong>
+                      <span className="text-slate-700">A: No, ultra-thin and blends naturally.</span>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200">
+                      <strong className="text-rose-900 font-bold block">Q: What if it doesn’t work?</strong>
+                      <span className="text-slate-700">A: Satisfaction guarantee. Refund within 7 days if not satisfied.</span>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-purple-50 border border-purple-200">
+                      <strong className="text-purple-900 font-bold block">Q: Is there fragrance?</strong>
+                      <span className="text-slate-700">A: Fragrance-free and hypoallergenic.</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

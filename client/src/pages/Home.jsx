@@ -16,7 +16,12 @@ import {
   Package,
   Layers,
   Check,
-  Award
+  Award,
+  TrendingDown,
+  Sun,
+  Coffee,
+  Smile,
+  Leaf
 } from 'lucide-react';
 import api from '../services/api';
 import ProductCard from '../components/ProductCard';
@@ -42,26 +47,135 @@ export default function Home() {
     fetchProducts();
   }, []);
 
-  const faqs = [
+  const howToUseSteps = [
     {
-      q: 'How does the ZEBA Heating Pad work?',
-      a: 'The ZEBA Heating Pad uses 100% safe, air-activated natural thermal technology. As soon as you remove it from the sealed pouch, it begins warming up within 5-6 minutes upon exposure to air, providing a steady soothing heat (approx 50°C - 55°C) that lasts up to 8 hours.'
+      step: 'Step 1',
+      title: 'Peel & Stick',
+      subtitle: 'Apply to underwear, NOT skin.',
+      description: 'Peel away the adhesive backing strip and stick firmly to the outside of your underwear over your lower abdomen or back.',
+      tag: 'Zero Bare-Skin Contact',
+      icon: Layers,
+      color: 'from-pink-500 to-rose-500',
+      bg: 'bg-rose-50/80',
+      border: 'border-rose-200'
     },
     {
-      q: 'Can I stick the heating pad directly on my bare skin?',
-      a: 'No, for safety and maximum comfort, always stick the adhesive backing to the OUTSIDE of your underwear or undergarment over the lower abdomen or lower back. Do not apply directly onto bare skin.'
+      step: 'Step 2',
+      title: 'It Warms Up',
+      subtitle: 'Starts heating in 10-15 minutes.',
+      description: 'Exposed to air, the 100% natural mineral thermal core activates rapidly, reaching a soothing therapeutic warmth.',
+      tag: 'Air-Activated',
+      icon: Flame,
+      color: 'from-amber-500 to-orange-500',
+      bg: 'bg-amber-50/80',
+      border: 'border-amber-200'
     },
     {
-      q: 'Is the heat pad visible under tight clothes?',
-      a: 'Not at all. ZEBA pads are ultra-thin, lightweight, and curved to match your body contour. You can wear them seamlessly under jeans, dresses, leggings, or office formals without anyone noticing.'
+      step: 'Step 3',
+      title: 'Enjoy Relief',
+      subtitle: 'Soothes for up to 8 hours.',
+      description: 'Continuous gentle heat dilates blood vessels, increasing oxygen flow and melting away painful uterine spasms.',
+      tag: '8+ Hours Relief',
+      icon: Heart,
+      color: 'from-purple-500 to-indigo-500',
+      bg: 'bg-purple-50/80',
+      border: 'border-purple-200'
     },
     {
-      q: 'What is the difference between the 1-Pack and 3-Pack?',
-      a: 'The 1-Pack is our starter pack containing 1 single-use pad. The 3-Pack Value Box contains 3 individually sealed heating pads for multi-day period comfort at a discounted bundle price (Save over 37%).'
+      step: 'Step 4',
+      title: 'Live Your Day',
+      subtitle: 'Forget the pain and get on with your life.',
+      description: 'Go to work, attend college classes, travel, and sleep peacefully with ultra-thin, completely invisible comfort.',
+      tag: 'All-Day Freedom',
+      icon: Sun,
+      color: 'from-emerald-500 to-teal-500',
+      bg: 'bg-emerald-50/80',
+      border: 'border-emerald-200'
+    }
+  ];
+
+  const timelineMilestones = [
+    {
+      time: 'Minute 0',
+      title: 'Application',
+      description: 'Apply the patch to your underwear.',
+      badge: 'Easy & Clean',
+      highlight: 'Peel & stick in seconds'
     },
     {
-      q: 'How quickly does it get delivered?',
-      a: 'All orders are dispatched within 24 hours in 100% confidential, plain discreet packaging with no external markings. Delivery takes 2-4 days for metro cities across India.'
+      time: 'Minute 15',
+      title: 'Activation',
+      description: 'The warmth kicks in and relief begins.',
+      badge: 'Fast Acting',
+      highlight: 'Spasms begin to relax'
+    },
+    {
+      time: 'Hour 1',
+      title: 'Peak Comfort',
+      description: 'Pain can drop from a 10 down to a 2.',
+      badge: 'Pain Drop Curve',
+      highlight: 'Deep muscle relaxation'
+    },
+    {
+      time: 'Hour 8',
+      title: 'Full Day Care',
+      description: 'Still working! Lasts for a full school or work day.',
+      badge: '8+ Hours Steady',
+      highlight: 'Worry-free mobility'
+    }
+  ];
+
+  const ingredientsList = [
+    {
+      num: '1',
+      name: 'Iron Powder',
+      role: 'Core Thermal Source',
+      description: 'Creates gentle, consistent therapeutic heat when naturally exposed to oxygen in the air.',
+      badgeColor: 'bg-orange-100 text-orange-800 border-orange-200'
+    },
+    {
+      num: '2',
+      name: 'Vermiculite',
+      role: 'Heat Retainer & Distributor',
+      description: 'Natural mineral insulator that retains heat and distributes warmth evenly across the entire pad surface.',
+      badgeColor: 'bg-amber-100 text-amber-800 border-amber-200'
+    },
+    {
+      num: '3',
+      name: 'Salt',
+      role: 'Reaction Catalyst',
+      description: 'Natural catalyst that accelerates and stabilizes the heat reaction, ensuring 8+ hours of uninterrupted relief.',
+      badgeColor: 'bg-rose-100 text-rose-800 border-rose-200'
+    },
+    {
+      num: '4',
+      name: 'Activated Carbon',
+      role: 'Thermal Regulator',
+      description: 'Porous carbon helps regulate internal temperature to maintain constant, comfortable warmth without spikes.',
+      badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-200'
+    }
+  ];
+
+  const gotQuestionsFaqs = [
+    {
+      q: 'Is it safe for teenagers?',
+      a: 'Yes, 13+. Natural heat, no drugs. Safe for young girls experiencing menstrual cramps without any pharmaceutical side effects.',
+      color: 'border-orange-200 bg-orange-50/50 text-orange-950'
+    },
+    {
+      q: 'Is it visible under clothes?',
+      a: 'No, ultra-thin and blends naturally with your body contours. Completely invisible under jeans, dresses, or uniforms.',
+      color: 'border-emerald-200 bg-emerald-50/50 text-emerald-950'
+    },
+    {
+      q: 'What if it doesn’t work?',
+      a: 'Satisfaction guarantee. Refund within 7 days if not satisfied. We stand 100% behind our menstrual care products.',
+      color: 'border-rose-200 bg-rose-50/50 text-rose-950'
+    },
+    {
+      q: 'Is there fragrance?',
+      a: 'Fragrance-free and hypoallergenic. Contains no artificial perfumes, parabens, or harsh chemicals.',
+      color: 'border-purple-200 bg-purple-50/50 text-purple-950'
     }
   ];
 
@@ -95,7 +209,7 @@ export default function Home() {
               </h1>
 
               <p className="text-sm sm:text-base text-slate-600 max-w-xl mx-auto lg:mx-0 leading-relaxed font-normal">
-                Discover the authentic <strong>ZEBA Periods Pain Relief Heating Pad</strong>. Ultra-thin, wearable, and air-activated in 5 minutes with 100% safe ingredients for all-day period comfort.
+                Discover the authentic <strong>ZEBA Periods Pain Relief Heating Pad</strong>. Ultra-thin, wearable, and air-activated with 100% natural, safe ingredients for all-day menstrual freedom.
               </p>
 
               {/* CTAs */}
@@ -109,24 +223,24 @@ export default function Home() {
                 </Link>
 
                 <a
-                  href="#how-it-works"
+                  href="#how-to-use"
                   className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white border border-slate-200 text-brand-navy hover:text-brand-pink hover:border-brand-pink/40 font-bold text-base shadow-sm hover:shadow transition-all text-center"
                 >
                   How It Works
                 </a>
               </div>
 
-              {/* Micro Trust Points matching packaging icons */}
+              {/* Micro Trust Points */}
               <div className="pt-4 grid grid-cols-3 gap-3 max-w-md mx-auto lg:mx-0 text-center">
                 <div className="p-3 rounded-2xl bg-white border border-slate-100 shadow-sm">
                   <Flame className="w-5 h-5 text-brand-pink mx-auto mb-1" />
                   <span className="text-[11px] font-bold text-slate-800 block">Soothing Heat</span>
-                  <span className="text-[9px] text-slate-500">Heats in 5-6 mins</span>
+                  <span className="text-[9px] text-slate-500">Heats in 10-15 mins</span>
                 </div>
                 <div className="p-3 rounded-2xl bg-white border border-slate-100 shadow-sm">
                   <Clock className="w-5 h-5 text-amber-500 mx-auto mb-1" />
                   <span className="text-[11px] font-bold text-slate-800 block">Up to 8 Hours</span>
-                  <span className="text-[9px] text-slate-500">Continuous use</span>
+                  <span className="text-[9px] text-slate-500">Continuous warmth</span>
                 </div>
                 <div className="p-3 rounded-2xl bg-white border border-slate-100 shadow-sm">
                   <ShieldCheck className="w-5 h-5 text-emerald-600 mx-auto mb-1" />
@@ -137,7 +251,7 @@ export default function Home() {
 
             </div>
 
-            {/* Hero Product Images Showcase with Authentic Packaging Photos */}
+            {/* Hero Image Showcase */}
             <div className="lg:col-span-5 relative">
               <div className="relative mx-auto max-w-md">
                 
@@ -149,7 +263,7 @@ export default function Home() {
                     className="w-full h-auto rounded-2xl object-cover transform group-hover:scale-[1.02] transition-transform duration-500 shadow-sm"
                   />
 
-                  {/* Stamp Badge: Safe 100% Ingredients */}
+                  {/* Stamp Badge */}
                   <div className="absolute top-6 left-6 z-10 bg-brand-pink text-white w-14 h-14 rounded-full flex flex-col items-center justify-center text-center p-1 shadow-lg ring-4 ring-white/80 animate-pulse-subtle">
                     <span className="text-[8px] font-black uppercase tracking-wider">SAFE</span>
                     <span className="text-[10px] font-extrabold leading-tight">100%</span>
@@ -174,28 +288,20 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 2. TICKER BANNER (Matching side of box) */}
+      {/* 2. TICKER BANNER */}
       <div className="bg-[#0A192F] text-white py-3 overflow-hidden border-y border-brand-pink/20">
         <div className="animate-ticker text-xs sm:text-sm font-bold tracking-wider uppercase flex items-center space-x-8 text-brand-lightGold">
           <span className="flex items-center gap-2"><Sparkles className="w-4 h-4 text-brand-pink" /> ULTRA THIN</span>
           <span>•</span>
-          <span className="flex items-center gap-2"><Flame className="w-4 h-4 text-brand-gold" /> AIR-ACTIVATED IN 5 MINS</span>
+          <span className="flex items-center gap-2"><Flame className="w-4 h-4 text-brand-gold" /> AIR-ACTIVATED HEAT</span>
           <span>•</span>
-          <span className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-emerald-400" /> 100% SAFE INGREDIENTS</span>
+          <span className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-emerald-400" /> 100% NATURAL INGREDIENTS</span>
           <span>•</span>
-          <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-brand-pink" /> UP TO 8 HOURS CONTINUOUS WARMTH</span>
+          <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-brand-pink" /> UP TO 8 HOURS SOOTHING COMFORT</span>
           <span>•</span>
-          <span className="flex items-center gap-2"><Feather className="w-4 h-4 text-brand-gold" /> SAFE & CONVENIENT</span>
+          <span className="flex items-center gap-2"><Feather className="w-4 h-4 text-brand-gold" /> SAFE & DISCREET</span>
           <span>•</span>
           <span className="flex items-center gap-2"><Heart className="w-4 h-4 text-rose-400" /> RELIEVES PERIOD PAIN</span>
-          <span>•</span>
-          <span className="flex items-center gap-2"><Sparkles className="w-4 h-4 text-brand-pink" /> ULTRA THIN</span>
-          <span>•</span>
-          <span className="flex items-center gap-2"><Flame className="w-4 h-4 text-brand-gold" /> AIR-ACTIVATED IN 5 MINS</span>
-          <span>•</span>
-          <span className="flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-emerald-400" /> 100% SAFE INGREDIENTS</span>
-          <span>•</span>
-          <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-brand-pink" /> UP TO 8 HOURS CONTINUOUS WARMTH</span>
         </div>
       </div>
 
@@ -211,7 +317,7 @@ export default function Home() {
               Choose The Right Pack For Your Cycle
             </h2>
             <p className="text-sm text-slate-600">
-              Select our single starter pack or choose the 3-Pack Value Box for complete period cycle comfort.
+              Select our single starter pack or choose the 3-Pack Value Box for multi-day period comfort.
             </p>
           </div>
 
@@ -236,183 +342,121 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. PRODUCT ANATOMY (The Lavender Comfort Patch) */}
-      <section className="py-16 bg-gradient-to-b from-slate-50 to-white border-t border-slate-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* 4. HOW TO USE IT (4-Step Infographic Routine) */}
+      <section className="py-20 bg-[#FAF8FB] border-t border-slate-100" id="how-to-use">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
-          <div className="text-center max-w-2xl mx-auto space-y-3 mb-12">
-            <span className="text-xs font-extrabold uppercase tracking-widest text-brand-navy bg-slate-100 px-3.5 py-1 rounded-full">
-              Product Anatomy
-            </span>
-            <h2 className="font-display font-extrabold text-3xl text-brand-navy">
-              Engineered For Maximum Comfort & Discreet Wear
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-600">
-              Each ZEBA pad features a gentle waffle-weave texture and air-activated thermal core.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-            
-            {/* Feature 1 */}
-            <div className="space-y-4 text-center md:text-right">
-              <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2">
-                <span className="inline-block p-2 rounded-xl bg-purple-50 text-purple-600">
-                  <Layers className="w-5 h-5" />
-                </span>
-                <h4 className="font-bold text-sm text-brand-navy">Soft Waffle-Weave Layer</h4>
-                <p className="text-xs text-slate-600">
-                  Breathable textured top sheet provides uniform heat distribution without hot spots.
-                </p>
-              </div>
-
-              <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2">
-                <span className="inline-block p-2 rounded-xl bg-rose-50 text-brand-pink">
-                  <Flame className="w-5 h-5" />
-                </span>
-                <h4 className="font-bold text-sm text-brand-navy">Air-Activated Thermal Core</h4>
-                <p className="text-xs text-slate-600">
-                  Natural iron & mineral formula activates on air contact to reach 50°C - 55°C within 5 minutes.
-                </p>
-              </div>
-            </div>
-
-            {/* Center: Real Packaging Showcase with Patch */}
-            <div className="p-4 rounded-3xl bg-white border border-brand-pink/20 shadow-xl text-center">
-              <img
-                src="/images/zeba-real-packaging-2.jpg"
-                alt="ZEBA Heating Pad Patch View"
-                className="w-full h-auto rounded-2xl object-cover shadow-sm"
-              />
-              <span className="inline-block mt-3 text-xs font-bold text-brand-navy bg-brand-softPink px-3 py-1 rounded-full">
-                Ultra-Thin Lavender Soft Pad
-              </span>
-            </div>
-
-            {/* Feature 2 */}
-            <div className="space-y-4 text-center md:text-left">
-              <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2">
-                <span className="inline-block p-2 rounded-xl bg-emerald-50 text-emerald-600">
-                  <ShieldCheck className="w-5 h-5" />
-                </span>
-                <h4 className="font-bold text-sm text-brand-navy">Underwear Adhesive Wings</h4>
-                <p className="text-xs text-slate-600">
-                  Sticks securely to the outside of your undergarments for zero direct skin contact.
-                </p>
-              </div>
-
-              <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-2">
-                <span className="inline-block p-2 rounded-xl bg-amber-50 text-amber-600">
-                  <Clock className="w-5 h-5" />
-                </span>
-                <h4 className="font-bold text-sm text-brand-navy">Up to 8 Hours Sustained Heat</h4>
-                <p className="text-xs text-slate-600">
-                  Continuous steady warmth to relax uterine muscles throughout work and sleep.
-                </p>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-      </section>
-
-      {/* 5. HOW IT WORKS (Direct from the Back of Box) */}
-      <section className="py-20 bg-white border-t border-slate-100" id="how-it-works">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          <div className="text-center max-w-2xl mx-auto space-y-3 mb-16">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
             <span className="text-xs font-extrabold uppercase tracking-widest text-brand-pink bg-brand-softPink px-3.5 py-1 rounded-full">
-              Official Box Instructions
+              Step-by-Step Guide
             </span>
-            <h2 className="font-display font-extrabold text-3xl sm:text-4xl text-brand-navy">
-              How To Use ZEBA Heating Pad
+            <h2 className="font-display font-black text-3xl sm:text-4xl text-brand-navy">
+              How to Use It
             </h2>
-            <p className="text-sm text-slate-600">
-              Simple 3-step application for instant menstrual cramp relief anywhere.
+            <p className="text-sm sm:text-base text-slate-600">
+              Effortless 4-step routine to achieve soothing, uninterrupted period comfort anywhere.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
-            {/* Step 1 */}
-            <div className="p-8 rounded-3xl bg-brand-roseBg border border-brand-pink/20 text-center space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-brand-pink text-white font-display font-extrabold text-lg flex items-center justify-center mx-auto shadow-md">
-                1
-              </div>
-              <h3 className="font-display font-bold text-xl text-brand-navy">Remove from Packaging</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Simple and convenient to use, the ZEBA Pain Relief Heating Pad heats up within 5-6 minutes when exposed to air. The pad should feel soft when it is working.
-              </p>
-            </div>
-
-            {/* Step 2 */}
-            <div className="p-8 rounded-3xl bg-brand-roseBg border border-brand-pink/20 text-center space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-brand-pink text-white font-display font-extrabold text-lg flex items-center justify-center mx-auto shadow-md">
-                2
-              </div>
-              <h3 className="font-display font-bold text-xl text-brand-navy">Stick it On</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Stick the pad securely to your underwear and enjoy soothing warmth and relief. Every few hours, remove it for 5 minutes to give your skin a short break, then reattach.
-              </p>
-            </div>
-
-            {/* Step 3 */}
-            <div className="p-8 rounded-3xl bg-brand-roseBg border border-brand-pink/20 text-center space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-brand-pink text-white font-display font-extrabold text-lg flex items-center justify-center mx-auto shadow-md">
-                3
-              </div>
-              <h3 className="font-display font-bold text-xl text-brand-navy">Go Forth, Worry-Free</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Designed for life on the go, the ZEBA Period Pain Relief Heating Pad provides discreet, soothing relief from cramps so you can stay comfortable and carry on with your day.
-              </p>
-            </div>
-
+          {/* Official Visual Infographic Banner */}
+          <div className="rounded-3xl bg-white p-4 sm:p-6 border border-slate-200 shadow-md max-w-5xl mx-auto overflow-hidden">
+            <img
+              src="/images/zeba-how-to-use-guide.jpg"
+              alt="ZEBA How to Use It - 4 Step Guide"
+              className="w-full h-auto rounded-2xl object-cover shadow-sm"
+            />
           </div>
 
-          <div className="mt-10 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium text-center max-w-2xl mx-auto flex items-center justify-center space-x-2">
-            <span className="font-bold">⚠️ Safety Notice:</span>
-            <span>External use only. Always adhere to underwear; never stick directly to bare skin.</span>
+          {/* 4 Interactive Step Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+            {howToUseSteps.map((s, idx) => {
+              const IconComp = s.icon;
+              return (
+                <div
+                  key={idx}
+                  className={`p-6 rounded-3xl ${s.bg} border ${s.border} shadow-sm space-y-4 hover:shadow-md transition-all flex flex-col justify-between`}
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="px-3 py-1 rounded-full text-xs font-extrabold text-white bg-gradient-to-r from-brand-navy to-slate-800 shadow-sm">
+                        {s.step}
+                      </span>
+                      <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                        {s.tag}
+                      </span>
+                    </div>
+
+                    <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex items-center justify-center text-brand-pink">
+                      <IconComp className="w-6 h-6" />
+                    </div>
+
+                    <h3 className="font-display font-extrabold text-xl text-brand-navy">
+                      {s.title}
+                    </h3>
+                    <p className="text-xs font-bold text-brand-pink">
+                      {s.subtitle}
+                    </p>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      {s.description}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Safety Reminder Banner */}
+          <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium text-center max-w-2xl mx-auto flex items-center justify-center space-x-2">
+            <span className="font-bold">⚠️ Crucial Tip:</span>
+            <span>Always apply to the outside of your underwear — never stick directly onto bare skin!</span>
           </div>
 
         </div>
       </section>
 
-      {/* 6. FAQ SECTION */}
-      <section className="py-20 bg-slate-50/60 border-t border-slate-100">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* 5. HOW IT WORKS OVER TIME (Relief Progression Timeline) */}
+      <section className="py-20 bg-white border-t border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
-          <div className="text-center space-y-3 mb-12">
-            <span className="text-xs font-extrabold uppercase tracking-widest text-brand-pink bg-brand-softPink px-3 py-1 rounded-full">
-              Got Questions?
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <span className="text-xs font-extrabold uppercase tracking-widest text-brand-navy bg-slate-100 px-3.5 py-1 rounded-full">
+              Real-Time Progression
             </span>
-            <h2 className="font-display font-extrabold text-3xl text-brand-navy">
-              Frequently Asked Questions
+            <h2 className="font-display font-black text-3xl sm:text-4xl text-brand-navy">
+              How It Works Over Time
             </h2>
+            <p className="text-sm sm:text-base text-slate-600">
+              Watch your cramps melt away from peak intensity to gentle, lasting ease.
+            </p>
           </div>
 
-          <div className="space-y-4">
-            {faqs.map((faq, idx) => (
+          {/* Timeline Visual Banner */}
+          <div className="rounded-3xl bg-white p-4 sm:p-6 border border-slate-200 shadow-md max-w-5xl mx-auto overflow-hidden">
+            <img
+              src="/images/zeba-how-it-works-timeline.jpg"
+              alt="ZEBA How It Works Over Time Timeline"
+              className="w-full h-auto rounded-2xl object-cover shadow-sm"
+            />
+          </div>
+
+          {/* Timeline Milestones Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+            {timelineMilestones.map((m, idx) => (
               <div
                 key={idx}
-                className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all"
+                className="p-6 rounded-3xl bg-slate-50 border border-slate-200/90 shadow-sm space-y-3 hover:border-brand-pink/30 hover:bg-white transition-all text-center"
               >
-                <button
-                  onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                  className="w-full p-5 text-left flex items-center justify-between font-bold text-sm text-brand-navy hover:text-brand-pink transition-colors"
-                >
-                  <span>{faq.q}</span>
-                  <ChevronDown
-                    className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
-                      openFaq === idx ? 'rotate-180 text-brand-pink' : ''
-                    }`}
-                  />
-                </button>
-                {openFaq === idx && (
-                  <div className="px-5 pb-5 text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-3 animate-fade-in">
-                    {faq.a}
-                  </div>
-                )}
+                <div className="inline-block px-4 py-1.5 rounded-full bg-brand-navy text-brand-gold font-mono font-black text-sm tracking-wide shadow-sm">
+                  {m.time}
+                </div>
+                <h4 className="font-display font-bold text-lg text-brand-navy">{m.title}</h4>
+                <p className="text-xs text-slate-600 leading-relaxed">{m.description}</p>
+                <div className="pt-2">
+                  <span className="inline-flex items-center space-x-1 text-[11px] font-bold text-brand-pink bg-brand-softPink px-3 py-1 rounded-full">
+                    <TrendingDown className="w-3.5 h-3.5" />
+                    <span>{m.highlight}</span>
+                  </span>
+                </div>
               </div>
             ))}
           </div>
@@ -420,7 +464,122 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 7. FINAL HIGH-CONVERTING CTA BANNER */}
+      {/* 6. WHAT'S INSIDE? PURE NATURAL GOODNESS (Ingredients Breakdown) */}
+      <section className="py-20 bg-gradient-to-b from-[#FAF8FB] to-white border-t border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <span className="text-xs font-extrabold uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 px-3.5 py-1 rounded-full">
+              100% Safe Natural Ingredients
+            </span>
+            <h2 className="font-display font-black text-3xl sm:text-4xl text-brand-navy">
+              What’s Inside? Pure Natural Goodness.
+            </h2>
+            <p className="text-sm sm:text-base text-slate-600">
+              Inside is pure, natural goodness: <strong>Iron Powder, Vermiculite, Salt, and Activated Carbon</strong>.
+            </p>
+          </div>
+
+          {/* Official Ingredients Infographic */}
+          <div className="rounded-3xl bg-white p-4 sm:p-6 border border-slate-200 shadow-md max-w-5xl mx-auto overflow-hidden">
+            <img
+              src="/images/zeba-whats-inside-ingredients.jpg"
+              alt="ZEBA What's Inside Pure Natural Goodness Ingredients"
+              className="w-full h-auto rounded-2xl object-cover shadow-sm"
+            />
+          </div>
+
+          {/* 4 Layer Details */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+            {ingredientsList.map((ing, idx) => (
+              <div
+                key={idx}
+                className="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm space-y-3 hover:shadow-md transition-all"
+              >
+                <div className="flex items-center space-x-2">
+                  <span className="w-7 h-7 rounded-xl bg-brand-pink text-white font-black text-xs flex items-center justify-center shadow-sm">
+                    {ing.num}
+                  </span>
+                  <h4 className="font-display font-extrabold text-base text-brand-navy">{ing.name}</h4>
+                </div>
+                <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${ing.badgeColor}`}>
+                  {ing.role}
+                </span>
+                <p className="text-xs text-slate-600 leading-relaxed">{ing.description}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Safe & Gentle Formula Badge */}
+          <div className="max-w-xl mx-auto p-6 rounded-3xl bg-gradient-to-r from-brand-navy to-slate-900 text-white text-center shadow-xl border border-brand-gold/30 space-y-2">
+            <div className="flex items-center justify-center space-x-2 text-brand-gold font-bold text-sm uppercase tracking-wider">
+              <Award className="w-5 h-5 text-brand-gold" />
+              <span>Safe & Gentle Formula Guarantee</span>
+            </div>
+            <p className="text-xs text-slate-300">
+              Dermatologically tested. 100% Drug-Free • No artificial fragrances • No parabens.
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+      {/* 7. GOT QUESTIONS? WE GOT ANSWERS (Conversational FAQs) */}
+      <section className="py-20 bg-white border-t border-slate-100" id="faq">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <span className="text-xs font-extrabold uppercase tracking-widest text-brand-pink bg-brand-softPink px-3.5 py-1 rounded-full">
+              Got Questions?
+            </span>
+            <h2 className="font-display font-black text-3xl sm:text-4xl text-brand-navy">
+              Got Questions? We Got Answers.
+            </h2>
+            <p className="text-sm text-slate-600">
+              Everything you need to know about comfort, safety, and our satisfaction guarantee.
+            </p>
+          </div>
+
+          {/* Official FAQ Infographic Banner */}
+          <div className="rounded-3xl bg-white p-4 sm:p-6 border border-slate-200 shadow-md max-w-4xl mx-auto overflow-hidden">
+            <img
+              src="/images/zeba-got-questions-faq.jpg"
+              alt="ZEBA Got Questions We Got Answers Infographic"
+              className="w-full h-auto rounded-2xl object-cover shadow-sm"
+            />
+          </div>
+
+          {/* 4 Interactive Conversational Bubbles */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {gotQuestionsFaqs.map((faq, idx) => (
+              <div
+                key={idx}
+                className={`p-6 rounded-3xl border ${faq.color} shadow-sm space-y-3 hover:shadow-md transition-all`}
+              >
+                <div className="flex items-start space-x-2.5">
+                  <span className="px-2.5 py-0.5 rounded-lg bg-brand-navy text-white text-[11px] font-black uppercase flex-shrink-0">
+                    Q
+                  </span>
+                  <h4 className="font-display font-bold text-sm text-brand-navy">
+                    {faq.q}
+                  </h4>
+                </div>
+                <div className="flex items-start space-x-2.5 pl-1">
+                  <span className="px-2.5 py-0.5 rounded-lg bg-brand-pink text-white text-[11px] font-black uppercase flex-shrink-0">
+                    A
+                  </span>
+                  <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                    {faq.a}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+        </div>
+      </section>
+
+      {/* 8. FINAL HIGH-CONVERTING CTA BANNER */}
       <section className="py-20 bg-[#0D1B44] text-white text-center relative overflow-hidden">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-6">
           <span className="text-xs font-extrabold uppercase tracking-widest text-brand-gold bg-white/10 px-4 py-1.5 rounded-full border border-white/20">
