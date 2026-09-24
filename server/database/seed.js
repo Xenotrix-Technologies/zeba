@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { fileURLToPath } from 'url';
 import { query } from '../src/config/db.js';
+import { config } from '../src/config/env.js';
 import { runMigrations } from './migrate.js';
 
 export async function seedDatabase() {
@@ -8,20 +9,27 @@ export async function seedDatabase() {
   await runMigrations();
 
   // 1. Seed Admin
-  const adminEmail = process.env.ADMIN_DEFAULT_EMAIL || 'admin@zeba.com';
-  const adminPassword = process.env.ADMIN_DEFAULT_PASSWORD || 'ZebaAdmin#2026!';
+  const adminEmail = (config.ADMIN_DEFAULT_EMAIL || 'zebaofficial2013@gmail.com').toLowerCase().trim();
+  const adminPassword = config.ADMIN_DEFAULT_PASSWORD || 'ZebaMundath#2026!';
   const adminUsername = 'zeba_admin';
 
-  const existingAdmin = await query('SELECT id FROM admins WHERE email = $1', [adminEmail]);
+  const salt = await bcrypt.genSalt(10);
+  const passwordHash = await bcrypt.hash(adminPassword, salt);
+
+  const existingAdmin = await query('SELECT id FROM admins WHERE email = $1 OR username = $2 LIMIT 1', [adminEmail, adminUsername]);
   if (existingAdmin.rows.length === 0) {
-    const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(adminPassword, salt);
     await query(
       `INSERT INTO admins (username, email, password_hash, role)
        VALUES ($1, $2, $3, $4)`,
       [adminUsername, adminEmail, passwordHash, 'superadmin']
     );
     console.log(`✅ Default admin created: ${adminEmail}`);
+  } else {
+    await query(
+      `UPDATE admins SET email = $1, password_hash = $2, username = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4`,
+      [adminEmail, passwordHash, adminUsername, existingAdmin.rows[0].id]
+    );
+    console.log(`🔄 Default admin credentials synchronized: ${adminEmail}`);
   }
 
   // 2. Seed / Upsert the exact authentic ZEBA Products

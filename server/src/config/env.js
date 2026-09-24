@@ -19,6 +19,8 @@ export const config = {
   FACEBOOK_URL: businessConfig.social.facebook,
   FREE_SHIPPING_THRESHOLD: businessConfig.commerce.freeShippingThreshold,
   STANDARD_SHIPPING_FEE: businessConfig.commerce.standardShippingFee,
+  ADMIN_DEFAULT_EMAIL: process.env.ADMIN_DEFAULT_EMAIL || 'zebaofficial2013@gmail.com',
+  ADMIN_DEFAULT_PASSWORD: process.env.ADMIN_DEFAULT_PASSWORD || 'ZebaMundath#2026!',
   business: businessConfig
 };
 

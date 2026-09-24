@@ -1,8 +1,7 @@
 /**
  * ZEBA Business Configuration & Options
  * 
- * Edit this centralized file to update your store's business details, 
- * contact information, shipping rules, social profiles, and B2B settings.
+ * Synchronized with server environment configuration (.env).
  * All storefront components dynamically read from this configuration.
  */
 
@@ -18,10 +17,11 @@ export const businessConfig = {
   domain: 'zebaofficial.in',
 
   // Contact & Customer Support
-  supportEmail: 'care@zebaofficial.in',
-  businessEmail: 'business@zebaofficial.in',
-  salesEmail: 'orders@zebaofficial.in',
-  b2bEmail: 'b2b@zebaofficial.in',
+  supportEmail: 'info@zebaofficial.in',
+  businessEmail: 'info@zebaofficial.in',
+  salesEmail: 'info@zebaofficial.in',
+  b2bEmail: 'info@zebaofficial.in',
+  ownerEmail: 'zebaofficial2013@gmail.com',
   
   supportPhone: '+91 98765 00000',
   supportPhoneRaw: '9876500000',
@@ -45,12 +45,12 @@ export const businessConfig = {
 
   // Registered Business & Fulfillment Office
   address: {
-    company: 'ZEBA Wellness Technologies Pvt. Ltd.',
-    building: 'ZEBA Corporate Center, 3rd Floor',
-    street: '100 Feet Road, Indiranagar',
-    city: 'Bengaluru',
-    state: 'Karnataka',
-    pincode: '560038',
+    company: 'ZEBA Wellness Pvt. Ltd.',
+    building: 'MM Trading, 7-93 G Mundath Arcade',
+    street: 'Melattur',
+    city: 'Malappuram',
+    state: 'Kerala',
+    pincode: '679326',
     country: 'India',
     get formatted() {
       return `${this.building}, ${this.street}, ${this.city}, ${this.state} - ${this.pincode}, ${this.country}`;
@@ -93,7 +93,7 @@ export const businessConfig = {
     enableB2BInquiries: true,
     minOrderQuantity: 50,
     corporateGiftingEnabled: true,
-    inquiryEmail: 'b2b@zebaofficial.in',
+    inquiryEmail: 'info@zebaofficial.in',
     contactPerson: 'Corporate Wellness Team'
   },
 

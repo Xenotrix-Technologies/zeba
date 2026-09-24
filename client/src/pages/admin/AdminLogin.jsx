@@ -4,8 +4,8 @@ import { Lock, Mail, ShieldCheck, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function AdminLogin() {
-  const [email, setEmail] = useState('admin@zeba.com');
-  const [password, setPassword] = useState('ZebaAdmin#2026!');
+  const [email, setEmail] = useState('zebaofficial2013@gmail.com');
+  const [password, setPassword] = useState('ZebaMundath#2026!');
   const [loading, setLoading] = useState(false);
 
   const { login } = useAuth();
@@ -47,7 +47,7 @@ export default function AdminLogin() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@zeba.com"
+                placeholder="zebaofficial2013@gmail.com"
                 className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-800/80 border border-slate-700 text-white placeholder-slate-500 focus:border-brand-pink outline-none text-xs"
               />
             </div>

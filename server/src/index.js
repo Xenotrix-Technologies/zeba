@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { config } from './config/env.js';
+import { config } from './config/env.js'; // Reloaded with new .env
 import { runMigrations } from '../database/migrate.js';
 import { seedDatabase } from '../database/seed.js';
 import { errorHandler } from './middleware/errorHandler.js';
