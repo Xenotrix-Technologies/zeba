@@ -103,7 +103,7 @@ export default function CustomerLogin() {
                     required
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
-                    placeholder="pooja@example.com or 9876543210"
+                    placeholder="Enter email or 10-digit mobile"
                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:border-zeba-magenta focus:ring-2 focus:ring-zeba-magenta/20 outline-none text-xs font-medium"
                   />
                 </div>
@@ -147,7 +147,7 @@ export default function CustomerLogin() {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Pooja Sharma"
+                    placeholder="e.g. Ananya Verma"
                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:border-zeba-magenta focus:ring-2 focus:ring-zeba-magenta/20 outline-none text-xs font-medium"
                   />
                 </div>
@@ -162,7 +162,7 @@ export default function CustomerLogin() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="pooja@example.com"
+                    placeholder="yourname@domain.com"
                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:border-zeba-magenta focus:ring-2 focus:ring-zeba-magenta/20 outline-none text-xs font-medium"
                   />
                 </div>
@@ -177,7 +177,7 @@ export default function CustomerLogin() {
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="9876543210"
+                    placeholder="10-digit mobile number"
                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:border-zeba-magenta focus:ring-2 focus:ring-zeba-magenta/20 outline-none text-xs font-medium"
                   />
                 </div>

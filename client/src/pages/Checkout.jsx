@@ -251,7 +251,7 @@ export default function Checkout() {
                       type="text"
                       name="name"
                       required
-                      placeholder="Pooja Sharma"
+                      placeholder="e.g. Pooja Sharma"
                       value={formData.name}
                       onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium"
@@ -264,7 +264,7 @@ export default function Checkout() {
                       type="tel"
                       name="phone"
                       required
-                      placeholder="9876543210"
+                      placeholder="10-digit mobile number"
                       value={formData.phone}
                       onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium"
@@ -277,7 +277,7 @@ export default function Checkout() {
                       type="email"
                       name="email"
                       required
-                      placeholder="pooja@example.com"
+                      placeholder="yourname@domain.com"
                       value={formData.email}
                       onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium"

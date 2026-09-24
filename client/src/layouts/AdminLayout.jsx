@@ -38,6 +38,7 @@ export default function AdminLayout() {
     { label: 'Orders', path: '/admin/orders', icon: ShoppingBag },
     { label: 'Products', path: '/admin/products', icon: Package },
     { label: 'Customers', path: '/admin/customers', icon: Users },
+    { label: 'Business Settings', path: '/admin/settings', icon: Sparkles }
   ];
 
   const handleLogout = () => {

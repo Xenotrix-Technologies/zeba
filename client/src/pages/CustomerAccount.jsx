@@ -19,6 +19,7 @@ import {
 import api from '../services/api';
 import { useCustomerAuth } from '../context/CustomerAuthContext';
 import { useCart } from '../context/CartContext';
+import { businessConfig } from '../config/businessConfig';
 
 export default function CustomerAccount() {
   const { customer, token, isCustomerAuthenticated, loading: authLoading, logout } = useCustomerAuth();
@@ -110,7 +111,7 @@ export default function CustomerAccount() {
               <span>My Order History ({orders.length})</span>
             </h2>
             <a
-              href="https://wa.me/919876543210?text=Hi%20ZEBA%2C%20I%20have%20a%20question%20about%20my%20order"
+              href={businessConfig.whatsapp.getWhatsAppUrl('Hi ZEBA Team, I have a question about my order')}
               target="_blank"
               rel="noreferrer"
               className="text-xs font-bold text-emerald-600 hover:underline flex items-center space-x-1"

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, Heart, Truck, Lock, Phone, Mail, MessageCircle, Instagram, Facebook } from 'lucide-react';
+import { ShieldCheck, Heart, Truck, Lock, Phone, Mail, MessageCircle, Instagram, Facebook, MapPin } from 'lucide-react';
+import { businessConfig } from '../config/businessConfig';
 
 export default function Footer() {
   return (
@@ -35,7 +36,7 @@ export default function Footer() {
             </div>
             <div>
               <h4 className="text-white text-xs md:text-sm font-bold">Secure Checkout</h4>
-              <p className="text-[11px] text-slate-400">Razorpay 256-bit encryption</p>
+              <p className="text-[11px] text-slate-400">{businessConfig.payments.gatewayName} 256-bit encryption</p>
             </div>
           </div>
 
@@ -60,33 +61,37 @@ export default function Footer() {
                 <span className="text-brand-gold font-display font-black text-lg">Z</span>
               </div>
               <span className="font-display font-extrabold text-2xl text-white tracking-wider">
-                ZEBA
+                {businessConfig.brandName}
               </span>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Designed for modern women who refuse to let menstrual cramps hold them back. Providing safe, continuous soothing heat therapy whenever and wherever you need it.
+              {businessConfig.description}
             </p>
             <div className="flex items-center space-x-3 pt-2">
+              {businessConfig.social.instagram && (
+                <a
+                  href={businessConfig.social.instagram}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-9 h-9 rounded-lg bg-slate-800 hover:bg-brand-pink text-slate-300 hover:text-white flex items-center justify-center transition-colors"
+                  aria-label="Instagram"
+                >
+                  <Instagram className="w-4 h-4" />
+                </a>
+              )}
+              {businessConfig.social.facebook && (
+                <a
+                  href={businessConfig.social.facebook}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-9 h-9 rounded-lg bg-slate-800 hover:bg-brand-pink text-slate-300 hover:text-white flex items-center justify-center transition-colors"
+                  aria-label="Facebook"
+                >
+                  <Facebook className="w-4 h-4" />
+                </a>
+              )}
               <a
-                href="https://instagram.com/zeba.care"
-                target="_blank"
-                rel="noreferrer"
-                className="w-9 h-9 rounded-lg bg-slate-800 hover:bg-brand-pink text-slate-300 hover:text-white flex items-center justify-center transition-colors"
-                aria-label="Instagram"
-              >
-                <Instagram className="w-4 h-4" />
-              </a>
-              <a
-                href="https://facebook.com/zeba.care"
-                target="_blank"
-                rel="noreferrer"
-                className="w-9 h-9 rounded-lg bg-slate-800 hover:bg-brand-pink text-slate-300 hover:text-white flex items-center justify-center transition-colors"
-                aria-label="Facebook"
-              >
-                <Facebook className="w-4 h-4" />
-              </a>
-              <a
-                href="https://wa.me/919876543210?text=Hi%20ZEBA%20Team%2C%20I%20have%20a%20question%20about%20the%20Heating%20Pads"
+                href={businessConfig.whatsapp.getWhatsAppUrl()}
                 target="_blank"
                 rel="noreferrer"
                 className="w-9 h-9 rounded-lg bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white flex items-center justify-center transition-colors"
@@ -130,12 +135,12 @@ export default function Footer() {
             <ul className="space-y-2 text-xs">
               <li>
                 <Link to="/about" className="hover:text-brand-pink transition-colors">
-                  About ZEBA Brand
+                  About {businessConfig.brandName}
                 </Link>
               </li>
               <li>
                 <Link to="/contact" className="hover:text-brand-pink transition-colors">
-                  Contact Us
+                  Contact Us & B2B Inquiries
                 </Link>
               </li>
               <li>
@@ -150,7 +155,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link to="/shipping-policy" className="hover:text-brand-pink transition-colors">
-                  Shipping Policy
+                  Shipping & Discreet Delivery
                 </Link>
               </li>
               <li>
@@ -165,23 +170,27 @@ export default function Footer() {
           <div className="space-y-3">
             <h4 className="text-white text-sm font-bold uppercase tracking-wider">Customer Care</h4>
             <p className="text-xs text-slate-400">
-              Need assistance with an order or product guidance? We're here for you.
+              Need assistance with an order, tracking, or guidance? We are here for you.
             </p>
-            <div className="space-y-2 text-xs pt-1">
+            <div className="space-y-2.5 text-xs pt-1">
               <a
-                href="mailto:care@zeba.com"
+                href={`mailto:${businessConfig.supportEmail}`}
                 className="flex items-center space-x-2 hover:text-brand-pink transition-colors"
               >
-                <Mail className="w-4 h-4 text-brand-pink" />
-                <span>care@zeba.com</span>
+                <Mail className="w-4 h-4 text-brand-pink flex-shrink-0" />
+                <span className="truncate">{businessConfig.supportEmail}</span>
               </a>
               <a
-                href="tel:+919876543210"
+                href={`tel:${businessConfig.supportPhone.replace(/\s+/g, '')}`}
                 className="flex items-center space-x-2 hover:text-brand-pink transition-colors"
               >
-                <Phone className="w-4 h-4 text-brand-gold" />
-                <span>+91 98765 43210</span>
+                <Phone className="w-4 h-4 text-brand-gold flex-shrink-0" />
+                <span>{businessConfig.supportPhone}</span>
               </a>
+              <div className="flex items-start space-x-2 text-slate-400">
+                <MapPin className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                <span className="text-[11px] leading-tight">{businessConfig.address.city}, {businessConfig.address.state}, {businessConfig.address.country}</span>
+              </div>
             </div>
 
             <div className="pt-2">
@@ -195,11 +204,11 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Bottom copyright */}
+        {/* Bottom copyright & Entity notice */}
         <div className="pt-8 mt-4 border-t border-slate-800/80 text-center text-xs text-slate-500 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p>© {new Date().getFullYear()} ZEBA Wellness. All rights reserved. Designed for menstrual comfort.</p>
+          <p>© {new Date().getFullYear()} {businessConfig.legalEntityName}. All rights reserved.</p>
           <p className="text-[11px] text-slate-500">
-            Disclaimer: For external use only. Stick onto underwear, do not apply directly on bare skin.
+            GSTIN: {businessConfig.tax.gstin} • CIN: {businessConfig.tax.cin} • Designed for Menstrual Comfort
           </p>
         </div>
 
@@ -207,3 +216,4 @@ export default function Footer() {
     </footer>
   );
 }
+

@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import api from '../services/api';
 import ProductCard from '../components/ProductCard';
+import { businessConfig } from '../config/businessConfig';
 
 export default function Home() {
   const [products, setProducts] = useState([]);
@@ -601,7 +602,7 @@ export default function Home() {
             </Link>
 
             <a
-              href="https://wa.me/919876543210?text=Hi%20ZEBA%20Team%2C%20I%20want%20to%20order%20ZEBA%20Heating%20Pads"
+              href={businessConfig.whatsapp.getWhatsAppUrl('Hi ZEBA Team, I want to order ZEBA Heating Pads')}
               target="_blank"
               rel="noreferrer"
               className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-lg flex items-center justify-center space-x-2 transition-all"

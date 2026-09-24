@@ -1,9 +1,9 @@
 import React from 'react';
 import { MessageCircle } from 'lucide-react';
+import { businessConfig } from '../config/businessConfig';
 
-export default function WhatsAppButton({ text = 'Hi ZEBA, I want to inquire about the Heating Pads' }) {
-  const encodedText = encodeURIComponent(text);
-  const whatsappUrl = `https://wa.me/919876543210?text=${encodedText}`;
+export default function WhatsAppButton({ text }) {
+  const whatsappUrl = businessConfig.whatsapp.getWhatsAppUrl(text);
 
   return (
     <a
@@ -19,3 +19,4 @@ export default function WhatsAppButton({ text = 'Hi ZEBA, I want to inquire abou
     </a>
   );
 }
+

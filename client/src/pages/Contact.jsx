@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Mail, Phone, MessageCircle, Instagram, Facebook, Send, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Mail, Phone, MessageCircle, Instagram, Facebook, Send, ShieldCheck, CheckCircle2, MapPin, Building2, Briefcase } from 'lucide-react';
 import api from '../services/api';
 import { useToast } from '../context/ToastContext';
+import { businessConfig } from '../config/businessConfig';
 
 export default function Contact() {
   const { addToast } = useToast();
@@ -9,6 +10,7 @@ export default function Contact() {
     name: '',
     email: '',
     phone: '',
+    inquiryType: 'General / Order Support',
     message: ''
   });
   const [submitting, setSubmitting] = useState(false);
@@ -32,7 +34,7 @@ export default function Contact() {
       if (res.success) {
         setSubmitted(true);
         addToast(res.message || 'Message received! We will reply promptly.', 'success');
-        setFormData({ name: '', email: '', phone: '', message: '' });
+        setFormData({ name: '', email: '', phone: '', inquiryType: 'General / Order Support', message: '' });
       }
     } catch (err) {
       addToast(err.message || 'Failed to submit inquiry.', 'error');
@@ -51,10 +53,10 @@ export default function Contact() {
             We're Here For You
           </span>
           <h1 className="font-display font-extrabold text-3xl sm:text-4xl text-brand-navy">
-            Get in Touch With ZEBA Care
+            Get in Touch With {businessConfig.brandName} Care
           </h1>
           <p className="text-xs sm:text-sm text-slate-600">
-            Have questions about pack sizing, usage recommendations, or your order? Reach out anytime!
+            Have questions about pack sizing, usage recommendations, corporate wellness orders, or your delivery? Reach out anytime!
           </p>
         </div>
 
@@ -71,73 +73,113 @@ export default function Contact() {
                 </div>
                 <div>
                   <h3 className="font-bold text-sm">Instant WhatsApp Support</h3>
-                  <p className="text-[11px] text-emerald-700">Quickest response for order queries</p>
+                  <p className="text-[11px] text-emerald-700">Fastest response for order & delivery questions</p>
                 </div>
               </div>
               <p className="text-xs text-emerald-900 leading-relaxed">
-                Connect directly with our menstrual wellness care specialists on WhatsApp for personalized support.
+                Connect directly with our care specialists on WhatsApp for personalized support and instant order assistance.
               </p>
               <a
-                href="https://wa.me/919876543210?text=Hi%20ZEBA%20Team%2C%20I%20have%20an%20inquiry%20regarding%20the%20Heating%20Pads"
+                href={businessConfig.whatsapp.getWhatsAppUrl()}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center justify-center w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider shadow-md transition-colors"
               >
-                Chat on WhatsApp Now
+                Chat on WhatsApp ({businessConfig.whatsapp.displayNumber})
               </a>
             </div>
 
-            {/* Email & Phone Cards */}
+            {/* Email, Phone & Office Address Cards */}
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-              <h3 className="font-display font-bold text-base text-brand-navy">Contact Information</h3>
+              <h3 className="font-display font-bold text-base text-brand-navy">Contact & Business Details</h3>
               
               <div className="space-y-3 text-xs text-slate-700">
                 <a
-                  href="mailto:care@zeba.com"
+                  href={`mailto:${businessConfig.supportEmail}`}
                   className="flex items-center space-x-3 p-3 rounded-2xl bg-slate-50 hover:bg-brand-softPink transition-colors group"
                 >
-                  <div className="w-8 h-8 rounded-xl bg-brand-pink/10 text-brand-pink flex items-center justify-center group-hover:bg-brand-pink group-hover:text-white transition-colors">
+                  <div className="w-8 h-8 rounded-xl bg-brand-pink/10 text-brand-pink flex items-center justify-center group-hover:bg-brand-pink group-hover:text-white transition-colors flex-shrink-0">
                     <Mail className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="font-bold text-brand-navy block">Email Support</span>
-                    <span className="text-slate-500">care@zeba.com</span>
+                    <span className="font-bold text-brand-navy block">Customer Support Email</span>
+                    <span className="text-slate-500">{businessConfig.supportEmail}</span>
                   </div>
                 </a>
 
                 <a
-                  href="tel:+919876543210"
+                  href={`tel:${businessConfig.supportPhone.replace(/\s+/g, '')}`}
                   className="flex items-center space-x-3 p-3 rounded-2xl bg-slate-50 hover:bg-brand-softPink transition-colors group"
                 >
-                  <div className="w-8 h-8 rounded-xl bg-brand-gold/20 text-brand-gold flex items-center justify-center group-hover:bg-brand-gold group-hover:text-white transition-colors">
+                  <div className="w-8 h-8 rounded-xl bg-brand-gold/20 text-brand-gold flex items-center justify-center group-hover:bg-brand-gold group-hover:text-white transition-colors flex-shrink-0">
                     <Phone className="w-4 h-4" />
                   </div>
                   <div>
                     <span className="font-bold text-brand-navy block">Helpline / Call Us</span>
-                    <span className="text-slate-500">+91 98765 43210 (Mon-Sat, 9am-7pm)</span>
+                    <span className="text-slate-500">{businessConfig.supportPhone} ({businessConfig.supportHours})</span>
                   </div>
                 </a>
+
+                <div className="flex items-start space-x-3 p-3 rounded-2xl bg-slate-50">
+                  <div className="w-8 h-8 rounded-xl bg-slate-200 text-slate-700 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <MapPin className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-brand-navy block">Registered & Fulfillment Address</span>
+                    <span className="text-slate-500 text-[11px] leading-relaxed block mt-0.5">
+                      {businessConfig.address.formatted}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-3 rounded-2xl bg-brand-softPink/50 border border-brand-pink/20 text-[11px]">
+                  <span className="text-slate-600 font-medium">GSTIN: <strong className="text-brand-navy">{businessConfig.tax.gstin}</strong></span>
+                  <span className="text-slate-600 font-medium">CIN: <strong className="text-brand-navy">{businessConfig.tax.cin}</strong></span>
+                </div>
               </div>
+
+              {/* B2B / Wholesale Box */}
+              {businessConfig.b2b.enableB2BInquiries && (
+                <div className="p-4 rounded-2xl bg-slate-900 text-white space-y-2">
+                  <div className="flex items-center space-x-2 text-brand-gold">
+                    <Briefcase className="w-4 h-4" />
+                    <span className="font-bold text-xs uppercase tracking-wider">Corporate & B2B Orders</span>
+                  </div>
+                  <p className="text-[11px] text-slate-300">
+                    Planning corporate wellness gifts or wholesale procurement (Min: {businessConfig.b2b.minOrderQuantity} units)? Reach our B2B desk directly:
+                  </p>
+                  <a
+                    href={`mailto:${businessConfig.b2b.inquiryEmail}`}
+                    className="inline-block text-xs font-bold text-brand-pink hover:underline"
+                  >
+                    ✉️ {businessConfig.b2b.inquiryEmail}
+                  </a>
+                </div>
+              )}
 
               {/* Social Channels */}
               <div className="pt-4 border-t border-slate-100 flex items-center space-x-3">
                 <span className="text-xs font-bold text-slate-500">Follow us:</span>
-                <a
-                  href="https://instagram.com/zeba.care"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="p-2 rounded-xl bg-slate-100 hover:bg-brand-pink hover:text-white text-slate-600 transition-colors"
-                >
-                  <Instagram className="w-4 h-4" />
-                </a>
-                <a
-                  href="https://facebook.com/zeba.care"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="p-2 rounded-xl bg-slate-100 hover:bg-brand-pink hover:text-white text-slate-600 transition-colors"
-                >
-                  <Facebook className="w-4 h-4" />
-                </a>
+                {businessConfig.social.instagram && (
+                  <a
+                    href={businessConfig.social.instagram}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-2 rounded-xl bg-slate-100 hover:bg-brand-pink hover:text-white text-slate-600 transition-colors"
+                  >
+                    <Instagram className="w-4 h-4" />
+                  </a>
+                )}
+                {businessConfig.social.facebook && (
+                  <a
+                    href={businessConfig.social.facebook}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-2 rounded-xl bg-slate-100 hover:bg-brand-pink hover:text-white text-slate-600 transition-colors"
+                  >
+                    <Facebook className="w-4 h-4" />
+                  </a>
+                )}
               </div>
             </div>
 
@@ -157,7 +199,7 @@ export default function Contact() {
                 <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
                 <h3 className="font-bold text-base text-emerald-900">Message Received!</h3>
                 <p className="text-xs text-emerald-700">
-                  Thank you for contacting ZEBA. Our team will review your inquiry and reach out shortly.
+                  Thank you for contacting ZEBA. Our care team will review your inquiry and reach out shortly.
                 </p>
                 <button
                   onClick={() => setSubmitted(false)}
@@ -176,7 +218,7 @@ export default function Contact() {
                     required
                     value={formData.name}
                     onChange={handleChange}
-                    placeholder="Ananya Verma"
+                    placeholder="Pooja Sharma"
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs"
                   />
                 </div>
@@ -190,7 +232,7 @@ export default function Contact() {
                       required
                       value={formData.email}
                       onChange={handleChange}
-                      placeholder="ananya@example.com"
+                      placeholder="pooja@example.com"
                       className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs"
                     />
                   </div>
@@ -202,10 +244,26 @@ export default function Contact() {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      placeholder="9876543210"
+                      placeholder="9876500000"
                       className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Inquiry Category</label>
+                  <select
+                    name="inquiryType"
+                    value={formData.inquiryType}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs bg-white"
+                  >
+                    <option value="General / Order Support">General / Order & Delivery Support</option>
+                    <option value="Product Sizing & Usage Guidance">Product Sizing & Usage Guidance</option>
+                    <option value="Corporate / Bulk Order Inquiry">Corporate / Bulk Order Inquiry (B2B)</option>
+                    <option value="Distribution & Retail Partnership">Distribution & Retail Partnership</option>
+                    <option value="Feedback / Other">Feedback / Other</option>
+                  </select>
                 </div>
 
                 <div>
@@ -216,7 +274,7 @@ export default function Contact() {
                     rows="4"
                     value={formData.message}
                     onChange={handleChange}
-                    placeholder="How can we help you today?"
+                    placeholder="How can our care specialists assist you today?"
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs"
                   />
                 </div>
@@ -240,3 +298,4 @@ export default function Contact() {
     </div>
   );
 }
+

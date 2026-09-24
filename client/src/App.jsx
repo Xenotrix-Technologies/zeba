@@ -31,6 +31,7 @@ import AdminOrders from './pages/admin/AdminOrders';
 import AdminOrderDetail from './pages/admin/AdminOrderDetail';
 import AdminProducts from './pages/admin/AdminProducts';
 import AdminCustomers from './pages/admin/AdminCustomers';
+import AdminSettings from './pages/admin/AdminSettings';
 
 function StorefrontLayout() {
   return (
@@ -84,6 +85,7 @@ export default function App() {
         <Route path="orders/:id" element={<AdminOrderDetail />} />
         <Route path="products" element={<AdminProducts />} />
         <Route path="customers" element={<AdminCustomers />} />
+        <Route path="settings" element={<AdminSettings />} />
       </Route>
 
       {/* 404 Catch All */}

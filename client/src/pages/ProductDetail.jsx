@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import api from '../services/api';
 import { useCart } from '../context/CartContext';
+import { businessConfig } from '../config/businessConfig';
 
 export default function ProductDetail() {
   const [products, setProducts] = useState([]);
@@ -308,7 +309,7 @@ export default function ProductDetail() {
 
               {/* WhatsApp Support Button */}
               <a
-                href={`https://wa.me/919876543210?text=Hi%20ZEBA%20Team%2C%20I%20have%20a%20question%20about%20the%20${encodeURIComponent(selectedProduct.name)}`}
+                href={businessConfig.whatsapp.getWhatsAppUrl(`Hi ZEBA Team, I have a question about the ${selectedProduct.name}`)}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full py-3 px-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 font-bold text-xs flex items-center justify-center space-x-2 transition-colors"

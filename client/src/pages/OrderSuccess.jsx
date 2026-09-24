@@ -3,6 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import { CheckCircle2, Package, Truck, MessageCircle, ArrowRight, ShieldCheck, ShoppingBag } from 'lucide-react';
 import api from '../services/api';
+import { businessConfig } from '../config/businessConfig';
 
 export default function OrderSuccess() {
   const [searchParams] = useSearchParams();
@@ -132,7 +133,7 @@ export default function OrderSuccess() {
             </Link>
 
             <a
-              href={`https://wa.me/919876543210?text=Hi%20ZEBA%20Team%2C%20I%20just%20placed%20order%20${orderNumber || ''}%20and%20wanted%20to%20confirm%20delivery`}
+              href={businessConfig.whatsapp.getWhatsAppUrl(`Hi ZEBA Team, I just placed order ${orderNumber || ''} and wanted to confirm delivery`)}
               target="_blank"
               rel="noreferrer"
               className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-2 transition-all shadow-md"

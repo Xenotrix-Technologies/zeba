@@ -88,7 +88,7 @@ export function generateWhatsAppMessage(order, newStatus, trackingNotes) {
     message += `We hope ZEBA brings you soothing warmth and comfort! Feel free to reach out to us anytime.\n\n`;
   }
 
-  message += `Need help? Contact ZEBA Care at +91 98765 43210 or reply to this message.`;
+  message += `Need help? Contact ZEBA Care at ${config.WHATSAPP_DISPLAY || config.CONTACT_PHONE} or reply to this message.`;
 
   return message;
 }
@@ -283,7 +283,7 @@ export async function sendOrderConfirmationToCustomer({
           </div>
 
           <p style="color: #718096; font-size: 12px; line-height: 1.5; text-align: center; margin-bottom: 0;">
-            Our team is preparing your package in 100% plain, discreet boxes. If you have questions, reach us on WhatsApp at <strong>+91 98765 43210</strong>.
+            Our team is preparing your package in 100% plain, discreet boxes. If you have questions, reach us on WhatsApp at <strong>${config.WHATSAPP_DISPLAY || config.CONTACT_PHONE}</strong> or email <strong>${config.CONTACT_EMAIL}</strong>.
           </p>
         </div>
 

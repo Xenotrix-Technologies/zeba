@@ -1,4 +1,5 @@
 import React from 'react';
+import { businessConfig } from '../../config/businessConfig';
 
 export default function PrivacyPolicy() {
   return (
@@ -7,12 +8,12 @@ export default function PrivacyPolicy() {
         <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-brand-navy">
           Privacy Policy
         </h1>
-        <p className="text-slate-500 text-xs">Last updated: September 2026</p>
+        <p className="text-slate-500 text-xs">Last updated: September 2026 • {businessConfig.legalEntityName}</p>
 
         <section className="space-y-2">
           <h2 className="font-bold text-base text-brand-navy">1. Information We Collect</h2>
           <p>
-            When you purchase from ZEBA or interact with our services, we collect necessary personal details such as your full name, shipping address, mobile phone number, and email address. Payment data is processed securely through Razorpay; ZEBA does not store raw credit/debit card numbers on its servers.
+            When you purchase from {businessConfig.brandName} or interact with our services, we collect necessary personal details such as your full name, shipping address, mobile phone number, and email address. Payment data is processed securely through {businessConfig.payments.gatewayName}; {businessConfig.brandName} does not store raw credit/debit card numbers on its servers.
           </p>
         </section>
 
@@ -31,12 +32,18 @@ export default function PrivacyPolicy() {
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-bold text-base text-brand-navy">4. Contact Us</h2>
+          <h2 className="font-bold text-base text-brand-navy">4. Corporate & Legal Inquiries</h2>
           <p>
-            If you have questions about our privacy practices, contact us at <strong>care@zeba.com</strong>.
+            If you have questions about our privacy practices, contact our Data Grievance Officer at <strong>{businessConfig.supportEmail}</strong> or by writing to our registered office:
           </p>
+          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 mt-2">
+            <strong>{businessConfig.legalEntityName}</strong><br />
+            {businessConfig.address.formatted}<br />
+            GSTIN: {businessConfig.tax.gstin} • CIN: {businessConfig.tax.cin}
+          </div>
         </section>
       </div>
     </div>
   );
 }
+

@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ShoppingBag, ArrowRight, MessageCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { businessConfig } from '../config/businessConfig';
 
 export default function StickyMobileBar() {
   const location = useLocation();
@@ -20,7 +21,7 @@ export default function StickyMobileBar() {
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 p-2.5 px-4 shadow-[0_-8px_20px_rgba(0,0,0,0.06)] flex items-center justify-between gap-3">
       {/* WhatsApp Quick Help */}
       <a
-        href="https://wa.me/919876543210?text=Hi%20ZEBA%20Team%2C%20I%20need%20help%20with%20Period%20Pain%20Relief%20Pads"
+        href={businessConfig.whatsapp.getWhatsAppUrl('Hi ZEBA Team, I need help with Period Pain Relief Pads')}
         target="_blank"
         rel="noreferrer"
         className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center flex-shrink-0"

@@ -1,4 +1,5 @@
 import React from 'react';
+import { businessConfig } from '../../config/businessConfig';
 
 export default function RefundPolicy() {
   return (
@@ -7,22 +8,26 @@ export default function RefundPolicy() {
         <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-brand-navy">
           Refund & Return Policy
         </h1>
-        <p className="text-slate-500 text-xs">Last updated: September 2026</p>
+        <p className="text-slate-500 text-xs">Last updated: September 2026 • {businessConfig.legalEntityName}</p>
 
         <section className="space-y-2">
           <h2 className="font-bold text-base text-brand-navy">1. Hygiene & Wellness Products</h2>
           <p>
-            Due to the intimate healthcare and hygiene nature of period heating pads, opened or tampered product packages cannot be returned or restocked once delivered.
+            Due to the intimate healthcare, self-heating nature, and hygiene standards of menstrual care products, opened or used heating pad pouches cannot be returned or restocked once delivered.
           </p>
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-bold text-base text-brand-navy">2. Damaged or Incorrect Orders</h2>
+          <h2 className="font-bold text-base text-brand-navy">2. Damaged, Defective, or Incorrect Deliveries</h2>
           <p>
-            If you received a damaged package or incorrect pack size, please contact us on WhatsApp (+91 98765 43210) or via email (care@zeba.com) within 48 hours of delivery with photos of the outer box and product. We will immediately dispatch a free replacement or issue a full refund to your original payment method.
+            If your package arrived damaged, opened in transit, or with incorrect pack quantities, please notify our team within <strong>{businessConfig.commerce.returnWindowDays} days</strong> of delivery. Contact us via WhatsApp ({businessConfig.whatsapp.displayNumber}) or email (<strong>{businessConfig.supportEmail}</strong>) with photos of the outer box and product batch.
+          </p>
+          <p>
+            Upon quick verification, we will immediately dispatch an expedited free replacement or process a 100% full refund to your original payment method within 3 - 5 business days.
           </p>
         </section>
       </div>
     </div>
   );
 }
+

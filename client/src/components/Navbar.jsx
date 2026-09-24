@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ShoppingBag, Menu, X, Sparkles, ShieldCheck, Heart, User, LogOut } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useCustomerAuth } from '../context/CustomerAuthContext';
+import { businessConfig } from '../config/businessConfig';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -32,7 +33,7 @@ export default function Navbar() {
       {/* Top Notification Announcement Bar */}
       <div className="bg-[#0D1B44] text-white py-2 px-4 text-xs md:text-sm font-medium text-center border-b border-white/10 flex items-center justify-center space-x-2">
         <Sparkles className="w-3.5 h-3.5 text-brand-gold animate-pulse" />
-        <span>Special Offer: <strong>Free Fast Shipping</strong> on orders above ₹499!</span>
+        <span>Special Offer: <strong>Free Fast Shipping</strong> on orders above ₹{businessConfig.commerce.freeShippingThreshold}!</span>
         <span className="hidden md:inline text-brand-pink font-semibold">• 100% Safe Ingredients • Discreet Packaging</span>
       </div>
 
