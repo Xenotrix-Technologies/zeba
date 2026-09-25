@@ -48,7 +48,28 @@ app.use(async (req, res, next) => {
   next();
 });
 
-// Mount routes to support both with and without /api prefix (for Vercel rewrites & direct calls)
+// URL Normalization middleware to handle Vercel rewrites & proxies seamlessly
+app.use((req, res, next) => {
+  // If __path is passed from Vercel rewrite (?__path=auth/login)
+  if (req.query && req.query.__path) {
+    const rawPath = req.query.__path;
+    req.url = rawPath.startsWith('/') ? rawPath : `/${rawPath}`;
+  } else if (req.url === '/api/index.js' || req.url === '/index.js' || req.url.startsWith('/api/index.js') || req.url.startsWith('/index.js')) {
+    // Restore original path from Vercel headers if URL was rewritten to filename
+    const matched = req.headers['x-matched-path'] || req.headers['x-now-route-matches'] || req.headers['x-invoke-path'] || req.headers['x-forwarded-url'];
+    if (matched) {
+      try {
+        const urlObj = new URL(matched, 'http://localhost');
+        req.url = urlObj.pathname + (urlObj.search || '');
+      } catch {
+        req.url = matched;
+      }
+    }
+  }
+  next();
+});
+
+// Mount routes on all variations: /api/*, /*, /api/index.js/*
 const mountRouters = (prefix = '') => {
   app.use(`${prefix}/auth`, authRoutes);
   app.use(`${prefix}/customer`, customerRoutes);
@@ -72,7 +93,18 @@ app.get(['/api/health', '/health'], (req, res) => {
   });
 });
 
+// JSON 404 handler for API routes
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `API endpoint not found: [${req.method}] ${req.originalUrl || req.url}`
+  });
+});
+
 // Error handling
 app.use(errorHandler);
 
-export default app;
+export default function handler(req, res) {
+  return app(req, res);
+}
+export { app };

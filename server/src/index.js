@@ -58,6 +58,14 @@ app.get(['/api/health', '/health'], (req, res) => {
   });
 });
 
+// JSON 404 handler for unmatched routes
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `API route not found: [${req.method}] ${req.originalUrl || req.url}`
+  });
+});
+
 // Error handling
 app.use(errorHandler);
 
