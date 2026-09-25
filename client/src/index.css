@@ -17,10 +17,18 @@
   body {
     @apply bg-[#FAF8FB] text-[#0E1B4D] antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-display tracking-tight text-[#0E1B4D];
+  }
+
+  ::selection {
+    background-color: #FF2D78;
+    color: #FFFFFF;
   }
 }
 
@@ -51,21 +59,66 @@
 .pack-safe-stamp {
   background: #FF2D78;
   border: 2px solid #FFFFFF;
-  box-shadow: 0 4px 12px rgba(255, 45, 120, 0.4);
+  box-shadow: 0 4px 14px rgba(255, 45, 120, 0.35);
 }
 
-/* Glassmorphism helpers */
+/* Glassmorphism & High-End Card Surfaces */
 .glass-nav {
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 45, 120, 0.12);
+}
+
+.glass-panel-dark {
+  background: rgba(14, 27, 77, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(229, 192, 110, 0.2);
+}
+
+/* Interactive Tactile Feedback */
+.btn-tactile {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-tactile:active {
+  transform: scale(0.98);
+}
+
+/* Radiant Shimmer Effect */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+.animate-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.25) 50%,
+    transparent 100%
+  );
+  transform: skewX(-20deg);
+  animation: shimmer 3.5s infinite;
 }
 
 /* Continuous scrolling ticker */
@@ -77,7 +130,7 @@
 .animate-ticker {
   display: flex;
   width: 200%;
-  animation: ticker 25s linear infinite;
+  animation: ticker 28s linear infinite;
 }
 
 .animate-ticker:hover {
@@ -86,17 +139,17 @@
 
 /* Custom scrollbars */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #F1F5F9;
+  background: #F8FAFC;
 }
 
 ::-webkit-scrollbar-thumb {
   background: #CBD5E1;
-  border-radius: 4px;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
