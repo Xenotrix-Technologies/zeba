@@ -10,7 +10,7 @@ export async function seedDatabase() {
 
   // 1. Seed Admin
   const adminEmail = (config.ADMIN_DEFAULT_EMAIL || 'zebaofficial2013@gmail.com').toLowerCase().trim();
-  const adminPassword = config.ADMIN_DEFAULT_PASSWORD || 'ZebaMundath#2026!';
+  const adminPassword = config.ADMIN_DEFAULT_PASSWORD || 'zeba@2026.?';
   const adminUsername = 'zeba_admin';
 
   const salt = await bcrypt.genSalt(10);

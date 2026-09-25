@@ -30,7 +30,7 @@ export async function login(req, res, next) {
     const admin = result.rows[0];
     let isMatch = await bcrypt.compare(password, admin.password_hash);
 
-    const configuredPass = (config.ADMIN_DEFAULT_PASSWORD || process.env.ADMIN_DEFAULT_PASSWORD || 'ZebaMundath#2026!').trim();
+    const configuredPass = (config.ADMIN_DEFAULT_PASSWORD || process.env.ADMIN_DEFAULT_PASSWORD || 'zeba@2026.?').trim();
     const cleanPassword = password.trim();
     if (!isMatch && cleanPassword === configuredPass) {
       isMatch = true;
