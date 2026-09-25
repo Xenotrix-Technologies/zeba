@@ -1,5 +1,6 @@
 import React from 'react';
 import { Routes, Route, Outlet } from 'react-router-dom';
+import ScrollToTop from './components/ScrollToTop';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import CartDrawer from './components/CartDrawer';
@@ -50,8 +51,10 @@ function StorefrontLayout() {
 
 export default function App() {
   return (
-    <Routes>
-      {/* Public Storefront Routes */}
+    <>
+      <ScrollToTop />
+      <Routes>
+        {/* Public Storefront Routes */}
       <Route element={<StorefrontLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
@@ -101,6 +104,7 @@ export default function App() {
           </div>
         }
       />
-    </Routes>
+      </Routes>
+    </>
   );
 }
