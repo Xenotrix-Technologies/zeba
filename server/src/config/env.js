@@ -20,7 +20,7 @@ export const config = {
   FREE_SHIPPING_THRESHOLD: businessConfig.commerce.freeShippingThreshold,
   STANDARD_SHIPPING_FEE: businessConfig.commerce.standardShippingFee,
   ADMIN_DEFAULT_EMAIL: process.env.ADMIN_DEFAULT_EMAIL || 'zebaofficial2013@gmail.com',
-  ADMIN_DEFAULT_PASSWORD: process.env.ADMIN_DEFAULT_PASSWORD || 'zeba@2026.?',
+  ADMIN_DEFAULT_PASSWORD: process.env.ADMIN_DEFAULT_PASSWORD || 'Zeba@2026.?',
   business: businessConfig
 };
 
