@@ -38,7 +38,7 @@ export default function RazorpayModal({
       <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100">
         
         {/* Modal Header */}
-        <div className="bg-[#0A192F] p-6 text-white text-center relative">
+        <div className="bg-[#260E36] p-6 text-white text-center relative">
           <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-brand-pink/20 text-brand-pink mb-3 border border-brand-pink/30">
             <Lock className="w-6 h-6" />
           </div>

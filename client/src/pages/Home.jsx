@@ -171,13 +171,13 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#FAF8FB] text-[#0E1B4D]">
+    <div className="min-h-screen bg-[#FAF5FA] text-[#241133]">
       
       {/* 1. HERO SECTION (Anti-Slop: Viewport Optimized, Stack Disciplined) */}
       <section className="relative overflow-hidden pt-8 pb-14 md:pt-12 md:pb-18">
         {/* Subtle Ambient Illumination */}
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-brand-pink/8 rounded-full blur-3xl -z-10 pointer-events-none" />
-        <div className="absolute bottom-10 left-10 w-80 h-80 bg-brand-gold/10 rounded-full blur-3xl -z-10 pointer-events-none" />
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-brand-pink/10 rounded-full blur-3xl -z-10 pointer-events-none" />
+        <div className="absolute bottom-10 left-10 w-80 h-80 bg-brand-gold/15 rounded-full blur-3xl -z-10 pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
@@ -186,7 +186,7 @@ export default function Home() {
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
               
               {/* Eyebrow badge (Restrained, max 1 per 3 sections) */}
-              <div className="inline-flex items-center space-x-2 bg-white/90 border border-brand-pink/20 rounded-full px-3.5 py-1.5 shadow-sm backdrop-blur-md">
+              <div className="inline-flex items-center space-x-2 bg-white/90 border border-brand-pink/30 rounded-full px-3.5 py-1.5 shadow-sm backdrop-blur-md">
                 <span className="w-2 h-2 rounded-full bg-brand-pink animate-ping" />
                 <span className="text-xs font-bold text-brand-navy tracking-wide">
                   Air-Activated • Up to 8 Hours Natural Warmth
@@ -194,9 +194,9 @@ export default function Home() {
               </div>
 
               {/* 2-Line High-Impact Headline */}
-              <h1 className="font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl text-[#0E1B4D] tracking-tight leading-[1.1]">
+              <h1 className="font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl text-[#241133] tracking-tight leading-[1.1]">
                 Menstrual Cramps Shouldn’t Stop You.{' '}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-pink via-brand-deepPink to-amber-600">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-pink via-brand-deepPink to-brand-gold">
                   Feel Soothed in Minutes.
                 </span>
               </h1>
@@ -226,19 +226,19 @@ export default function Home() {
 
               {/* Micro Trust Strip */}
               <div className="pt-3 grid grid-cols-3 gap-3 max-w-md mx-auto lg:mx-0 text-center">
-                <div className="p-3 rounded-2xl bg-white/80 border border-slate-100 shadow-sm backdrop-blur-sm">
+                <div className="p-3 rounded-2xl bg-white/90 border border-purple-100 shadow-sm backdrop-blur-sm">
                   <Flame className="w-4 h-4 text-brand-pink mx-auto mb-1" />
                   <span className="text-[11px] font-bold text-slate-800 block">50–55°C Warmth</span>
-                  <span className="text-[9px] text-slate-500">Heats in 15 mins</span>
+                  <span className="text-[9px] text-slate-500">Heats in 5-6 mins</span>
                 </div>
-                <div className="p-3 rounded-2xl bg-white/80 border border-slate-100 shadow-sm backdrop-blur-sm">
+                <div className="p-3 rounded-2xl bg-white/90 border border-purple-100 shadow-sm backdrop-blur-sm">
                   <Clock className="w-4 h-4 text-amber-500 mx-auto mb-1" />
                   <span className="text-[11px] font-bold text-slate-800 block">8+ Hours Relief</span>
                   <span className="text-[9px] text-slate-500">Continuous heat</span>
                 </div>
-                <div className="p-3 rounded-2xl bg-white/80 border border-slate-100 shadow-sm backdrop-blur-sm">
+                <div className="p-3 rounded-2xl bg-white/90 border border-purple-100 shadow-sm backdrop-blur-sm">
                   <ShieldCheck className="w-4 h-4 text-emerald-600 mx-auto mb-1" />
-                  <span className="text-[11px] font-bold text-slate-800 block">100% Drug-Free</span>
+                  <span className="text-[11px] font-bold text-slate-800 block">100% Safe</span>
                   <span className="text-[9px] text-slate-500">Natural minerals</span>
                 </div>
               </div>
@@ -250,7 +250,7 @@ export default function Home() {
               <div className="relative mx-auto max-w-md">
                 
                 {/* Main Authentic Packaging Card */}
-                <div className="rounded-3xl bg-white p-3.5 shadow-2xl border border-brand-pink/20 relative group overflow-hidden">
+                <div className="rounded-3xl bg-white p-3.5 shadow-2xl border border-brand-pink/25 relative group overflow-hidden">
                   <img
                     src="/images/zeba-real-packaging-1.jpg"
                     alt="ZEBA Periods Pain Relief Heating Pad Official Packaging"
@@ -258,14 +258,14 @@ export default function Home() {
                   />
 
                   {/* Stamp Badge */}
-                  <div className="absolute top-6 left-6 z-10 w-12 h-12 rounded-full pack-safe-stamp text-white flex flex-col items-center justify-center text-center p-0.5 shadow-lg ring-2 ring-white">
+                  <div className="absolute top-6 left-6 z-10 w-12 h-12 rounded-full pack-safe-stamp text-[#3C1B50] flex flex-col items-center justify-center text-center p-0.5 shadow-lg ring-2 ring-white">
                     <span className="text-[7px] font-black uppercase tracking-wider">SAFE</span>
                     <span className="text-[9px] font-extrabold leading-tight">100%</span>
                     <span className="text-[6px] uppercase font-bold">Natural</span>
                   </div>
 
                   {/* Floating Rating & Pack Pill */}
-                  <div className="absolute bottom-5 right-5 bg-[#0D1B44]/95 backdrop-blur-md px-3.5 py-2 rounded-2xl shadow-xl border border-brand-gold/30 flex items-center space-x-2">
+                  <div className="absolute bottom-5 right-5 bg-[#260E36]/95 backdrop-blur-md px-3.5 py-2 rounded-2xl shadow-xl border border-brand-gold/40 flex items-center space-x-2">
                     <Star className="w-4 h-4 fill-brand-gold text-brand-gold" />
                     <div>
                       <span className="text-[11px] font-bold text-white block leading-tight">Authentic ZEBA Box</span>
@@ -282,7 +282,7 @@ export default function Home() {
       </section>
 
       {/* 2. TICKER BANNER (Continuous Streamlined Strip) */}
-      <div className="bg-[#0A192F] text-white py-3 overflow-hidden border-y border-brand-pink/20">
+      <div className="bg-[#260E36] text-white py-3 overflow-hidden border-y border-brand-pink/25">
         <div className="animate-ticker text-xs font-bold tracking-wider uppercase flex items-center space-x-8 text-brand-lightGold">
           <span className="flex items-center gap-2"><Sparkles className="w-3.5 h-3.5 text-brand-pink" /> ULTRA THIN DESIGN</span>
           <span>•</span>
@@ -333,7 +333,7 @@ export default function Home() {
       </section>
 
       {/* 4. INTERACTIVE WARMTH & CRAMP RELIEF SIMULATOR (Anti-Slop: Interactive Progression) */}
-      <section className="py-16 sm:py-20 bg-[#FAF8FB] border-t border-slate-100">
+      <section className="py-16 sm:py-20 bg-[#FAF5FA] border-t border-purple-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           
           <div className="text-center max-w-2xl mx-auto space-y-2">
@@ -355,7 +355,7 @@ export default function Home() {
                   className={`p-4 rounded-2xl border text-left transition-all btn-tactile ${
                     activeTimelineIdx === idx
                       ? 'bg-brand-navy text-white border-brand-navy shadow-lg ring-2 ring-brand-pink/30'
-                      : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
+                      : 'bg-white text-slate-700 border-purple-100 hover:border-brand-pink/30'
                   }`}
                 >
                   <span className={`text-[11px] font-mono font-bold block ${activeTimelineIdx === idx ? 'text-brand-gold' : 'text-slate-400'}`}>
@@ -369,7 +369,7 @@ export default function Home() {
             </div>
 
             {/* Active Stage Deep-Dive Card */}
-            <div className="rounded-3xl bg-white p-6 sm:p-8 border border-slate-200/90 shadow-lg grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+            <div className="rounded-3xl bg-white p-6 sm:p-8 border border-purple-100 shadow-lg grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
               
               <div className="md:col-span-7 space-y-4">
                 <div className="flex items-center space-x-3">
@@ -396,14 +396,14 @@ export default function Home() {
               </div>
 
               {/* Gauge & Metrics Card */}
-              <div className="md:col-span-5 rounded-2xl bg-gradient-to-br from-[#0E1B4D] to-[#081033] p-6 text-white text-center space-y-4 shadow-md border border-brand-gold/20">
-                <div className="flex items-center justify-between text-xs text-slate-300 border-b border-white/10 pb-3">
+              <div className="md:col-span-5 rounded-2xl bg-gradient-to-br from-[#3C1B50] to-[#260E36] p-6 text-white text-center space-y-4 shadow-md border border-brand-gold/30">
+                <div className="flex items-center justify-between text-xs text-purple-200 border-b border-white/10 pb-3">
                   <span>Target Temp</span>
                   <span className="font-mono font-bold text-brand-gold">{timelineStages[activeTimelineIdx].temp}</span>
                 </div>
 
                 <div>
-                  <span className="text-[11px] uppercase tracking-wider text-slate-400 block mb-1">Cramp Ease Level</span>
+                  <span className="text-[11px] uppercase tracking-wider text-purple-200 block mb-1">Cramp Ease Level</span>
                   <span className="font-display font-black text-4xl text-brand-gold">
                     {timelineStages[activeTimelineIdx].reliefLevel}
                   </span>
@@ -417,7 +417,7 @@ export default function Home() {
                   />
                 </div>
 
-                <p className="text-[10px] text-slate-400 pt-1">
+                <p className="text-[10px] text-purple-200 pt-1">
                   Continuous soothing thermal distribution
                 </p>
               </div>
@@ -429,7 +429,7 @@ export default function Home() {
       </section>
 
       {/* 5. HOW TO USE IT (4-Step Infographic Routine) */}
-      <section className="py-16 sm:py-20 bg-white border-t border-slate-100" id="how-to-use">
+      <section className="py-16 sm:py-20 bg-white border-t border-purple-100" id="how-to-use">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
           <div className="text-center max-w-2xl mx-auto space-y-2">
@@ -442,7 +442,7 @@ export default function Home() {
           </div>
 
           {/* Official Visual Infographic */}
-          <div className="rounded-3xl bg-slate-50 p-4 sm:p-6 border border-slate-200/90 shadow-sm max-w-5xl mx-auto overflow-hidden">
+          <div className="rounded-3xl bg-slate-50 p-4 sm:p-6 border border-purple-100 shadow-sm max-w-5xl mx-auto overflow-hidden">
             <img
               src="/images/zeba-how-to-use-guide.jpg"
               alt="ZEBA How to Use It - 4 Step Visual Guide"
@@ -457,7 +457,7 @@ export default function Home() {
               return (
                 <div
                   key={idx}
-                  className="p-6 rounded-3xl bg-[#FAF8FB] border border-slate-200/90 shadow-sm space-y-4 hover:shadow-md hover:border-brand-pink/30 transition-all flex flex-col justify-between group"
+                  className="p-6 rounded-3xl bg-[#FAF5FA] border border-purple-100 shadow-sm space-y-4 hover:shadow-md hover:border-brand-pink/30 transition-all flex flex-col justify-between group"
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
@@ -498,7 +498,7 @@ export default function Home() {
       </section>
 
       {/* 6. WHAT'S INSIDE? PURE NATURAL GOODNESS (Ingredients Breakdown) */}
-      <section className="py-16 sm:py-20 bg-[#FAF8FB] border-t border-slate-100">
+      <section className="py-16 sm:py-20 bg-[#FAF5FA] border-t border-purple-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
           <div className="text-center max-w-2xl mx-auto space-y-2">
@@ -511,7 +511,7 @@ export default function Home() {
           </div>
 
           {/* Official Ingredients Infographic */}
-          <div className="rounded-3xl bg-white p-4 sm:p-6 border border-slate-200/90 shadow-sm max-w-5xl mx-auto overflow-hidden">
+          <div className="rounded-3xl bg-white p-4 sm:p-6 border border-purple-100 shadow-sm max-w-5xl mx-auto overflow-hidden">
             <img
               src="/images/zeba-whats-inside-ingredients.jpg"
               alt="ZEBA What's Inside Pure Natural Goodness Ingredients"
@@ -524,7 +524,7 @@ export default function Home() {
             {naturalIngredients.map((ing, idx) => (
               <div
                 key={idx}
-                className="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm space-y-3 hover:shadow-md hover:border-brand-pink/30 transition-all"
+                className="p-6 rounded-3xl bg-white border border-purple-100 shadow-sm space-y-3 hover:shadow-md hover:border-brand-pink/30 transition-all"
               >
                 <div className="flex items-center space-x-2.5">
                   <span className="w-7 h-7 rounded-xl bg-brand-pink text-white font-mono font-bold text-xs flex items-center justify-center">
@@ -532,7 +532,7 @@ export default function Home() {
                   </span>
                   <h3 className="font-display font-extrabold text-base text-brand-navy">{ing.name}</h3>
                 </div>
-                <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-brand-navy">
                   {ing.role}
                 </span>
                 <p className="text-xs text-slate-600 leading-relaxed">{ing.desc}</p>
@@ -541,13 +541,13 @@ export default function Home() {
           </div>
 
           {/* Guarantee Seal Box */}
-          <div className="max-w-xl mx-auto p-6 rounded-3xl bg-[#0D1B44] text-white text-center shadow-xl border border-brand-gold/30 space-y-2">
+          <div className="max-w-xl mx-auto p-6 rounded-3xl bg-[#260E36] text-white text-center shadow-xl border border-brand-gold/40 space-y-2">
             <div className="flex items-center justify-center space-x-2 text-brand-gold font-bold text-sm uppercase tracking-wider">
               <Award className="w-5 h-5 text-brand-gold" />
               <span>Safe & Gentle Formula Guarantee</span>
             </div>
-            <p className="text-xs text-slate-300">
-              100% Drug-Free • Fragrance-Free • Hypoallergenic • Zero Harsh Chemicals
+            <p className="text-xs text-purple-200">
+              100% Safe Ingredients • Air-Activated • Odourless • Zero Harsh Chemicals
             </p>
           </div>
 
@@ -555,7 +555,7 @@ export default function Home() {
       </section>
 
       {/* 7. GOT QUESTIONS? WE GOT ANSWERS (Clean Accordion) */}
-      <section className="py-16 sm:py-20 bg-white border-t border-slate-100" id="faq">
+      <section className="py-16 sm:py-20 bg-white border-t border-purple-100" id="faq">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           
           <div className="text-center max-w-2xl mx-auto space-y-2">
@@ -575,7 +575,7 @@ export default function Home() {
                 <div
                   key={idx}
                   className={`rounded-2xl border transition-all overflow-hidden ${
-                    isOpen ? 'border-brand-pink/40 bg-[#FFF9FB] shadow-sm' : 'border-slate-200 bg-white'
+                    isOpen ? 'border-brand-pink/40 bg-[#FFF9FB] shadow-sm' : 'border-purple-100 bg-white'
                   }`}
                 >
                   <button
@@ -604,22 +604,22 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 8. FINAL HIGH-CONVERTING CTA BANNER (Deep Midnight Navy) */}
-      <section className="py-20 bg-[#081033] text-white text-center relative overflow-hidden">
+      {/* 8. FINAL HIGH-CONVERTING CTA BANNER */}
+      <section className="py-20 bg-[#260E36] text-white text-center relative overflow-hidden border-t border-purple-900/40">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-6">
-          <span className="text-xs font-bold uppercase tracking-widest text-brand-gold bg-white/10 px-4 py-1.5 rounded-full border border-white/20">
-            Convenient Period Pain Relief
+          <span className="text-xs font-bold uppercase tracking-widest text-brand-gold bg-white/10 px-4 py-1.5 rounded-full border border-brand-gold/30">
+            India's 1st Periods Pain Relief Heating Pad
           </span>
           <h2 className="font-display font-black text-3xl sm:text-5xl text-white">
             Ready for Worry-Free Period Comfort?
           </h2>
-          <p className="text-slate-300 text-sm sm:text-base max-w-xl mx-auto">
+          <p className="text-purple-200 text-sm sm:text-base max-w-xl mx-auto">
             Order your ZEBA Periods Pain Relief Heating Pads today and experience gentle soothing warmth whenever you need it.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-3">
             <Link
               to="/products"
-              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-brand-pink hover:bg-brand-deepPink text-white font-bold text-sm shadow-xl shadow-brand-pink/30 flex items-center justify-center space-x-2 btn-tactile animate-shimmer"
+              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-brand-pink to-brand-deepPink hover:opacity-95 text-white font-bold text-sm shadow-xl shadow-brand-pink/30 flex items-center justify-center space-x-2 btn-tactile animate-shimmer"
             >
               <span>Shop Heating Pads</span>
               <ArrowRight className="w-4 h-4" />

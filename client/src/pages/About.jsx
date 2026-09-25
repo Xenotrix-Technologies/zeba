@@ -73,12 +73,12 @@ export default function About() {
             </p>
           </div>
 
-          <div className="p-8 rounded-3xl bg-[#0A192F] text-white border border-brand-gold/30 space-y-4">
+          <div className="p-8 rounded-3xl bg-[#260E36] text-white border border-brand-gold/40 space-y-4">
             <div className="w-12 h-12 rounded-2xl bg-brand-gold/20 text-brand-gold flex items-center justify-center">
               <Eye className="w-6 h-6" />
             </div>
             <h3 className="font-display font-extrabold text-2xl text-white">Our Vision</h3>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            <p className="text-xs sm:text-sm text-purple-200 leading-relaxed">
               A world where periods never pause life's ambitions. We envision ZEBA as the gold standard in modern feminine wellness, combining thoughtful design with honest, dependable care.
             </p>
           </div>

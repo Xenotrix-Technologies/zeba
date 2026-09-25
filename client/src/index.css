@@ -4,18 +4,21 @@
 
 @layer base {
   :root {
-    --zeba-navy: #0E1B4D;
-    --zeba-dark-navy: #081033;
-    --zeba-deep-navy: #172A6B;
-    --zeba-magenta: #FF2D78;
-    --zeba-deep-magenta: #D00A52;
-    --zeba-gold: #E5C06E;
-    --zeba-lavender: #9F7AEA;
-    --zeba-blush: #FFF0F6;
+    --zeba-magenta: #A83B8F;
+    --zeba-hot-pink: #BA4C9E;
+    --zeba-deep-magenta: #8A2574;
+    --zeba-plum: #3C1B50;
+    --zeba-dark-plum: #260E36;
+    --zeba-deep-plum: #4F266A;
+    --zeba-gold: #F3C948;
+    --zeba-light-gold: #FDF4D4;
+    --zeba-lavender: #7E63B6;
+    --zeba-blush: #FCF6FB;
+    --zeba-soft-pink: #F7E5F3;
   }
 
   body {
-    @apply bg-[#FAF8FB] text-[#0E1B4D] antialiased;
+    @apply bg-[#FAF5FA] text-[#241133] antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
@@ -23,11 +26,11 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display tracking-tight text-[#0E1B4D];
+    @apply font-display tracking-tight text-[#241133];
   }
 
   ::selection {
-    background-color: #FF2D78;
+    background-color: #A83B8F;
     color: #FFFFFF;
   }
 }
@@ -38,50 +41,61 @@
 }
 
 /* ZEBA Pack Color Gradients & Styles */
+.pack-plum-gradient {
+  background: linear-gradient(145deg, #3C1B50 0%, #4F266A 50%, #260E36 100%);
+}
+
 .pack-navy-gradient {
-  background: linear-gradient(145deg, #0E1B4D 0%, #172A6B 50%, #081033 100%);
+  background: linear-gradient(145deg, #3C1B50 0%, #4F266A 50%, #260E36 100%);
 }
 
 .pack-magenta-gradient {
-  background: linear-gradient(135deg, #FF2D78 0%, #F51E6E 50%, #D00A52 100%);
+  background: linear-gradient(135deg, #BA4C9E 0%, #A83B8F 50%, #8A2574 100%);
 }
 
 .pack-gold-gradient {
-  background: linear-gradient(135deg, #FDF1C7 0%, #E5C06E 50%, #B88B2A 100%);
+  background: linear-gradient(135deg, #FFF0B8 0%, #F3C948 50%, #C99718 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .pack-lavender-gradient {
-  background: linear-gradient(135deg, #EDE9FE 0%, #DDD6FE 50%, #C4B5FD 100%);
+  background: linear-gradient(135deg, #EEE8FA 0%, #D9CCF4 50%, #B8A2E8 100%);
 }
 
 .pack-safe-stamp {
-  background: #FF2D78;
+  background: radial-gradient(circle, #F3C948 0%, #E0B026 80%, #C99718 100%);
   border: 2px solid #FFFFFF;
-  box-shadow: 0 4px 14px rgba(255, 45, 120, 0.35);
+  color: #3C1B50;
+  box-shadow: 0 4px 14px rgba(243, 201, 72, 0.45);
+}
+
+.gold-gradient-text {
+  background: linear-gradient(135deg, #FFF0B8 0%, #F3C948 50%, #D4A018 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 /* Glassmorphism & High-End Card Surfaces */
 .glass-nav {
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.90);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  border-bottom: 1px solid rgba(168, 59, 143, 0.12);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 45, 120, 0.12);
+  border: 1px solid rgba(168, 59, 143, 0.15);
 }
 
 .glass-panel-dark {
-  background: rgba(14, 27, 77, 0.85);
+  background: rgba(38, 14, 54, 0.88);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(229, 192, 110, 0.2);
+  border: 1px solid rgba(243, 201, 72, 0.25);
 }
 
 /* Interactive Tactile Feedback */

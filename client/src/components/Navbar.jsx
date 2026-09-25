@@ -31,18 +31,18 @@ export default function Navbar() {
   return (
     <>
       {/* Top Notification Announcement Bar */}
-      <div className="bg-[#0D1B44] text-white py-2 px-4 text-xs md:text-sm font-medium text-center border-b border-white/10 flex items-center justify-center space-x-2">
+      <div className="bg-[#260E36] text-white py-2 px-4 text-xs md:text-sm font-medium text-center border-b border-brand-gold/20 flex items-center justify-center space-x-2">
         <Sparkles className="w-3.5 h-3.5 text-brand-gold animate-pulse" />
         <span>Special Offer: <strong>Free Fast Shipping</strong> on orders above ₹{businessConfig.commerce.freeShippingThreshold}!</span>
-        <span className="hidden md:inline text-brand-pink font-semibold">• 100% Safe Ingredients • Discreet Packaging</span>
+        <span className="hidden md:inline text-brand-lightGold font-semibold">• 100% Safe Ingredients • Discreet Packaging</span>
       </div>
 
       {/* Main Sticky Navbar */}
       <header
         className={`sticky top-0 z-40 transition-all duration-300 ${
           isScrolled
-            ? 'glass-nav shadow-sm py-3 border-b border-slate-200/80'
-            : 'bg-white/95 py-4 border-b border-slate-100'
+            ? 'glass-nav shadow-sm py-3 border-b border-brand-magenta/15'
+            : 'bg-white/95 py-4 border-b border-brand-magenta/10'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
@@ -51,7 +51,7 @@ export default function Navbar() {
           <div className="flex items-center md:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-[#0A192F] hover:text-brand-pink transition-colors focus:outline-none"
+              className="p-2 text-brand-navy hover:text-brand-magenta transition-colors focus:outline-none"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -60,14 +60,14 @@ export default function Navbar() {
 
           {/* ZEBA Logo matching exact box packaging */}
           <Link to="/" className="flex items-center space-x-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#0F1E4A] to-[#1A2E6E] flex items-center justify-center shadow-md border border-brand-gold/40 group-hover:scale-105 transition-transform">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#3C1B50] via-[#A83B8F] to-[#B84E9E] flex items-center justify-center shadow-md border border-brand-gold/40 group-hover:scale-105 transition-transform">
               <span className="font-serif-brand font-black text-xl text-brand-gold tracking-widest">Z</span>
             </div>
             <div className="flex flex-col">
               <span className="font-serif-brand font-black text-2xl tracking-widest gold-gradient-text flex items-center">
                 ZEBA
               </span>
-              <span className="text-[9px] tracking-widest text-slate-500 uppercase font-bold -mt-0.5">
+              <span className="text-[9px] tracking-widest text-[#8A2574] uppercase font-bold -mt-0.5">
                 Periods Pain Relief
               </span>
             </div>

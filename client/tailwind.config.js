@@ -8,47 +8,50 @@ export default {
     extend: {
       colors: {
         zeba: {
-          // Exact Packaging Midnight Navy
-          navy: '#0E1B4D',
-          darkNavy: '#081033',
-          deepNavy: '#172A6B',
-          navyMuted: '#1E3170',
+          // Exact Packaging Orchid Magenta / Mauve Pink
+          magenta: '#A83B8F',
+          hotPink: '#BA4C9E',
+          deepMagenta: '#8A2574',
+          softPink: '#F7E5F3',
+          blush: '#FCF6FB',
 
-          // Exact Packaging Vibrant Magenta / Hot Pink
-          magenta: '#FF2D78',
-          hotPink: '#F51E6E',
-          deepMagenta: '#D00A52',
-          softPink: '#FFE4EF',
-          blush: '#FFF0F6',
+          // Exact Packaging Deep Plum / Dark Violet Banner
+          navy: '#3C1B50',
+          darkNavy: '#260E36',
+          deepNavy: '#4F266A',
+          navyMuted: '#623482',
+          plumText: '#241133',
 
-          // Exact Packaging Gold Foil Wordmark
-          gold: '#E5C06E',
-          lightGold: '#FDF1C7',
-          darkGold: '#B88B2A',
+          // Exact Packaging Gold Foil Wordmark & 100% Safe Seal
+          gold: '#F3C948',
+          lightGold: '#FDF4D4',
+          darkGold: '#C99718',
 
-          // Exact Packaging Lavender / Lilac Heating Pad Patch
-          lavender: '#9F7AEA',
-          lightLavender: '#EDE9FE',
-          waffleLilac: '#DDD6FE',
-          deepPurple: '#6D28D9',
+          // Exact Packaging Lavender Speckled Heating Pad Patch
+          lavender: '#7E63B6',
+          lightLavender: '#EEE8FA',
+          waffleLilac: '#D9CCF4',
+          deepPurple: '#5C3FA0',
 
           // Backgrounds
-          bgRose: '#FAF8FB',
+          bgRose: '#FAF5FA',
           surfaceWhite: '#FFFFFF'
         },
         brand: {
-          navy: '#0E1B4D',
-          darkNavy: '#081033',
-          deepNavy: '#172A6B',
-          pink: '#FF2D78',
-          deepPink: '#D00A52',
-          softPink: '#FFE4EF',
-          blush: '#FFF0F6',
-          gold: '#E5C06E',
-          lightGold: '#FDF1C7',
-          accentGold: '#B88B2A',
-          lavender: '#9F7AEA',
-          roseBg: '#FAF8FB'
+          navy: '#3C1B50',
+          darkNavy: '#260E36',
+          deepNavy: '#4F266A',
+          pink: '#A83B8F',
+          deepPink: '#8A2574',
+          magenta: '#A83B8F',
+          softPink: '#F7E5F3',
+          blush: '#FCF6FB',
+          gold: '#F3C948',
+          lightGold: '#FDF4D4',
+          accentGold: '#C99718',
+          lavender: '#7E63B6',
+          plum: '#3C1B50',
+          roseBg: '#FAF5FA'
         }
       },
       fontFamily: {
@@ -57,11 +60,11 @@ export default {
         brand: ['"Cinzel"', 'serif']
       },
       boxShadow: {
-        'brand': '0 10px 30px -10px rgba(255, 45, 120, 0.25)',
-        'brand-lg': '0 20px 40px -15px rgba(14, 27, 77, 0.18)',
-        'magenta-glow': '0 0 25px rgba(255, 45, 120, 0.35)',
-        'gold-glow': '0 0 20px rgba(229, 192, 110, 0.30)',
-        'lavender-glow': '0 0 20px rgba(159, 122, 234, 0.25)'
+        'brand': '0 10px 30px -10px rgba(168, 59, 143, 0.25)',
+        'brand-lg': '0 20px 40px -15px rgba(60, 27, 80, 0.20)',
+        'magenta-glow': '0 0 25px rgba(168, 59, 143, 0.35)',
+        'gold-glow': '0 0 20px rgba(243, 201, 72, 0.35)',
+        'lavender-glow': '0 0 20px rgba(126, 99, 182, 0.25)'
       },
       animation: {
         'pulse-subtle': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',

@@ -29,7 +29,7 @@ export function ToastProvider({ children }) {
             key={toast.id}
             className={`pointer-events-auto flex items-center justify-between p-4 rounded-xl shadow-xl text-sm font-medium border backdrop-blur-md transition-all duration-300 animate-slide-in ${
               toast.type === 'success'
-                ? 'bg-[#0A192F]/95 text-white border-brand-pink/30'
+                ? 'bg-[#260E36]/95 text-white border-brand-pink/40'
                 : toast.type === 'error'
                 ? 'bg-rose-900/95 text-white border-rose-500/40'
                 : 'bg-[#112240]/95 text-white border-blue-400/30'

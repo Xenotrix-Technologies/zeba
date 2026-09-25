@@ -5,48 +5,48 @@ import { businessConfig } from '../config/businessConfig';
 
 export default function Footer() {
   return (
-    <footer className="bg-[#0A192F] text-slate-300 pt-16 pb-24 md:pb-12 border-t border-slate-800">
+    <footer className="bg-[#260E36] text-slate-300 pt-16 pb-24 md:pb-12 border-t border-purple-900/40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Trust Badges Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pb-12 border-b border-slate-800">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pb-12 border-b border-purple-900/40">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full bg-brand-pink/10 border border-brand-pink/30 flex items-center justify-center text-brand-pink flex-shrink-0">
+            <div className="w-10 h-10 rounded-full bg-brand-pink/15 border border-brand-pink/40 flex items-center justify-center text-brand-pink flex-shrink-0">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-white text-xs md:text-sm font-bold">100% Skin Safe</h4>
-              <p className="text-[11px] text-slate-400">Natural air-activated relief</p>
+              <h4 className="text-white text-xs md:text-sm font-bold">100% Safe Ingredients</h4>
+              <p className="text-[11px] text-slate-300">Natural air-activated relief</p>
             </div>
           </div>
 
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full bg-brand-gold/10 border border-brand-gold/30 flex items-center justify-center text-brand-gold flex-shrink-0">
+            <div className="w-10 h-10 rounded-full bg-brand-gold/15 border border-brand-gold/40 flex items-center justify-center text-brand-gold flex-shrink-0">
               <Truck className="w-5 h-5" />
             </div>
             <div>
               <h4 className="text-white text-xs md:text-sm font-bold">Discreet Shipping</h4>
-              <p className="text-[11px] text-slate-400">Plain unmarked packaging</p>
+              <p className="text-[11px] text-slate-300">Plain unmarked packaging</p>
             </div>
           </div>
 
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full bg-brand-pink/10 border border-brand-pink/30 flex items-center justify-center text-brand-pink flex-shrink-0">
+            <div className="w-10 h-10 rounded-full bg-brand-pink/15 border border-brand-pink/40 flex items-center justify-center text-brand-pink flex-shrink-0">
               <Lock className="w-5 h-5" />
             </div>
             <div>
               <h4 className="text-white text-xs md:text-sm font-bold">Secure Checkout</h4>
-              <p className="text-[11px] text-slate-400">{businessConfig.payments.gatewayName} 256-bit encryption</p>
+              <p className="text-[11px] text-slate-300">{businessConfig.payments.gatewayName} 256-bit encryption</p>
             </div>
           </div>
 
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 flex-shrink-0">
+            <div className="w-10 h-10 rounded-full bg-emerald-500/15 border border-emerald-500/40 flex items-center justify-center text-emerald-400 flex-shrink-0">
               <MessageCircle className="w-5 h-5" />
             </div>
             <div>
               <h4 className="text-white text-xs md:text-sm font-bold">WhatsApp Support</h4>
-              <p className="text-[11px] text-slate-400">Instant customer care</p>
+              <p className="text-[11px] text-slate-300">Instant customer care</p>
             </div>
           </div>
         </div>
@@ -57,14 +57,14 @@ export default function Footer() {
           {/* Col 1: Brand Info */}
           <div className="space-y-4 md:col-span-1">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center border border-brand-gold/40">
-                <span className="text-brand-gold font-display font-black text-lg">Z</span>
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#3C1B50] to-[#A83B8F] flex items-center justify-center border border-brand-gold/40">
+                <span className="text-brand-gold font-serif-brand font-black text-lg">Z</span>
               </div>
-              <span className="font-display font-extrabold text-2xl text-white tracking-wider">
+              <span className="font-serif-brand font-extrabold text-2xl text-white tracking-wider gold-gradient-text">
                 {businessConfig.brandName}
               </span>
             </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-purple-200/70 leading-relaxed">
               {businessConfig.description}
             </p>
             <div className="flex items-center space-x-3 pt-2">
@@ -73,7 +73,7 @@ export default function Footer() {
                   href={businessConfig.social.instagram}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-9 h-9 rounded-lg bg-slate-800 hover:bg-brand-pink text-slate-300 hover:text-white flex items-center justify-center transition-colors"
+                  className="w-9 h-9 rounded-lg bg-[#3C1B50] hover:bg-brand-pink text-slate-300 hover:text-white flex items-center justify-center transition-colors border border-purple-800/40"
                   aria-label="Instagram"
                 >
                   <Instagram className="w-4 h-4" />
@@ -84,7 +84,7 @@ export default function Footer() {
                   href={businessConfig.social.facebook}
                   target="_blank"
                   rel="noreferrer"
-                  className="w-9 h-9 rounded-lg bg-slate-800 hover:bg-brand-pink text-slate-300 hover:text-white flex items-center justify-center transition-colors"
+                  className="w-9 h-9 rounded-lg bg-[#3C1B50] hover:bg-brand-pink text-slate-300 hover:text-white flex items-center justify-center transition-colors border border-purple-800/40"
                   aria-label="Facebook"
                 >
                   <Facebook className="w-4 h-4" />
@@ -94,7 +94,7 @@ export default function Footer() {
                 href={businessConfig.whatsapp.getWhatsAppUrl()}
                 target="_blank"
                 rel="noreferrer"
-                className="w-9 h-9 rounded-lg bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white flex items-center justify-center transition-colors"
+                className="w-9 h-9 rounded-lg bg-[#3C1B50] hover:bg-emerald-600 text-slate-300 hover:text-white flex items-center justify-center transition-colors border border-purple-800/40"
                 aria-label="WhatsApp"
               >
                 <MessageCircle className="w-4 h-4" />
@@ -169,7 +169,7 @@ export default function Footer() {
           {/* Col 4: Contact & Care */}
           <div className="space-y-3">
             <h4 className="text-white text-sm font-bold uppercase tracking-wider">Customer Care</h4>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-purple-200/70">
               Need assistance with an order, tracking, or guidance? We are here for you.
             </p>
             <div className="space-y-2.5 text-xs pt-1">
@@ -187,7 +187,7 @@ export default function Footer() {
                 <Phone className="w-4 h-4 text-brand-gold flex-shrink-0" />
                 <span>{businessConfig.supportPhone}</span>
               </a>
-              <div className="flex items-start space-x-2 text-slate-400">
+              <div className="flex items-start space-x-2 text-purple-200/70">
                 <MapPin className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
                 <span className="text-[11px] leading-tight">{businessConfig.address.city}, {businessConfig.address.state}, {businessConfig.address.country}</span>
               </div>
@@ -196,7 +196,7 @@ export default function Footer() {
             <div className="pt-2">
               <Link
                 to="/admin/login"
-                className="inline-block text-[11px] text-slate-500 hover:text-slate-300 transition-colors underline"
+                className="inline-block text-[11px] text-purple-300/60 hover:text-white transition-colors underline"
               >
                 Admin Portal Login
               </Link>
@@ -205,10 +205,10 @@ export default function Footer() {
         </div>
 
         {/* Bottom copyright & Entity notice */}
-        <div className="pt-8 mt-4 border-t border-slate-800/80 text-center text-xs text-slate-500 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="pt-8 mt-4 border-t border-purple-900/40 text-center text-xs text-purple-300/60 flex flex-col md:flex-row items-center justify-between gap-4">
           <p>© {new Date().getFullYear()} {businessConfig.legalEntityName}. All rights reserved.</p>
-          <p className="text-[11px] text-slate-500">
-            GSTIN: {businessConfig.tax.gstin} • CIN: {businessConfig.tax.cin} • Designed for Menstrual Comfort
+          <p className="text-[11px] text-purple-300/60">
+            GSTIN: {businessConfig.tax.gstin} • CIN: {businessConfig.tax.cin} • India's 1st Periods Pain Relief Heating Pad
           </p>
         </div>
 

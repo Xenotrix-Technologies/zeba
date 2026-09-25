@@ -54,7 +54,7 @@ export default function ProductCard({ product, isFeatured = false }) {
       {/* Product Image Gallery Link */}
       <Link
         to={`/products`}
-        className="relative block bg-gradient-to-b from-[#FFF5F8] to-slate-50/60 overflow-hidden aspect-square flex items-center justify-center p-6"
+        className="relative block bg-gradient-to-b from-[#F7EDF6] to-slate-50/70 overflow-hidden aspect-square flex items-center justify-center p-6"
       >
         <img
           src={mainImage}
