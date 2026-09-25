@@ -12,20 +12,40 @@ import {
   Copy,
   ExternalLink,
   Sparkles,
-  Info
+  Info,
+  Trash2
 } from 'lucide-react';
+import api from '../../services/api';
 import { businessConfig } from '../../config/businessConfig';
 import { useToast } from '../../context/ToastContext';
 
 export default function AdminSettings() {
   const { addToast } = useToast();
   const [copiedSection, setCopiedSection] = useState(null);
+  const [clearing, setClearing] = useState(false);
 
   const handleCopy = (text, sectionName) => {
     navigator.clipboard.writeText(text);
     setCopiedSection(sectionName);
     addToast(`${sectionName} copied to clipboard!`, 'success');
     setTimeout(() => setCopiedSection(null), 2000);
+  };
+
+  const handleClearTestData = async () => {
+    if (!window.confirm('Are you sure you want to purge all dummy/test orders and customers? This will reset store metrics to zero.')) {
+      return;
+    }
+    setClearing(true);
+    try {
+      const res = await api.post('/admin/clear-test-data');
+      if (res.success) {
+        addToast('All dummy test data and orders purged successfully!', 'success');
+      }
+    } catch (err) {
+      addToast(err.message || 'Failed to clear dummy data', 'error');
+    } finally {
+      setClearing(false);
+    }
   };
 
   return (
@@ -46,6 +66,15 @@ export default function AdminSettings() {
         </div>
 
         <div className="flex items-center space-x-3">
+          <button
+            onClick={handleClearTestData}
+            disabled={clearing}
+            className="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs flex items-center space-x-2 transition-all border border-rose-200 shadow-sm disabled:opacity-50"
+          >
+            <Trash2 className="w-4 h-4 text-rose-600" />
+            <span>{clearing ? 'Purging...' : 'Purge Dummy Orders & Data'}</span>
+          </button>
+
           <button
             onClick={() => handleCopy(JSON.stringify(businessConfig, null, 2), 'Full Business JSON Config')}
             className="px-4 py-2.5 rounded-xl bg-white hover:bg-brand-softPink text-brand-plum hover:text-brand-dark font-bold text-xs flex items-center space-x-2 transition-all border border-brand-primaryPink/30 shadow-sm"

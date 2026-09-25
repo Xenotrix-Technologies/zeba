@@ -541,3 +541,34 @@ export async function updateAdminMessageStatus(req, res, next) {
     next(err);
   }
 }
+
+/**
+ * POST /api/admin/clear-test-data
+ * Clears all dummy test orders, order items, addresses, customer records, and messages.
+ */
+export async function clearAllTestData(req, res, next) {
+  try {
+    await query('DELETE FROM payments');
+    try { await query('DELETE FROM order_notifications'); } catch (_) {}
+    await query('DELETE FROM order_items');
+    await query('DELETE FROM orders');
+    await query('DELETE FROM addresses');
+    await query('DELETE FROM customers');
+    await query('DELETE FROM contact_messages');
+
+    try {
+      await query('ALTER SEQUENCE orders_id_seq RESTART WITH 1');
+      await query('ALTER SEQUENCE order_items_id_seq RESTART WITH 1');
+      await query('ALTER SEQUENCE customers_id_seq RESTART WITH 1');
+      await query('ALTER SEQUENCE addresses_id_seq RESTART WITH 1');
+      await query('ALTER SEQUENCE payments_id_seq RESTART WITH 1');
+    } catch (_) {}
+
+    res.json({
+      success: true,
+      message: 'All dummy test data has been completely wiped from the database.'
+    });
+  } catch (err) {
+    next(err);
+  }
+}
