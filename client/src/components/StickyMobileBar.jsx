@@ -18,7 +18,7 @@ export default function StickyMobileBar() {
   }
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 p-2.5 px-4 shadow-[0_-8px_20px_rgba(0,0,0,0.06)] flex items-center justify-between gap-3">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-brand-pink/20 p-2.5 px-4 shadow-[0_-8px_20px_rgba(95,63,104,0.08)] flex items-center justify-between gap-3">
       {/* WhatsApp Quick Help */}
       <a
         href={businessConfig.whatsapp.getWhatsAppUrl('Hi ZEBA Team, I need help with Period Pain Relief Pads')}
@@ -34,20 +34,20 @@ export default function StickyMobileBar() {
       {cartCount > 0 ? (
         <button
           onClick={() => setIsCartOpen(true)}
-          className="flex-1 py-3 px-4 rounded-xl bg-brand-navy text-white text-xs font-bold flex items-center justify-between shadow-md"
+          className="flex-1 py-3 px-4 rounded-xl bg-brand-deepPurple text-white text-xs font-bold flex items-center justify-between shadow-md"
         >
           <div className="flex items-center space-x-2">
-            <ShoppingBag className="w-4 h-4 text-brand-pink" />
+            <ShoppingBag className="w-4 h-4 text-brand-primaryPink" />
             <span>Bag ({cartCount})</span>
           </div>
-          <span className="text-brand-pink flex items-center gap-1">
+          <span className="text-brand-lightGold flex items-center gap-1 font-bold">
             View <ArrowRight className="w-3.5 h-3.5" />
           </span>
         </button>
       ) : (
         <Link
           to="/products"
-          className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-brand-pink to-brand-deepPink text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-2 shadow-md"
+          className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-brand-brightPink to-brand-deepPink text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-2 shadow-md"
         >
           <span>Shop Heating Pads</span>
           <ArrowRight className="w-4 h-4" />

@@ -4,21 +4,29 @@
 
 @layer base {
   :root {
-    --zeba-magenta: #A83B8F;
-    --zeba-hot-pink: #BA4C9E;
-    --zeba-deep-magenta: #8A2574;
-    --zeba-plum: #3C1B50;
-    --zeba-dark-plum: #260E36;
-    --zeba-deep-plum: #4F266A;
-    --zeba-gold: #F3C948;
-    --zeba-light-gold: #FDF4D4;
-    --zeba-lavender: #7E63B6;
-    --zeba-blush: #FCF6FB;
-    --zeba-soft-pink: #F7E5F3;
+    --zeba-pink: #E58BC2;
+    --zeba-bright-pink: #E84FA5;
+    --zeba-deep-pink: #D94696;
+    --zeba-plum: #805A82;
+    --zeba-deep-purple: #5F3F68;
+    --zeba-dark-purple: #38283D;
+    --zeba-dark-text: #38283D;
+    --zeba-gold: #D9B62F;
+    --zeba-light-gold: #FDF5D6;
+    --zeba-soft-pink: #FFF5FA;
+    --zeba-blush: #FFF5FA;
+    
+    /* Aliases */
+    --zeba-navy: #5F3F68;
+    --zeba-dark-navy: #38283D;
+    --zeba-deep-navy: #4A2F52;
+    --zeba-magenta: #E84FA5;
+    --zeba-deep-magenta: #D94696;
+    --zeba-lavender: #805A82;
   }
 
   body {
-    @apply bg-[#FAF5FA] text-[#241133] antialiased;
+    @apply bg-[#FFF5FA] text-[#38283D] antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
@@ -26,11 +34,11 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display tracking-tight text-[#241133];
+    @apply font-display tracking-tight text-[#5F3F68];
   }
 
   ::selection {
-    background-color: #A83B8F;
+    background-color: #E84FA5;
     color: #FFFFFF;
   }
 }
@@ -41,61 +49,58 @@
 }
 
 /* ZEBA Pack Color Gradients & Styles */
-.pack-plum-gradient {
-  background: linear-gradient(145deg, #3C1B50 0%, #4F266A 50%, #260E36 100%);
-}
-
+.pack-purple-gradient,
 .pack-navy-gradient {
-  background: linear-gradient(145deg, #3C1B50 0%, #4F266A 50%, #260E36 100%);
+  background: linear-gradient(145deg, #5F3F68 0%, #805A82 50%, #38283D 100%);
 }
 
+.pack-pink-gradient,
 .pack-magenta-gradient {
-  background: linear-gradient(135deg, #BA4C9E 0%, #A83B8F 50%, #8A2574 100%);
+  background: linear-gradient(135deg, #E84FA5 0%, #E58BC2 50%, #D94696 100%);
 }
 
 .pack-gold-gradient {
-  background: linear-gradient(135deg, #FFF0B8 0%, #F3C948 50%, #C99718 100%);
+  background: linear-gradient(135deg, #FDF5D6 0%, #D9B62F 50%, #B5941E 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-gradient-text {
+  background: linear-gradient(135deg, #F9E784 0%, #D9B62F 50%, #B5941E 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .pack-lavender-gradient {
-  background: linear-gradient(135deg, #EEE8FA 0%, #D9CCF4 50%, #B8A2E8 100%);
+  background: linear-gradient(135deg, #F4EDF6 0%, #EFE7F2 50%, #E3D6E8 100%);
 }
 
 .pack-safe-stamp {
-  background: radial-gradient(circle, #F3C948 0%, #E0B026 80%, #C99718 100%);
+  background: #E84FA5;
   border: 2px solid #FFFFFF;
-  color: #3C1B50;
-  box-shadow: 0 4px 14px rgba(243, 201, 72, 0.45);
-}
-
-.gold-gradient-text {
-  background: linear-gradient(135deg, #FFF0B8 0%, #F3C948 50%, #D4A018 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  box-shadow: 0 4px 14px rgba(232, 79, 165, 0.35);
 }
 
 /* Glassmorphism & High-End Card Surfaces */
 .glass-nav {
-  background: rgba(255, 255, 255, 0.90);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(168, 59, 143, 0.12);
+  border-bottom: 1px solid rgba(229, 139, 194, 0.25);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(168, 59, 143, 0.15);
+  border: 1px solid rgba(229, 139, 194, 0.2);
 }
 
 .glass-panel-dark {
-  background: rgba(38, 14, 54, 0.88);
+  background: rgba(95, 63, 104, 0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(243, 201, 72, 0.25);
+  border: 1px solid rgba(217, 182, 47, 0.3);
 }
 
 /* Interactive Tactile Feedback */
@@ -158,14 +163,14 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #F8FAFC;
+  background: #FFF5FA;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: #E58BC2;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
+  background: #D94696;
 }

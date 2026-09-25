@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Zap, Star, Flame, Clock, ShieldCheck } from 'lucide-react';
+import { ShoppingBag, Zap, Star, Flame, Clock } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
 export default function ProductCard({ product, isFeatured = false }) {
@@ -26,18 +26,18 @@ export default function ProductCard({ product, isFeatured = false }) {
     <div
       className={`relative rounded-3xl bg-white border transition-all duration-300 flex flex-col justify-between overflow-hidden group ${
         isFeatured
-          ? 'border-zeba-magenta/40 shadow-brand-lg ring-1 ring-zeba-magenta/20 hover:shadow-2xl hover:border-zeba-magenta'
-          : 'border-slate-200/90 shadow-sm hover:shadow-xl hover:border-slate-300'
+          ? 'border-brand-primaryPink/60 shadow-brand-lg ring-2 ring-brand-primaryPink/20 hover:shadow-2xl hover:border-brand-brightPink'
+          : 'border-brand-primaryPink/20 shadow-sm hover:shadow-xl hover:border-brand-primaryPink/50'
       }`}
     >
-      {/* Top Badge matching box colors */}
+      {/* Top Badge matching packaging visual hierarchy */}
       {product.badge_text && (
         <div className="absolute top-4 left-4 z-10">
           <span
             className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider shadow-sm ${
               product.pack_count > 1
-                ? 'pack-magenta-gradient text-white'
-                : 'bg-zeba-navy text-zeba-lightGold border border-zeba-gold/30'
+                ? 'pack-pink-gradient text-white'
+                : 'bg-brand-deepPurple text-brand-lightGold border border-brand-gold/40'
             }`}
           >
             {product.badge_text}
@@ -54,7 +54,7 @@ export default function ProductCard({ product, isFeatured = false }) {
       {/* Product Image Gallery Link */}
       <Link
         to={`/products`}
-        className="relative block bg-gradient-to-b from-[#F7EDF6] to-slate-50/70 overflow-hidden aspect-square flex items-center justify-center p-6"
+        className="relative block bg-gradient-to-b from-[#FFF5FA] to-white overflow-hidden aspect-square flex items-center justify-center p-6"
       >
         <img
           src={mainImage}
@@ -68,47 +68,47 @@ export default function ProductCard({ product, isFeatured = false }) {
         <div>
           {/* Rating stars & Pack info */}
           <div className="flex items-center justify-between text-xs mb-2">
-            <div className="flex items-center space-x-1 text-amber-500 font-bold">
-              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-              <span>4.9</span>
-              <span className="text-slate-400 font-normal">
+            <div className="flex items-center space-x-1 text-brand-gold font-bold">
+              <Star className="w-3.5 h-3.5 fill-brand-gold text-brand-gold" />
+              <span className="text-brand-darkPurple">4.9</span>
+              <span className="text-[#805A82] font-normal">
                 ({product.pack_count > 1 ? '380+' : '140+'} verified)
               </span>
             </div>
-            <span className="font-bold text-zeba-navy bg-slate-100 px-2.5 py-0.5 rounded-full text-[11px]">
+            <span className="font-bold text-brand-deepPurple bg-brand-softPink px-2.5 py-0.5 rounded-full text-[11px] border border-brand-primaryPink/20">
               {product.pack_size}
             </span>
           </div>
 
           {/* Title */}
           <Link to="/products">
-            <h3 className="font-display font-extrabold text-lg sm:text-xl text-zeba-navy group-hover:text-zeba-magenta transition-colors line-clamp-1">
+            <h3 className="font-display font-extrabold text-lg sm:text-xl text-brand-deepPurple group-hover:text-brand-brightPink transition-colors line-clamp-1">
               {product.name}
             </h3>
           </Link>
 
           {/* Description */}
-          <p className="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">
+          <p className="text-xs text-[#805A82] mt-2 line-clamp-2 leading-relaxed">
             {product.short_description}
           </p>
 
           {/* Key Packaging Highlights */}
-          <div className="mt-4 pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 text-[11px] text-slate-600">
+          <div className="mt-4 pt-3 border-t border-brand-pink/15 grid grid-cols-2 gap-2 text-[11px] text-brand-darkPurple">
             <div className="flex items-center space-x-1.5 font-medium">
-              <Flame className="w-3.5 h-3.5 text-zeba-magenta flex-shrink-0" />
+              <Flame className="w-3.5 h-3.5 text-brand-brightPink flex-shrink-0" />
               <span>50–55°C Heat</span>
             </div>
             <div className="flex items-center space-x-1.5 font-medium">
-              <Clock className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+              <Clock className="w-3.5 h-3.5 text-brand-gold flex-shrink-0" />
               <span>8+ Hours Warmth</span>
             </div>
           </div>
         </div>
 
-        {/* Pricing & Single-Line CTAs */}
-        <div className="pt-4 border-t border-slate-100 space-y-3">
+        {/* Pricing & CTAs */}
+        <div className="pt-4 border-t border-brand-pink/15 space-y-3">
           <div className="flex items-baseline space-x-2">
-            <span className="font-display font-black text-2xl text-zeba-navy">
+            <span className="font-display font-black text-2xl text-brand-deepPurple">
               ₹{parseFloat(product.price).toFixed(0)}
             </span>
             {parseFloat(product.original_price) > parseFloat(product.price) && (
@@ -116,7 +116,7 @@ export default function ProductCard({ product, isFeatured = false }) {
                 <span className="text-sm text-slate-400 line-through">
                   ₹{parseFloat(product.original_price).toFixed(0)}
                 </span>
-                <span className="text-[11px] font-extrabold text-zeba-deepMagenta bg-zeba-softPink px-2 py-0.5 rounded-md">
+                <span className="text-[11px] font-extrabold text-brand-deepPink bg-brand-softPink px-2 py-0.5 rounded-md border border-brand-primaryPink/30">
                   {discountPercent}% OFF
                 </span>
               </>
@@ -126,15 +126,15 @@ export default function ProductCard({ product, isFeatured = false }) {
           <div className="grid grid-cols-2 gap-2 pt-1">
             <button
               onClick={() => addToCart(product, 1, true)}
-              className="py-2.5 px-3 rounded-xl border border-zeba-magenta text-zeba-magenta hover:bg-zeba-softPink font-bold text-xs flex items-center justify-center space-x-1.5 btn-tactile whitespace-nowrap"
+              className="py-2.5 px-3 rounded-xl border-2 border-brand-brightPink/40 text-brand-brightPink hover:bg-brand-softPink font-bold text-xs flex items-center justify-center space-x-1.5 btn-tactile whitespace-nowrap transition-colors"
             >
-              <ShoppingBag className="w-3.5 h-3.5" />
+              <ShoppingBag className="w-3.5 h-3.5 text-brand-brightPink" />
               <span>Add to Bag</span>
             </button>
 
             <button
               onClick={handleBuyNow}
-              className="py-2.5 px-3 rounded-xl pack-magenta-gradient hover:opacity-95 text-white font-bold text-xs flex items-center justify-center space-x-1 shadow-md shadow-zeba-magenta/20 btn-tactile whitespace-nowrap"
+              className="py-2.5 px-3 rounded-xl pack-pink-gradient hover:opacity-95 text-white font-bold text-xs flex items-center justify-center space-x-1 shadow-md shadow-brand-pink/25 btn-tactile whitespace-nowrap"
             >
               <Zap className="w-3.5 h-3.5 fill-white" />
               <span>Buy Now</span>

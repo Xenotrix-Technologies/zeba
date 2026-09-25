@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { ShieldCheck, Lock, CreditCard, Truck, ArrowRight, ShoppingBag, CheckCircle2, AlertCircle, UserCheck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Lock, ShieldCheck } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
 import { useCustomerAuth } from '../context/CustomerAuthContext';
@@ -136,7 +136,7 @@ export default function Checkout() {
             contact: formData.phone
           },
           theme: {
-            color: '#E11D74'
+            color: '#E84FA5'
           }
         };
 
@@ -204,10 +204,10 @@ export default function Checkout() {
   if (cart.length === 0) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-4">
-        <h2 className="text-xl font-bold text-brand-navy">Your cart is empty.</h2>
+        <h2 className="text-xl font-bold text-brand-deepPurple">Your cart is empty.</h2>
         <button
           onClick={() => navigate('/products')}
-          className="px-6 py-3 rounded-xl bg-brand-pink text-white font-bold text-xs uppercase tracking-wider"
+          className="px-6 py-3 rounded-xl bg-brand-brightPink text-white font-bold text-xs uppercase tracking-wider"
         >
           Browse Products
         </button>
@@ -216,17 +216,17 @@ export default function Checkout() {
   }
 
   return (
-    <div className="bg-[#FCFCFE] py-10 sm:py-14">
+    <div className="bg-[#FFF5FA] py-10 sm:py-14">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Checkout Header */}
         <div className="mb-10 text-center max-w-2xl mx-auto space-y-2">
-          <div className="inline-flex items-center space-x-2 text-xs font-bold text-emerald-700 bg-emerald-50 px-3.5 py-1 rounded-full border border-emerald-200">
+          <div className="inline-flex items-center space-x-2 text-xs font-bold text-emerald-800 bg-emerald-50 px-3.5 py-1 rounded-full border border-emerald-200">
             <Lock className="w-3.5 h-3.5" />
             <span>256-Bit SSL Encrypted Razorpay Checkout</span>
           </div>
-          <h1 className="font-display font-black text-3xl text-brand-navy">Complete Your Order</h1>
-          <p className="text-xs text-slate-500">
+          <h1 className="font-display font-black text-3xl text-brand-deepPurple">Complete Your Order</h1>
+          <p className="text-xs text-[#805A82]">
             Provide your delivery address and pay securely via Razorpay (UPI, Cards, NetBanking).
           </p>
         </div>
@@ -238,15 +238,15 @@ export default function Checkout() {
             <div className="lg:col-span-7 space-y-8">
               
               {/* Contact Information */}
-              <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
-                <h2 className="font-display font-bold text-lg text-brand-navy flex items-center space-x-2">
-                  <span className="w-6 h-6 rounded-full bg-brand-pink text-white text-xs font-bold flex items-center justify-center">1</span>
+              <div className="bg-white rounded-3xl p-6 sm:p-8 border border-brand-primaryPink/25 shadow-sm space-y-4">
+                <h2 className="font-display font-bold text-lg text-brand-deepPurple flex items-center space-x-2">
+                  <span className="w-6 h-6 rounded-full bg-brand-brightPink text-white text-xs font-bold flex items-center justify-center">1</span>
                   <span>Contact Information</span>
                 </h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Full Name *</label>
+                    <label className="block text-xs font-bold text-brand-darkPurple mb-1">Full Name *</label>
                     <input
                       type="text"
                       name="name"
@@ -254,12 +254,12 @@ export default function Checkout() {
                       placeholder="e.g. Pooja Sharma"
                       value={formData.name}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium"
+                      className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Mobile Number (for delivery SMS/call) *</label>
+                    <label className="block text-xs font-bold text-brand-darkPurple mb-1">Mobile Number (for delivery SMS/call) *</label>
                     <input
                       type="tel"
                       name="phone"
@@ -267,12 +267,12 @@ export default function Checkout() {
                       placeholder="10-digit mobile number"
                       value={formData.phone}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium"
+                      className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Email Address (for order receipt) *</label>
+                    <label className="block text-xs font-bold text-brand-darkPurple mb-1">Email Address (for order receipt) *</label>
                     <input
                       type="email"
                       name="email"
@@ -280,22 +280,22 @@ export default function Checkout() {
                       placeholder="yourname@domain.com"
                       value={formData.email}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium"
+                      className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Shipping Address */}
-              <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
-                <h2 className="font-display font-bold text-lg text-brand-navy flex items-center space-x-2">
-                  <span className="w-6 h-6 rounded-full bg-brand-pink text-white text-xs font-bold flex items-center justify-center">2</span>
+              <div className="bg-white rounded-3xl p-6 sm:p-8 border border-brand-primaryPink/25 shadow-sm space-y-4">
+                <h2 className="font-display font-bold text-lg text-brand-deepPurple flex items-center space-x-2">
+                  <span className="w-6 h-6 rounded-full bg-brand-brightPink text-white text-xs font-bold flex items-center justify-center">2</span>
                   <span>Shipping Address</span>
                 </h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Flat / House No. / Building Name *</label>
+                    <label className="block text-xs font-bold text-brand-darkPurple mb-1">Flat / House No. / Building Name *</label>
                     <input
                       type="text"
                       name="houseBuilding"
@@ -303,36 +303,36 @@ export default function Checkout() {
                       placeholder="Flat 402, Lotus Apartments"
                       value={formData.houseBuilding}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium"
+                      className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Street / Landmark</label>
+                    <label className="block text-xs font-bold text-brand-darkPurple mb-1">Street / Landmark</label>
                     <input
                       type="text"
                       name="street"
                       placeholder="Near City Park, 12th Main"
                       value={formData.street}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium"
+                      className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Area / Locality</label>
+                    <label className="block text-xs font-bold text-brand-darkPurple mb-1">Area / Locality</label>
                     <input
                       type="text"
                       name="area"
                       placeholder="Indiranagar"
                       value={formData.area}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium"
+                      className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">City *</label>
+                    <label className="block text-xs font-bold text-brand-darkPurple mb-1">City *</label>
                     <input
                       type="text"
                       name="city"
@@ -340,12 +340,12 @@ export default function Checkout() {
                       placeholder="Bengaluru"
                       value={formData.city}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium"
+                      className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">State *</label>
+                    <label className="block text-xs font-bold text-brand-darkPurple mb-1">State *</label>
                     <input
                       type="text"
                       name="state"
@@ -353,12 +353,12 @@ export default function Checkout() {
                       placeholder="Karnataka"
                       value={formData.state}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium"
+                      className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">PIN Code (6 digits) *</label>
+                    <label className="block text-xs font-bold text-brand-darkPurple mb-1">PIN Code (6 digits) *</label>
                     <input
                       type="text"
                       name="pincode"
@@ -367,30 +367,30 @@ export default function Checkout() {
                       placeholder="560038"
                       value={formData.pincode}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium"
+                      className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Country</label>
+                    <label className="block text-xs font-bold text-brand-darkPurple mb-1">Country</label>
                     <input
                       type="text"
                       name="country"
                       disabled
                       value="India"
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-500 text-xs font-medium cursor-not-allowed"
+                      className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/20 bg-brand-softPink/50 text-[#805A82] text-xs font-medium cursor-not-allowed"
                     />
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Special Delivery Instructions (Optional)</label>
+                    <label className="block text-xs font-bold text-brand-darkPurple mb-1">Special Delivery Instructions (Optional)</label>
                     <input
                       type="text"
                       name="notes"
                       placeholder="Leave with security / Call before delivery"
                       value={formData.notes}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium"
+                      className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple"
                     />
                   </div>
                 </div>
@@ -401,21 +401,21 @@ export default function Checkout() {
             {/* Right Column: Order Summary & Razorpay Trigger */}
             <div className="lg:col-span-5 space-y-6">
               
-              <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xl space-y-6">
-                <h2 className="font-display font-bold text-lg text-brand-navy border-b border-slate-100 pb-3">
+              <div className="bg-white rounded-3xl p-6 sm:p-8 border border-brand-primaryPink/30 shadow-xl space-y-6">
+                <h2 className="font-display font-bold text-lg text-brand-deepPurple border-b border-brand-primaryPink/20 pb-3">
                   Order Breakdown
                 </h2>
 
                 {/* Items preview */}
                 <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
                   {cart.map((item) => (
-                    <div key={item.id} className="flex items-center space-x-3 py-2 border-b border-slate-100 last:border-0">
-                      <img src={item.image} alt={item.name} className="w-12 h-12 rounded-xl object-cover border border-slate-100 flex-shrink-0" />
+                    <div key={item.id} className="flex items-center space-x-3 py-2 border-b border-brand-primaryPink/15 last:border-0">
+                      <img src={item.image} alt={item.name} className="w-12 h-12 rounded-xl object-cover border border-brand-primaryPink/15 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-xs font-bold text-brand-navy truncate">{item.name}</h4>
-                        <div className="flex items-center justify-between text-[11px] text-slate-500 mt-0.5">
+                        <h4 className="text-xs font-bold text-brand-deepPurple truncate">{item.name}</h4>
+                        <div className="flex items-center justify-between text-[11px] text-[#805A82] mt-0.5">
                           <span>Qty: {item.quantity} × ₹{item.price.toFixed(0)}</span>
-                          <span className="font-bold text-brand-navy">₹{(item.price * item.quantity).toFixed(2)}</span>
+                          <span className="font-bold text-brand-deepPurple">₹{(item.price * item.quantity).toFixed(2)}</span>
                         </div>
                       </div>
                     </div>
@@ -423,26 +423,26 @@ export default function Checkout() {
                 </div>
 
                 {/* Calculations */}
-                <div className="space-y-2.5 text-xs text-slate-600 pt-2 border-t border-slate-100">
+                <div className="space-y-2.5 text-xs text-[#805A82] pt-2 border-t border-brand-primaryPink/15">
                   <div className="flex items-center justify-between">
                     <span>Items Subtotal</span>
-                    <span className="font-bold text-brand-navy">₹{subtotal.toFixed(2)}</span>
+                    <span className="font-bold text-brand-deepPurple">₹{subtotal.toFixed(2)}</span>
                   </div>
 
                   <div className="flex items-center justify-between">
                     <span>Shipping Fee</span>
                     <span>
                       {shippingFee === 0 ? (
-                        <span className="text-emerald-600 font-bold uppercase">FREE</span>
+                        <span className="text-emerald-700 font-bold uppercase">FREE</span>
                       ) : (
                         `₹${shippingFee.toFixed(2)}`
                       )}
                     </span>
                   </div>
 
-                  <div className="border-t border-slate-200 pt-3 flex items-center justify-between text-base">
-                    <span className="font-bold text-brand-navy">Total Payable</span>
-                    <span className="font-display font-black text-2xl text-brand-pink">
+                  <div className="border-t border-brand-primaryPink/20 pt-3 flex items-center justify-between text-base">
+                    <span className="font-bold text-brand-deepPurple">Total Payable</span>
+                    <span className="font-display font-black text-2xl text-brand-brightPink">
                       ₹{totalAmount.toFixed(2)}
                     </span>
                   </div>
@@ -452,14 +452,14 @@ export default function Checkout() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-brand-pink to-brand-deepPink hover:from-brand-deepPink hover:to-brand-pink text-white font-bold text-sm shadow-xl shadow-brand-pink/30 flex items-center justify-center space-x-2 transition-all transform hover:-translate-y-0.5 disabled:opacity-50"
+                  className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-brand-brightPink to-brand-deepPink hover:from-brand-deepPink hover:to-brand-brightPink text-white font-bold text-sm shadow-xl shadow-brand-pink/30 flex items-center justify-center space-x-2 transition-all transform hover:-translate-y-0.5 disabled:opacity-50 btn-tactile"
                 >
                   <Lock className="w-4 h-4" />
                   <span>{loading ? 'Initiating Razorpay...' : `Pay ₹${totalAmount.toFixed(0)} with Razorpay`}</span>
                 </button>
 
-                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-1 text-[11px] text-slate-500">
-                  <div className="flex items-center justify-center space-x-1.5 font-semibold text-slate-700">
+                <div className="p-3.5 rounded-2xl bg-[#FFF5FA] border border-brand-primaryPink/20 text-center space-y-1 text-[11px] text-[#805A82]">
+                  <div className="flex items-center justify-center space-x-1.5 font-semibold text-brand-deepPurple">
                     <ShieldCheck className="w-4 h-4 text-emerald-600" />
                     <span>Real-Time Razorpay Payment Gateway</span>
                   </div>

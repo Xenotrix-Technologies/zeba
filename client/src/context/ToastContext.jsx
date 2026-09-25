@@ -29,21 +29,21 @@ export function ToastProvider({ children }) {
             key={toast.id}
             className={`pointer-events-auto flex items-center justify-between p-4 rounded-xl shadow-xl text-sm font-medium border backdrop-blur-md transition-all duration-300 animate-slide-in ${
               toast.type === 'success'
-                ? 'bg-[#260E36]/95 text-white border-brand-pink/40'
+                ? 'bg-[#38283D]/95 text-white border-brand-primaryPink/40'
                 : toast.type === 'error'
                 ? 'bg-rose-900/95 text-white border-rose-500/40'
-                : 'bg-[#112240]/95 text-white border-blue-400/30'
+                : 'bg-[#5F3F68]/95 text-white border-brand-gold/40'
             }`}
           >
             <div className="flex items-center space-x-3">
-              {toast.type === 'success' && <CheckCircle2 className="w-5 h-5 text-brand-pink flex-shrink-0" />}
-              {toast.type === 'error' && <AlertCircle className="w-5 h-5 text-rose-400 flex-shrink-0" />}
-              {toast.type === 'info' && <Info className="w-5 h-5 text-blue-400 flex-shrink-0" />}
+              {toast.type === 'success' && <CheckCircle2 className="w-5 h-5 text-brand-primaryPink flex-shrink-0" />}
+              {toast.type === 'error' && <AlertCircle className="w-5 h-5 text-rose-300 flex-shrink-0" />}
+              {toast.type === 'info' && <Info className="w-5 h-5 text-brand-gold flex-shrink-0" />}
               <span>{toast.message}</span>
             </div>
             <button
               onClick={() => removeToast(toast.id)}
-              className="ml-3 text-slate-400 hover:text-white transition-colors"
+              className="ml-3 text-pink-200/70 hover:text-white transition-colors"
             >
               <X className="w-4 h-4" />
             </button>

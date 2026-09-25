@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Phone, MessageCircle, Instagram, Facebook, Send, ShieldCheck, CheckCircle2, MapPin, Building2, Briefcase } from 'lucide-react';
+import { Mail, Phone, MessageCircle, Instagram, Facebook, Send, CheckCircle2, MapPin, Briefcase } from 'lucide-react';
 import api from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { businessConfig } from '../config/businessConfig';
@@ -44,18 +44,18 @@ export default function Contact() {
   };
 
   return (
-    <div className="bg-[#FCFCFE] py-12 sm:py-16">
+    <div className="bg-[#FFF5FA] py-12 sm:py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto space-y-3">
-          <span className="text-xs font-extrabold uppercase tracking-widest text-brand-pink bg-brand-softPink px-3 py-1 rounded-full">
+          <span className="text-xs font-extrabold uppercase tracking-widest text-brand-brightPink bg-white px-3 py-1 rounded-full border border-brand-primaryPink/30 shadow-sm">
             We're Here For You
           </span>
-          <h1 className="font-display font-extrabold text-3xl sm:text-4xl text-brand-navy">
+          <h1 className="font-display font-extrabold text-3xl sm:text-4xl text-brand-deepPurple">
             Get in Touch With {businessConfig.brandName} Care
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600">
+          <p className="text-xs sm:text-sm text-[#805A82]">
             Have questions about pack sizing, usage recommendations, corporate wellness orders, or your delivery? Reach out anytime!
           </p>
         </div>
@@ -66,13 +66,13 @@ export default function Contact() {
           <div className="lg:col-span-5 space-y-6">
             
             {/* WhatsApp Card */}
-            <div className="bg-emerald-50/70 p-6 rounded-3xl border border-emerald-200/80 space-y-3">
+            <div className="bg-emerald-50/90 p-6 rounded-3xl border border-emerald-200/80 space-y-3 shadow-sm">
               <div className="flex items-center space-x-3 text-emerald-800">
                 <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 shadow-md">
                   <MessageCircle className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm">Instant WhatsApp Support</h3>
+                  <h3 className="font-bold text-sm text-emerald-950">Instant WhatsApp Support</h3>
                   <p className="text-[11px] text-emerald-700">Fastest response for order & delivery questions</p>
                 </div>
               </div>
@@ -83,74 +83,74 @@ export default function Contact() {
                 href={businessConfig.whatsapp.getWhatsAppUrl()}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center justify-center w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider shadow-md transition-colors"
+                className="inline-flex items-center justify-center w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider shadow-md transition-colors btn-tactile"
               >
                 Chat on WhatsApp ({businessConfig.whatsapp.displayNumber})
               </a>
             </div>
 
             {/* Email, Phone & Office Address Cards */}
-            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-              <h3 className="font-display font-bold text-base text-brand-navy">Contact & Business Details</h3>
+            <div className="bg-white p-6 rounded-3xl border border-brand-primaryPink/25 shadow-sm space-y-4">
+              <h3 className="font-display font-bold text-base text-brand-deepPurple">Contact & Business Details</h3>
               
-              <div className="space-y-3 text-xs text-slate-700">
+              <div className="space-y-3 text-xs text-brand-darkPurple">
                 <a
                   href={`mailto:${businessConfig.supportEmail}`}
-                  className="flex items-center space-x-3 p-3 rounded-2xl bg-slate-50 hover:bg-brand-softPink transition-colors group"
+                  className="flex items-center space-x-3 p-3 rounded-2xl bg-[#FFF5FA] hover:bg-brand-softPink transition-colors group border border-brand-primaryPink/15"
                 >
-                  <div className="w-8 h-8 rounded-xl bg-brand-pink/10 text-brand-pink flex items-center justify-center group-hover:bg-brand-pink group-hover:text-white transition-colors flex-shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-brand-softPink text-brand-brightPink flex items-center justify-center group-hover:bg-brand-brightPink group-hover:text-white transition-colors flex-shrink-0 border border-brand-primaryPink/30">
                     <Mail className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="font-bold text-brand-navy block">Customer Support Email</span>
-                    <span className="text-slate-500">{businessConfig.supportEmail}</span>
+                    <span className="font-bold text-brand-deepPurple block">Customer Support Email</span>
+                    <span className="text-[#805A82]">{businessConfig.supportEmail}</span>
                   </div>
                 </a>
 
                 <a
                   href={`tel:${businessConfig.supportPhone.replace(/\s+/g, '')}`}
-                  className="flex items-center space-x-3 p-3 rounded-2xl bg-slate-50 hover:bg-brand-softPink transition-colors group"
+                  className="flex items-center space-x-3 p-3 rounded-2xl bg-[#FFF5FA] hover:bg-brand-softPink transition-colors group border border-brand-primaryPink/15"
                 >
-                  <div className="w-8 h-8 rounded-xl bg-brand-gold/20 text-brand-gold flex items-center justify-center group-hover:bg-brand-gold group-hover:text-white transition-colors flex-shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-[#FDF5D6] text-brand-gold flex items-center justify-center group-hover:bg-brand-gold group-hover:text-white transition-colors flex-shrink-0 border border-brand-gold/40">
                     <Phone className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="font-bold text-brand-navy block">Helpline / Call Us</span>
-                    <span className="text-slate-500">{businessConfig.supportPhone} ({businessConfig.supportHours})</span>
+                    <span className="font-bold text-brand-deepPurple block">Helpline / Call Us</span>
+                    <span className="text-[#805A82]">{businessConfig.supportPhone} ({businessConfig.supportHours})</span>
                   </div>
                 </a>
 
-                <div className="flex items-start space-x-3 p-3 rounded-2xl bg-slate-50">
-                  <div className="w-8 h-8 rounded-xl bg-slate-200 text-slate-700 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <MapPin className="w-4 h-4" />
+                <div className="flex items-start space-x-3 p-3 rounded-2xl bg-[#FFF5FA] border border-brand-primaryPink/15">
+                  <div className="w-8 h-8 rounded-xl bg-white text-brand-deepPurple border border-brand-primaryPink/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <MapPin className="w-4 h-4 text-brand-brightPink" />
                   </div>
                   <div>
-                    <span className="font-bold text-brand-navy block">Registered & Fulfillment Address</span>
-                    <span className="text-slate-500 text-[11px] leading-relaxed block mt-0.5">
+                    <span className="font-bold text-brand-deepPurple block">Registered & Fulfillment Address</span>
+                    <span className="text-[#805A82] text-[11px] leading-relaxed block mt-0.5">
                       {businessConfig.address.formatted}
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between p-3 rounded-2xl bg-brand-softPink/50 border border-brand-pink/20 text-[11px]">
-                  <span className="text-slate-600 font-medium">GSTIN: <strong className="text-brand-navy">{businessConfig.tax.gstin}</strong></span>
-                  <span className="text-slate-600 font-medium">CIN: <strong className="text-brand-navy">{businessConfig.tax.cin}</strong></span>
+                <div className="flex items-center justify-between p-3 rounded-2xl bg-brand-softPink border border-brand-primaryPink/20 text-[11px]">
+                  <span className="text-brand-darkPurple font-medium">GSTIN: <strong className="text-brand-deepPurple">{businessConfig.tax.gstin}</strong></span>
+                  <span className="text-brand-darkPurple font-medium">CIN: <strong className="text-brand-deepPurple">{businessConfig.tax.cin}</strong></span>
                 </div>
               </div>
 
               {/* B2B / Wholesale Box */}
               {businessConfig.b2b.enableB2BInquiries && (
-                <div className="p-4 rounded-2xl bg-slate-900 text-white space-y-2">
+                <div className="p-4 rounded-2xl bg-gradient-to-tr from-[#38283D] to-[#5F3F68] text-white space-y-2 border border-brand-gold/30">
                   <div className="flex items-center space-x-2 text-brand-gold">
                     <Briefcase className="w-4 h-4" />
                     <span className="font-bold text-xs uppercase tracking-wider">Corporate & B2B Orders</span>
                   </div>
-                  <p className="text-[11px] text-slate-300">
+                  <p className="text-[11px] text-pink-100/80">
                     Planning corporate wellness gifts or wholesale procurement (Min: {businessConfig.b2b.minOrderQuantity} units)? Reach our B2B desk directly:
                   </p>
                   <a
                     href={`mailto:${businessConfig.b2b.inquiryEmail}`}
-                    className="inline-block text-xs font-bold text-brand-pink hover:underline"
+                    className="inline-block text-xs font-bold text-brand-lightGold hover:underline"
                   >
                     ✉️ {businessConfig.b2b.inquiryEmail}
                   </a>
@@ -158,14 +158,15 @@ export default function Contact() {
               )}
 
               {/* Social Channels */}
-              <div className="pt-4 border-t border-slate-100 flex items-center space-x-3">
-                <span className="text-xs font-bold text-slate-500">Follow us:</span>
+              <div className="pt-4 border-t border-brand-primaryPink/15 flex items-center space-x-3">
+                <span className="text-xs font-bold text-[#805A82]">Follow us:</span>
                 {businessConfig.social.instagram && (
                   <a
                     href={businessConfig.social.instagram}
                     target="_blank"
                     rel="noreferrer"
-                    className="p-2 rounded-xl bg-slate-100 hover:bg-brand-pink hover:text-white text-slate-600 transition-colors"
+                    className="p-2 rounded-xl bg-brand-softPink hover:bg-brand-brightPink hover:text-white text-brand-deepPurple transition-colors border border-brand-primaryPink/20"
+                    aria-label="Instagram"
                   >
                     <Instagram className="w-4 h-4" />
                   </a>
@@ -175,7 +176,8 @@ export default function Contact() {
                     href={businessConfig.social.facebook}
                     target="_blank"
                     rel="noreferrer"
-                    className="p-2 rounded-xl bg-slate-100 hover:bg-brand-pink hover:text-white text-slate-600 transition-colors"
+                    className="p-2 rounded-xl bg-brand-softPink hover:bg-brand-brightPink hover:text-white text-brand-deepPurple transition-colors border border-brand-primaryPink/20"
+                    aria-label="Facebook"
                   >
                     <Facebook className="w-4 h-4" />
                   </a>
@@ -186,11 +188,11 @@ export default function Contact() {
           </div>
 
           {/* Right Column: Inquiries Form */}
-          <div className="lg:col-span-7 bg-white p-6 sm:p-10 rounded-3xl border border-slate-200 shadow-lg">
-            <h2 className="font-display font-extrabold text-2xl text-brand-navy mb-2">
+          <div className="lg:col-span-7 bg-white p-6 sm:p-10 rounded-3xl border border-brand-primaryPink/25 shadow-lg">
+            <h2 className="font-display font-extrabold text-2xl text-brand-deepPurple mb-2">
               Send Us a Message
             </h2>
-            <p className="text-xs text-slate-500 mb-6">
+            <p className="text-xs text-[#805A82] mb-6">
               Fill out this form and our customer support team will reply via email/phone within 24 hours.
             </p>
 
@@ -203,7 +205,7 @@ export default function Contact() {
                 </p>
                 <button
                   onClick={() => setSubmitted(false)}
-                  className="mt-2 text-xs font-bold text-brand-pink underline"
+                  className="mt-2 text-xs font-bold text-brand-brightPink underline"
                 >
                   Send another message
                 </button>
@@ -211,7 +213,7 @@ export default function Contact() {
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Your Name *</label>
+                  <label className="block text-xs font-bold text-brand-darkPurple mb-1">Your Name *</label>
                   <input
                     type="text"
                     name="name"
@@ -219,13 +221,13 @@ export default function Contact() {
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="Pooja Sharma"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs"
+                    className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs text-brand-darkPurple"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Email Address *</label>
+                    <label className="block text-xs font-bold text-brand-darkPurple mb-1">Email Address *</label>
                     <input
                       type="email"
                       name="email"
@@ -233,30 +235,30 @@ export default function Contact() {
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="pooja@example.com"
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs"
+                      className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs text-brand-darkPurple"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Phone Number (Optional)</label>
+                    <label className="block text-xs font-bold text-brand-darkPurple mb-1">Phone Number (Optional)</label>
                     <input
                       type="tel"
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
                       placeholder="9876500000"
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs"
+                      className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs text-brand-darkPurple"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Inquiry Category</label>
+                  <label className="block text-xs font-bold text-brand-darkPurple mb-1">Inquiry Category</label>
                   <select
                     name="inquiryType"
                     value={formData.inquiryType}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs bg-white"
+                    className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs bg-white text-brand-darkPurple"
                   >
                     <option value="General / Order Support">General / Order & Delivery Support</option>
                     <option value="Product Sizing & Usage Guidance">Product Sizing & Usage Guidance</option>
@@ -267,7 +269,7 @@ export default function Contact() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Your Message / Question *</label>
+                  <label className="block text-xs font-bold text-brand-darkPurple mb-1">Your Message / Question *</label>
                   <textarea
                     name="message"
                     required
@@ -275,14 +277,14 @@ export default function Contact() {
                     value={formData.message}
                     onChange={handleChange}
                     placeholder="How can our care specialists assist you today?"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs"
+                    className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs text-brand-darkPurple"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-brand-pink to-brand-deepPink hover:from-brand-deepPink hover:to-brand-pink text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-brand-pink/30 flex items-center justify-center space-x-2 transition-all disabled:opacity-50"
+                  className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-brand-brightPink to-brand-deepPink hover:from-brand-deepPink hover:to-brand-brightPink text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-brand-pink/30 flex items-center justify-center space-x-2 transition-all disabled:opacity-50 btn-tactile"
                 >
                   <Send className="w-4 h-4" />
                   <span>{submitting ? 'Sending Message...' : 'Send Message'}</span>
@@ -298,4 +300,3 @@ export default function Contact() {
     </div>
   );
 }
-

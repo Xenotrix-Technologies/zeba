@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Lock, CheckCircle2, XCircle, CreditCard, Sparkles, AlertCircle } from 'lucide-react';
+import { ShieldCheck, Lock, CheckCircle2, XCircle } from 'lucide-react';
 
 export default function RazorpayModal({
   isOpen,
@@ -34,23 +34,23 @@ export default function RazorpayModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100">
+    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-[#38283D]/70 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-brand-pink/20">
         
         {/* Modal Header */}
-        <div className="bg-[#260E36] p-6 text-white text-center relative">
-          <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-brand-pink/20 text-brand-pink mb-3 border border-brand-pink/30">
-            <Lock className="w-6 h-6" />
+        <div className="bg-gradient-to-tr from-[#38283D] to-[#5F3F68] p-6 text-white text-center relative border-b border-brand-pink/20">
+          <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-brand-brightPink/20 text-brand-primaryPink mb-3 border border-brand-brightPink/40">
+            <Lock className="w-6 h-6 text-brand-lightGold" />
           </div>
           <h3 className="font-display font-extrabold text-xl text-white tracking-wide">
             Razorpay Secure Payment
           </h3>
-          <p className="text-xs text-slate-300 mt-1">
+          <p className="text-xs text-pink-200/80 mt-1">
             ZEBA Wellness • 256-bit Encrypted Transaction
           </p>
           
           <div className="mt-4 inline-block bg-white/10 px-4 py-1.5 rounded-full border border-white/20">
-            <span className="text-xs text-slate-300">Amount to Pay: </span>
+            <span className="text-xs text-pink-100">Amount to Pay: </span>
             <span className="font-display font-black text-brand-gold text-base ml-1">
               ₹{(orderData.amount / 100).toFixed(2)}
             </span>
@@ -58,15 +58,15 @@ export default function RazorpayModal({
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 space-y-5">
-          <div className="bg-brand-blush/60 p-4 rounded-2xl border border-brand-pink/20 text-xs text-slate-700 space-y-2">
+        <div className="p-6 space-y-5 bg-white">
+          <div className="bg-[#FFF5FA] p-4 rounded-2xl border border-brand-pink/25 text-xs text-brand-darkPurple space-y-2">
             <div className="flex items-center justify-between font-semibold">
               <span>Customer:</span>
-              <span className="text-brand-navy font-bold">{orderData.customer?.name}</span>
+              <span className="text-brand-deepPurple font-bold">{orderData.customer?.name}</span>
             </div>
             <div className="flex items-center justify-between font-semibold">
               <span>Razorpay Order Ref:</span>
-              <span className="font-mono text-[11px] text-slate-600">{orderData.razorpayOrderId}</span>
+              <span className="font-mono text-[11px] text-[#805A82]">{orderData.razorpayOrderId}</span>
             </div>
             <div className="flex items-center justify-between font-semibold">
               <span>Payment Mode:</span>
@@ -78,7 +78,7 @@ export default function RazorpayModal({
             <button
               disabled={isProcessing}
               onClick={() => handleSimulatedPayment('success')}
-              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2 transition-all disabled:opacity-50"
+              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2 transition-all disabled:opacity-50 btn-tactile"
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>{isProcessing ? 'Verifying with PostgreSQL...' : 'Complete Payment (Success)'}</span>
@@ -94,7 +94,7 @@ export default function RazorpayModal({
             </button>
           </div>
 
-          <div className="flex items-center justify-center space-x-2 text-[11px] text-slate-400">
+          <div className="flex items-center justify-center space-x-2 text-[11px] text-[#805A82]">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
             <span>Authenticated via Razorpay Node.js Signature Verification</span>
           </div>
