@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter, Eye, ChevronLeft, ChevronRight, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { Search, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import api from '../../services/api';
 
 export default function AdminOrders() {
@@ -52,37 +52,37 @@ export default function AdminOrders() {
       
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-display font-black text-2xl text-white">Order Management</h1>
-          <p className="text-xs text-slate-400 mt-0.5">Manage customer orders, track shipments, and review payments</p>
+          <h1 className="font-display font-black text-2xl sm:text-3xl text-brand-deepPurple">Order Management</h1>
+          <p className="text-xs text-[#805A82] mt-0.5">Manage customer orders, track shipments, and review payments</p>
         </div>
-        <span className="text-xs font-bold text-brand-gold bg-slate-900 border border-slate-800 px-3.5 py-1.5 rounded-full w-fit">
+        <span className="text-xs font-bold text-brand-deepPurple bg-white border border-brand-primaryPink/30 px-3.5 py-1.5 rounded-full w-fit shadow-sm">
           Total Orders: {total}
         </span>
       </div>
 
       {/* Filters & Search Toolbar */}
-      <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row gap-4 items-center justify-between">
+      <div className="bg-white p-4 rounded-2xl border border-brand-primaryPink/25 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
         
         {/* Search */}
         <form onSubmit={handleSearchSubmit} className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+          <Search className="w-4 h-4 text-[#805A82] absolute left-3.5 top-3" />
           <input
             type="text"
             placeholder="Search by order #, name, phone..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-800/80 border border-slate-700 text-xs text-white placeholder-slate-500 focus:border-brand-pink outline-none"
+            className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#FFF5FA] border border-brand-primaryPink/30 text-xs text-brand-darkPurple placeholder-[#805A82]/60 focus:border-brand-brightPink focus:bg-white outline-none transition-colors"
           />
         </form>
 
         {/* Dropdown Filters */}
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
           <div className="flex items-center space-x-2 text-xs">
-            <span className="text-slate-400 font-medium">Status:</span>
+            <span className="text-[#805A82] font-semibold">Status:</span>
             <select
               value={statusFilter}
               onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-              className="bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-1.5 text-xs outline-none focus:border-brand-pink"
+              className="bg-[#FFF5FA] border border-brand-primaryPink/30 text-brand-darkPurple rounded-xl px-3 py-1.5 text-xs outline-none focus:border-brand-brightPink font-medium"
             >
               <option value="all">All Statuses</option>
               <option value="pending">Pending</option>
@@ -95,11 +95,11 @@ export default function AdminOrders() {
           </div>
 
           <div className="flex items-center space-x-2 text-xs">
-            <span className="text-slate-400 font-medium">Payment:</span>
+            <span className="text-[#805A82] font-semibold">Payment:</span>
             <select
               value={paymentFilter}
               onChange={(e) => { setPaymentFilter(e.target.value); setPage(1); }}
-              className="bg-slate-800 border border-slate-700 text-white rounded-xl px-3 py-1.5 text-xs outline-none focus:border-brand-pink"
+              className="bg-[#FFF5FA] border border-brand-primaryPink/30 text-brand-darkPurple rounded-xl px-3 py-1.5 text-xs outline-none focus:border-brand-brightPink font-medium"
             >
               <option value="all">All Payments</option>
               <option value="paid">Paid</option>
@@ -112,17 +112,17 @@ export default function AdminOrders() {
       </div>
 
       {/* Orders Table */}
-      <div className="bg-slate-900 rounded-3xl border border-slate-800 overflow-hidden shadow-xl">
+      <div className="bg-white rounded-3xl border border-brand-primaryPink/25 overflow-hidden shadow-sm">
         {loading ? (
-          <div className="py-16 text-center text-xs text-slate-400">Loading orders...</div>
+          <div className="py-16 text-center text-xs text-[#805A82]">Loading orders...</div>
         ) : orders.length === 0 ? (
-          <div className="py-16 text-center text-xs text-slate-500">
+          <div className="py-16 text-center text-xs text-[#805A82]">
             No matching orders found.
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-300">
-              <thead className="bg-slate-800/80 text-slate-400 uppercase font-bold text-[10px] tracking-wider">
+            <table className="w-full text-left text-xs text-brand-darkPurple">
+              <thead className="bg-[#FFF5FA] text-[#805A82] uppercase font-bold text-[10px] tracking-wider border-b border-brand-primaryPink/20">
                 <tr>
                   <th className="p-4">Order Number</th>
                   <th className="p-4">Customer</th>
@@ -135,35 +135,35 @@ export default function AdminOrders() {
                   <th className="p-4 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800">
+              <tbody className="divide-y divide-brand-primaryPink/15">
                 {orders.map((order) => (
-                  <tr key={order.id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="p-4 font-mono font-bold text-white">
-                      <Link to={`/admin/orders/${order.id}`} className="hover:text-brand-pink transition-colors">
+                  <tr key={order.id} className="hover:bg-brand-softPink/40 transition-colors">
+                    <td className="p-4 font-mono font-bold text-brand-deepPurple">
+                      <Link to={`/admin/orders/${order.id}`} className="hover:text-brand-brightPink transition-colors">
                         {order.order_number}
                       </Link>
                     </td>
-                    <td className="p-4 font-bold text-white">{order.customer_name}</td>
-                    <td className="p-4 text-slate-400">{order.customer_phone}</td>
-                    <td className="p-4 max-w-xs truncate text-slate-300">
+                    <td className="p-4 font-bold text-brand-deepPurple">{order.customer_name}</td>
+                    <td className="p-4 text-[#805A82]">{order.customer_phone}</td>
+                    <td className="p-4 max-w-xs truncate text-brand-darkPurple">
                       {order.products_summary || `${order.total_items} item(s)`}
                     </td>
-                    <td className="p-4 font-extrabold text-white">₹{parseFloat(order.total_amount).toFixed(2)}</td>
+                    <td className="p-4 font-extrabold text-brand-deepPurple">₹{parseFloat(order.total_amount).toFixed(2)}</td>
                     <td className="p-4">
                       <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
                         order.payment_status === 'paid'
-                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                          : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                          ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                          : 'bg-amber-50 text-amber-800 border border-amber-200'
                       }`}>
                         {order.payment_status}
                       </span>
                     </td>
                     <td className="p-4">
-                      <span className="capitalize px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-200 border border-slate-700">
+                      <span className="capitalize px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-softPink text-brand-deepPurple border border-brand-primaryPink/30">
                         {order.status}
                       </span>
                     </td>
-                    <td className="p-4 text-slate-400 whitespace-nowrap">
+                    <td className="p-4 text-[#805A82] whitespace-nowrap">
                       {new Date(order.created_at).toLocaleDateString('en-IN', {
                         day: 'numeric',
                         month: 'short',
@@ -173,7 +173,7 @@ export default function AdminOrders() {
                     <td className="p-4 text-right">
                       <Link
                         to={`/admin/orders/${order.id}`}
-                        className="inline-flex items-center space-x-1 text-xs font-bold text-brand-pink hover:text-white px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-brand-pink transition-colors"
+                        className="inline-flex items-center space-x-1 text-xs font-bold text-brand-brightPink hover:text-white px-3 py-1.5 rounded-xl bg-brand-softPink hover:bg-brand-brightPink transition-colors border border-brand-primaryPink/25"
                       >
                         <Eye className="w-3.5 h-3.5" />
                         <span>Manage</span>
@@ -188,20 +188,20 @@ export default function AdminOrders() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="p-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+          <div className="p-4 border-t border-brand-primaryPink/20 flex items-center justify-between text-xs text-[#805A82] bg-[#FFF5FA]">
             <span>Page {page} of {totalPages}</span>
             <div className="flex space-x-2">
               <button
                 disabled={page <= 1}
                 onClick={() => setPage(p => Math.max(1, p - 1))}
-                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 transition-colors"
+                className="p-1.5 rounded-lg bg-white border border-brand-primaryPink/30 hover:bg-brand-softPink disabled:opacity-40 transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <button
                 disabled={page >= totalPages}
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 transition-colors"
+                className="p-1.5 rounded-lg bg-white border border-brand-primaryPink/30 hover:bg-brand-softPink disabled:opacity-40 transition-colors"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>

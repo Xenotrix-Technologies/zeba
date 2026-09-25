@@ -3,8 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { config } from './config/env.js'; // Reloaded with new .env
-import { runMigrations } from '../database/migrate.js';
+import { config } from './config/env.js';
 import { seedDatabase } from '../database/seed.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
@@ -36,17 +35,22 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Static images
 app.use('/images', express.static(path.resolve(__dirname, '../public/images')));
 
-// API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/customer', customerRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/payments', paymentRoutes);
-app.use('/api/contact', contactRoutes);
-app.use('/api/admin', adminRoutes);
+// Mount routes on both /api and root prefixes
+const mountRouters = (prefix = '') => {
+  app.use(`${prefix}/auth`, authRoutes);
+  app.use(`${prefix}/customer`, customerRoutes);
+  app.use(`${prefix}/products`, productRoutes);
+  app.use(`${prefix}/orders`, orderRoutes);
+  app.use(`${prefix}/payments`, paymentRoutes);
+  app.use(`${prefix}/contact`, contactRoutes);
+  app.use(`${prefix}/admin`, adminRoutes);
+};
+
+mountRouters('/api');
+mountRouters('');
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/health'], (req, res) => {
   res.json({
     status: 'online',
     brand: 'ZEBA Period Care',

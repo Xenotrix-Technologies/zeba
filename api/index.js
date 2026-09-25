@@ -3,7 +3,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { config } from '../server/src/config/env.js';
 import { seedDatabase } from '../server/database/seed.js';
 import { errorHandler } from '../server/src/middleware/errorHandler.js';
 
@@ -49,17 +48,22 @@ app.use(async (req, res, next) => {
   next();
 });
 
-// API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/customer', customerRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/payments', paymentRoutes);
-app.use('/api/contact', contactRoutes);
-app.use('/api/admin', adminRoutes);
+// Mount routes to support both with and without /api prefix (for Vercel rewrites & direct calls)
+const mountRouters = (prefix = '') => {
+  app.use(`${prefix}/auth`, authRoutes);
+  app.use(`${prefix}/customer`, customerRoutes);
+  app.use(`${prefix}/products`, productRoutes);
+  app.use(`${prefix}/orders`, orderRoutes);
+  app.use(`${prefix}/payments`, paymentRoutes);
+  app.use(`${prefix}/contact`, contactRoutes);
+  app.use(`${prefix}/admin`, adminRoutes);
+};
+
+mountRouters('/api');
+mountRouters('');
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/health'], (req, res) => {
   res.json({
     status: 'online',
     brand: 'ZEBA Period Care',

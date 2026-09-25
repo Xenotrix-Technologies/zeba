@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Edit2, Save, X, Check, ShieldCheck, Sparkles, Layers } from 'lucide-react';
+import { Edit2, Save, X } from 'lucide-react';
 import api from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 
@@ -64,16 +64,16 @@ export default function AdminProducts() {
       
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-display font-black text-2xl text-white">Product Catalog</h1>
-          <p className="text-xs text-slate-400 mt-0.5">Manage the two ZEBA product packs, adjust live pricing and stock inventory</p>
+          <h1 className="font-display font-black text-2xl sm:text-3xl text-brand-deepPurple">Product Catalog</h1>
+          <p className="text-xs text-[#805A82] mt-0.5">Manage the two ZEBA product packs, adjust live pricing and stock inventory</p>
         </div>
-        <span className="text-xs font-bold text-brand-pink bg-brand-pink/10 border border-brand-pink/30 px-3.5 py-1.5 rounded-full">
+        <span className="text-xs font-bold text-brand-brightPink bg-brand-softPink border border-brand-primaryPink/30 px-3.5 py-1.5 rounded-full">
           2 Active Variants in PostgreSQL
         </span>
       </div>
 
       {loading ? (
-        <div className="py-20 text-center text-xs text-slate-400">Loading products...</div>
+        <div className="py-20 text-center text-xs text-[#805A82]">Loading products...</div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {products.map((product) => {
@@ -85,18 +85,18 @@ export default function AdminProducts() {
             return (
               <div
                 key={product.id}
-                className="bg-slate-900 rounded-3xl p-6 border border-slate-800 shadow-xl flex flex-col justify-between space-y-6"
+                className="bg-white rounded-3xl p-6 border border-brand-primaryPink/25 shadow-sm flex flex-col justify-between space-y-6"
               >
                 <div>
                   {/* Top Bar */}
-                  <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-                    <span className="text-xs font-bold text-brand-gold bg-brand-gold/10 px-3 py-1 rounded-full border border-brand-gold/30">
+                  <div className="flex items-center justify-between pb-4 border-b border-brand-primaryPink/15">
+                    <span className="text-xs font-bold text-brand-gold bg-[#FDF5D6] px-3 py-1 rounded-full border border-brand-gold/40">
                       {product.pack_size}
                     </span>
                     {!isEditing && (
                       <button
                         onClick={() => handleEditClick(product)}
-                        className="inline-flex items-center space-x-1.5 text-xs font-bold text-brand-pink hover:text-white px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-brand-pink transition-colors"
+                        className="inline-flex items-center space-x-1.5 text-xs font-bold text-brand-brightPink hover:text-white px-3 py-1.5 rounded-xl bg-brand-softPink hover:bg-brand-brightPink transition-colors border border-brand-primaryPink/20 btn-tactile"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                         <span>Edit Product</span>
@@ -108,69 +108,69 @@ export default function AdminProducts() {
                   {isEditing ? (
                     <div className="space-y-4 pt-4 text-xs">
                       <div>
-                        <label className="block text-slate-400 font-bold mb-1">Product Title</label>
+                        <label className="block text-brand-darkPurple font-bold mb-1">Product Title</label>
                         <input
                           type="text"
                           value={editingProduct.name}
                           onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
-                          className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl p-2.5 outline-none focus:border-brand-pink"
+                          className="w-full bg-[#FFF5FA] border border-brand-primaryPink/30 text-brand-darkPurple rounded-xl p-2.5 outline-none focus:border-brand-brightPink focus:bg-white"
                         />
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-slate-400 font-bold mb-1">Selling Price (₹)</label>
+                          <label className="block text-brand-darkPurple font-bold mb-1">Selling Price (₹)</label>
                           <input
                             type="number"
                             step="1"
                             value={editingProduct.price}
                             onChange={(e) => setEditingProduct({ ...editingProduct, price: e.target.value })}
-                            className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl p-2.5 outline-none focus:border-brand-pink"
+                            className="w-full bg-[#FFF5FA] border border-brand-primaryPink/30 text-brand-darkPurple rounded-xl p-2.5 outline-none focus:border-brand-brightPink focus:bg-white"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-slate-400 font-bold mb-1">Original Price (₹)</label>
+                          <label className="block text-brand-darkPurple font-bold mb-1">Original Price (₹)</label>
                           <input
                             type="number"
                             step="1"
                             value={editingProduct.original_price}
                             onChange={(e) => setEditingProduct({ ...editingProduct, original_price: e.target.value })}
-                            className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl p-2.5 outline-none focus:border-brand-pink"
+                            className="w-full bg-[#FFF5FA] border border-brand-primaryPink/30 text-brand-darkPurple rounded-xl p-2.5 outline-none focus:border-brand-brightPink focus:bg-white"
                           />
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-slate-400 font-bold mb-1">Stock Quantity</label>
+                          <label className="block text-brand-darkPurple font-bold mb-1">Stock Quantity</label>
                           <input
                             type="number"
                             value={editingProduct.stock_quantity}
                             onChange={(e) => setEditingProduct({ ...editingProduct, stock_quantity: e.target.value })}
-                            className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl p-2.5 outline-none focus:border-brand-pink"
+                            className="w-full bg-[#FFF5FA] border border-brand-primaryPink/30 text-brand-darkPurple rounded-xl p-2.5 outline-none focus:border-brand-brightPink focus:bg-white"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-slate-400 font-bold mb-1">Badge Text</label>
+                          <label className="block text-brand-darkPurple font-bold mb-1">Badge Text</label>
                           <input
                             type="text"
                             value={editingProduct.badge_text || ''}
                             onChange={(e) => setEditingProduct({ ...editingProduct, badge_text: e.target.value })}
                             placeholder="Best Value"
-                            className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl p-2.5 outline-none focus:border-brand-pink"
+                            className="w-full bg-[#FFF5FA] border border-brand-primaryPink/30 text-brand-darkPurple rounded-xl p-2.5 outline-none focus:border-brand-brightPink focus:bg-white"
                           />
                         </div>
                       </div>
 
                       <div>
-                        <label className="block text-slate-400 font-bold mb-1">Short Description</label>
+                        <label className="block text-brand-darkPurple font-bold mb-1">Short Description</label>
                         <textarea
                           rows="2"
                           value={editingProduct.short_description}
                           onChange={(e) => setEditingProduct({ ...editingProduct, short_description: e.target.value })}
-                          className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl p-2.5 outline-none focus:border-brand-pink"
+                          className="w-full bg-[#FFF5FA] border border-brand-primaryPink/30 text-brand-darkPurple rounded-xl p-2.5 outline-none focus:border-brand-brightPink focus:bg-white"
                         />
                       </div>
 
@@ -180,9 +180,9 @@ export default function AdminProducts() {
                           id={`active_${product.id}`}
                           checked={editingProduct.is_active}
                           onChange={(e) => setEditingProduct({ ...editingProduct, is_active: e.target.checked })}
-                          className="rounded text-brand-pink"
+                          className="rounded text-brand-brightPink"
                         />
-                        <label htmlFor={`active_${product.id}`} className="text-slate-300 font-bold">
+                        <label htmlFor={`active_${product.id}`} className="text-brand-darkPurple font-bold">
                           Product is Active on Storefront
                         </label>
                       </div>
@@ -191,7 +191,7 @@ export default function AdminProducts() {
                         <button
                           onClick={handleSaveProduct}
                           disabled={saving}
-                          className="flex-1 py-2.5 px-3 rounded-xl bg-brand-pink hover:bg-brand-deepPink text-white font-bold flex items-center justify-center space-x-1.5 transition-colors disabled:opacity-50"
+                          className="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-brand-brightPink to-brand-deepPink hover:from-brand-deepPink hover:to-brand-brightPink text-white font-bold flex items-center justify-center space-x-1.5 transition-colors disabled:opacity-50 btn-tactile shadow-md"
                         >
                           <Save className="w-4 h-4" />
                           <span>{saving ? 'Saving...' : 'Save Changes'}</span>
@@ -199,7 +199,7 @@ export default function AdminProducts() {
 
                         <button
                           onClick={() => setEditingProduct(null)}
-                          className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center justify-center transition-colors"
+                          className="py-2.5 px-4 rounded-xl bg-brand-softPink hover:bg-slate-200 text-[#805A82] font-bold flex items-center justify-center transition-colors"
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -211,34 +211,34 @@ export default function AdminProducts() {
                         <img
                           src={images[0] || '/images/zeba-1pack.jpg'}
                           alt={product.name}
-                          className="w-24 h-24 object-cover rounded-2xl border border-slate-800 bg-slate-950 p-2"
+                          className="w-24 h-24 object-cover rounded-2xl border border-brand-primaryPink/25 bg-[#FFF5FA] p-2"
                         />
                         <div className="space-y-1">
-                          <h3 className="font-display font-bold text-lg text-white">{product.name}</h3>
+                          <h3 className="font-display font-bold text-lg text-brand-deepPurple">{product.name}</h3>
                           <div className="flex items-baseline space-x-2">
-                            <span className="text-2xl font-black text-brand-pink">
+                            <span className="text-2xl font-black text-brand-brightPink">
                               ₹{parseFloat(product.price).toFixed(0)}
                             </span>
-                            <span className="text-sm text-slate-500 line-through">
+                            <span className="text-sm text-slate-400 line-through">
                               ₹{parseFloat(product.original_price).toFixed(0)}
                             </span>
                           </div>
-                          <div className="text-xs text-slate-400">
-                            Available Stock: <span className="font-bold text-white">{product.stock_quantity} units</span>
+                          <div className="text-xs text-[#805A82]">
+                            Available Stock: <span className="font-bold text-brand-deepPurple">{product.stock_quantity} units</span>
                           </div>
                         </div>
                       </div>
 
-                      <p className="text-xs text-slate-400 leading-relaxed">
+                      <p className="text-xs text-[#805A82] leading-relaxed">
                         {product.short_description}
                       </p>
                     </div>
                   )}
                 </div>
 
-                <div className="pt-3 border-t border-slate-800 text-[11px] text-slate-500 flex items-center justify-between">
+                <div className="pt-3 border-t border-brand-primaryPink/15 text-[11px] text-[#805A82] flex items-center justify-between">
                   <span>Slug: /{product.slug}</span>
-                  <span className="text-emerald-400 font-semibold">● Synced with PostgreSQL</span>
+                  <span className="text-emerald-700 font-semibold">● Synced with PostgreSQL</span>
                 </div>
               </div>
             );
