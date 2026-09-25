@@ -18,8 +18,10 @@ export default function ProductCard({ product, isFeatured = false }) {
     : (typeof product.images === 'string' ? JSON.parse(product.images || '[]') : ['/images/zeba-1pack.jpg']);
 
   const mainImage = images[0] || '/images/zeba-1pack.jpg';
-  const discountPercent = product.original_price > product.price
-    ? Math.round(((product.original_price - product.price) / product.original_price) * 100)
+  const currentPrice = parseFloat(product.price) || 0;
+  const originalPrice = parseFloat(product.original_price) || 0;
+  const discountPercent = originalPrice > currentPrice
+    ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100)
     : 0;
 
   return (
@@ -59,6 +61,10 @@ export default function ProductCard({ product, isFeatured = false }) {
         <img
           src={mainImage}
           alt={product.name}
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = '/images/zeba-1pack.jpg';
+          }}
           className="w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-500"
         />
       </Link>

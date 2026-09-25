@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Lock, Mail, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Lock, Mail, ShieldCheck, ArrowRight, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('zebaofficial2013@gmail.com');
   const [password, setPassword] = useState('Zeba@2026.?');
+  const [showPassword, setShowPassword] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
 
   const { login } = useAuth();
@@ -16,11 +18,14 @@ export default function AdminLogin() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMsg('');
     setLoading(true);
-    const result = await login(email, password);
+    const result = await login(email.trim(), password.trim());
     setLoading(false);
     if (result.success) {
       navigate(from, { replace: true });
+    } else {
+      setErrorMsg(result.message || 'Invalid administrator email or password.');
     }
   };
 
@@ -41,13 +46,20 @@ export default function AdminLogin() {
           <p className="text-xs text-[#805A82]">Sign in with your secure administrator credentials</p>
         </div>
 
+        {errorMsg && (
+          <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center space-x-2.5 animate-fadeIn">
+            <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+            <span className="font-medium">{errorMsg}</span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-brand-darkPurple mb-1">Email Address</label>
+            <label className="block text-xs font-bold text-brand-darkPurple mb-1">Email Address / Username</label>
             <div className="relative">
               <Mail className="w-4 h-4 text-[#805A82] absolute left-3.5 top-3.5" />
               <input
-                type="email"
+                type="text"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -62,13 +74,20 @@ export default function AdminLogin() {
             <div className="relative">
               <Lock className="w-4 h-4 text-[#805A82] absolute left-3.5 top-3.5" />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#FFF5FA] border border-brand-primaryPink/30 text-brand-darkPurple placeholder-[#805A82]/50 focus:border-brand-brightPink focus:bg-white focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium transition-colors"
+                className="w-full pl-10 pr-10 py-3 rounded-xl bg-[#FFF5FA] border border-brand-primaryPink/30 text-brand-darkPurple placeholder-[#805A82]/50 focus:border-brand-brightPink focus:bg-white focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium transition-colors"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-3.5 text-[#805A82] hover:text-brand-brightPink"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
           </div>
 
@@ -82,7 +101,13 @@ export default function AdminLogin() {
           </button>
         </form>
 
-        <div className="pt-2 text-center text-xs text-[#805A82] flex items-center justify-center space-x-1.5">
+        <div className="p-3 bg-[#FFF5FA] border border-brand-primaryPink/25 rounded-2xl space-y-1 text-center">
+          <p className="text-[11px] font-bold text-brand-deepPurple">Default Admin Credentials:</p>
+          <p className="text-[10px] text-[#805A82]">Email: <span className="font-mono text-brand-brightPink font-bold">zebaofficial2013@gmail.com</span></p>
+          <p className="text-[10px] text-[#805A82]">Password: <span className="font-mono text-brand-brightPink font-bold">Zeba@2026.?</span></p>
+        </div>
+
+        <div className="pt-1 text-center text-xs text-[#805A82] flex items-center justify-center space-x-1.5">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
           <span>Protected by bcrypt & JWT token authorization</span>
         </div>

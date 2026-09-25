@@ -10,7 +10,7 @@ export async function seedDatabase() {
 
   // 1. Seed Admin
   const adminEmail = (config.ADMIN_DEFAULT_EMAIL || 'zebaofficial2013@gmail.com').toLowerCase().trim();
-  const adminPassword = config.ADMIN_DEFAULT_PASSWORD || 'Zeba@2026.?';
+  const adminPassword = (config.ADMIN_DEFAULT_PASSWORD || 'Zeba@2026.?').replace(/^["']|["']$/g, '').trim();
   const adminUsername = 'zeba_admin';
 
   const salt = await bcrypt.genSalt(10);
@@ -64,9 +64,9 @@ export async function seedDatabase() {
         '100% non-medicated, odourless comfort'
       ]),
       images: JSON.stringify([
+        '/images/zeba-1pack.jpg',
         '/images/zeba-real-packaging-1.jpg',
         '/images/zeba-real-packaging-2.jpg',
-        '/images/zeba-pad-detail.jpg',
         '/images/zeba-hero-lifestyle.jpg'
       ]),
       is_active: true,
@@ -104,7 +104,7 @@ export async function seedDatabase() {
       images: JSON.stringify([
         '/images/zeba-real-packaging-2.jpg',
         '/images/zeba-real-packaging-1.jpg',
-        '/images/zeba-pad-detail.jpg',
+        '/images/zeba-1pack.jpg',
         '/images/zeba-hero-lifestyle.jpg'
       ]),
       is_active: true,

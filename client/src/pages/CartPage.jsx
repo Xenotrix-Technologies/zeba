@@ -96,6 +96,10 @@ export default function CartPage() {
                   <img
                     src={item.image}
                     alt={item.name}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = '/images/zeba-1pack.jpg';
+                    }}
                     className="w-20 h-20 object-cover rounded-2xl border border-brand-primaryPink/15 flex-shrink-0"
                   />
                   <div>
@@ -133,9 +137,9 @@ export default function CartPage() {
                     <div className="font-display font-extrabold text-base text-brand-deepPurple">
                       ₹{(item.price * item.quantity).toFixed(2)}
                     </div>
-                    {item.original_price > item.price && (
+                    {parseFloat(item.original_price) > parseFloat(item.price) && (
                       <div className="text-[11px] text-slate-400 line-through">
-                        ₹{(item.original_price * item.quantity).toFixed(2)}
+                        ₹{(parseFloat(item.original_price) * item.quantity).toFixed(2)}
                       </div>
                     )}
                   </div>

@@ -110,6 +110,10 @@ export default function CartDrawer() {
                   <img
                     src={item.image}
                     alt={item.name}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = '/images/zeba-1pack.jpg';
+                    }}
                     className="w-20 h-20 object-cover rounded-xl border border-brand-pink/15 flex-shrink-0"
                   />
                   <div className="flex-1 min-w-0">
@@ -157,9 +161,9 @@ export default function CartDrawer() {
                         <span className="text-xs sm:text-sm font-extrabold text-brand-deepPurple">
                           ₹{(item.price * item.quantity).toFixed(2)}
                         </span>
-                        {item.original_price > item.price && (
+                        {parseFloat(item.original_price) > parseFloat(item.price) && (
                           <div className="text-[10px] text-slate-400 line-through">
-                            ₹{(item.original_price * item.quantity).toFixed(2)}
+                            ₹{(parseFloat(item.original_price) * item.quantity).toFixed(2)}
                           </div>
                         )}
                       </div>

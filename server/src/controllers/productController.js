@@ -1,5 +1,17 @@
 import { query } from '../config/db.js';
 
+function formatProduct(prod) {
+  if (!prod) return prod;
+  return {
+    ...prod,
+    price: parseFloat(prod.price),
+    original_price: parseFloat(prod.original_price),
+    stock_quantity: parseInt(prod.stock_quantity, 10),
+    pack_count: parseInt(prod.pack_count, 10),
+    images: Array.isArray(prod.images) ? prod.images : (typeof prod.images === 'string' ? JSON.parse(prod.images || '[]') : [])
+  };
+}
+
 export async function getProducts(req, res, next) {
   try {
     const result = await query(
@@ -15,7 +27,7 @@ export async function getProducts(req, res, next) {
     res.json({
       success: true,
       count: result.rows.length,
-      products: result.rows
+      products: result.rows.map(formatProduct)
     });
   } catch (err) {
     next(err);
@@ -44,7 +56,7 @@ export async function getProductBySlug(req, res, next) {
 
     res.json({
       success: true,
-      product: result.rows[0]
+      product: formatProduct(result.rows[0])
     });
   } catch (err) {
     next(err);

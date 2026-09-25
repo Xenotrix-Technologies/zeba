@@ -164,6 +164,10 @@ export default function AdminOrderDetail() {
                     <img
                       src={item.images && item.images.length > 0 ? (typeof item.images === 'string' ? JSON.parse(item.images)[0] : item.images[0]) : '/images/zeba-1pack.jpg'}
                       alt={item.product_name}
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = '/images/zeba-1pack.jpg';
+                      }}
                       className="w-14 h-14 object-cover rounded-xl border border-brand-primaryPink/20 flex-shrink-0 bg-brand-softPink"
                     />
                     <div>

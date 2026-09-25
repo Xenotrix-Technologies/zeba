@@ -211,6 +211,10 @@ export default function AdminProducts() {
                         <img
                           src={images[0] || '/images/zeba-1pack.jpg'}
                           alt={product.name}
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = '/images/zeba-1pack.jpg';
+                          }}
                           className="w-24 h-24 object-cover rounded-2xl border border-brand-primaryPink/25 bg-[#FFF5FA] p-2"
                         />
                         <div className="space-y-1">

@@ -92,8 +92,10 @@ export default function ProductDetail() {
     '/images/zeba-got-questions-faq.jpg'
   ];
 
-  const discountPercent = selectedProduct.original_price > selectedProduct.price
-    ? Math.round(((selectedProduct.original_price - selectedProduct.price) / selectedProduct.original_price) * 100)
+  const currentPrice = parseFloat(selectedProduct.price) || 0;
+  const originalPrice = parseFloat(selectedProduct.original_price) || 0;
+  const discountPercent = originalPrice > currentPrice
+    ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100)
     : 0;
 
   return (
@@ -118,6 +120,10 @@ export default function ProductDetail() {
               <img
                 src={allImages[activeImageIndex] || allImages[0]}
                 alt={selectedProduct.name}
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = '/images/zeba-1pack.jpg';
+                }}
                 className="w-full h-full object-contain transition-all duration-300 transform hover:scale-105"
               />
             </div>
@@ -134,7 +140,15 @@ export default function ProductDetail() {
                       : 'border-brand-primaryPink/25 hover:border-brand-primaryPink opacity-70 hover:opacity-100'
                   }`}
                 >
-                  <img src={img} alt={`Thumb ${idx + 1}`} className="w-full h-full object-cover rounded-xl" />
+                  <img
+                    src={img}
+                    alt={`Thumb ${idx + 1}`}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = '/images/zeba-1pack.jpg';
+                    }}
+                    className="w-full h-full object-cover rounded-xl"
+                  />
                 </button>
               ))}
             </div>
@@ -213,7 +227,10 @@ export default function ProductDetail() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {products.map(prod => {
                   const isSelected = selectedProduct.id === prod.id;
-                  const savings = prod.original_price > prod.price ? (prod.original_price - prod.price) : 0;
+                  const pPrice = parseFloat(prod.price) || 0;
+                  const pOrigPrice = parseFloat(prod.original_price) || 0;
+                  const savings = pOrigPrice > pPrice ? (pOrigPrice - pPrice) : 0;
+                  const pDiscount = pOrigPrice > 0 ? Math.round((savings / pOrigPrice) * 100) : 0;
                   
                   return (
                     <button
@@ -235,7 +252,7 @@ export default function ProductDetail() {
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-bold text-brand-deepPurple">{prod.pack_size}</span>
                         <span className="text-sm font-extrabold text-brand-deepPurple">
-                          ₹{parseFloat(prod.price).toFixed(0)}
+                          ₹{pPrice.toFixed(0)}
                         </span>
                       </div>
 
@@ -245,7 +262,7 @@ export default function ProductDetail() {
 
                       {savings > 0 && (
                         <div className="text-[10px] font-bold text-emerald-700 mt-1.5">
-                          Save ₹{parseFloat(savings).toFixed(0)} ({Math.round((savings / prod.original_price) * 100)}% off)
+                          Save ₹{savings.toFixed(0)} ({pDiscount}% off)
                         </div>
                       )}
                     </button>

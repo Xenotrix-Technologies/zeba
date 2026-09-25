@@ -410,7 +410,15 @@ export default function Checkout() {
                 <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
                   {cart.map((item) => (
                     <div key={item.id} className="flex items-center space-x-3 py-2 border-b border-brand-primaryPink/15 last:border-0">
-                      <img src={item.image} alt={item.name} className="w-12 h-12 rounded-xl object-cover border border-brand-primaryPink/15 flex-shrink-0" />
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = '/images/zeba-1pack.jpg';
+                        }}
+                        className="w-12 h-12 rounded-xl object-cover border border-brand-primaryPink/15 flex-shrink-0"
+                      />
                       <div className="flex-1 min-w-0">
                         <h4 className="text-xs font-bold text-brand-deepPurple truncate">{item.name}</h4>
                         <div className="flex items-center justify-between text-[11px] text-[#805A82] mt-0.5">
