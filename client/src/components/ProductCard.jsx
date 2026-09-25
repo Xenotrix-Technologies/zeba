@@ -15,9 +15,9 @@ export default function ProductCard({ product, isFeatured = false }) {
 
   const images = Array.isArray(product.images)
     ? product.images
-    : (typeof product.images === 'string' ? JSON.parse(product.images || '[]') : ['/images/zeba-real-packaging-1.jpg']);
+    : (typeof product.images === 'string' ? JSON.parse(product.images || '[]') : ['/images/zeba-1pack.jpg']);
 
-  const mainImage = images[0] || '/images/zeba-real-packaging-1.jpg';
+  const mainImage = images[0] || '/images/zeba-1pack.jpg';
   const discountPercent = product.original_price > product.price
     ? Math.round(((product.original_price - product.price) / product.original_price) * 100)
     : 0;

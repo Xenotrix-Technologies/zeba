@@ -81,7 +81,7 @@ export default function ProductDetail() {
 
   const baseImages = Array.isArray(selectedProduct.images)
     ? selectedProduct.images
-    : (typeof selectedProduct.images === 'string' ? JSON.parse(selectedProduct.images || '[]') : ['/images/zeba-real-packaging-1.jpg']);
+    : (typeof selectedProduct.images === 'string' ? JSON.parse(selectedProduct.images || '[]') : ['/images/zeba-1pack.jpg']);
 
   // Combine authentic product packaging + official educational infographics
   const allImages = [

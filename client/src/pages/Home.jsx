@@ -249,7 +249,7 @@ export default function Home() {
                 {/* Main Authentic Packaging Card */}
                 <div className="rounded-3xl bg-white p-3.5 shadow-2xl border-2 border-brand-primaryPink/30 relative group overflow-hidden">
                   <img
-                    src="/images/zeba-real-packaging-1.jpg"
+                    src="/images/zeba-1pack.jpg"
                     alt="ZEBA Periods Pain Relief Heating Pad Official Packaging"
                     className="w-full h-auto rounded-2xl object-cover transform group-hover:scale-[1.02] transition-transform duration-500 shadow-sm"
                   />
