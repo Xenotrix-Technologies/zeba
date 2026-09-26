@@ -4,8 +4,8 @@ import { Lock, Mail, ShieldCheck, ArrowRight, Eye, EyeOff, AlertCircle } from 'l
 import { useAuth } from '../../context/AuthContext';
 
 export default function AdminLogin() {
-  const [email, setEmail] = useState('zebaofficial2013@gmail.com');
-  const [password, setPassword] = useState('Zeba@2026.?');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
@@ -35,7 +35,7 @@ export default function AdminLogin() {
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-primaryPink/15 rounded-full blur-3xl -z-10 pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-brand-deepPurple/10 rounded-full blur-3xl -z-10 pointer-events-none" />
 
-      <div className="max-w-md w-full bg-white border-2 border-brand-primaryPink/30 rounded-3xl p-8 shadow-2xl space-y-6">
+      <div className="max-w-md w-full bg-white border border-brand-primaryPink/30 rounded-3xl p-8 shadow-2xl space-y-6">
         
         {/* Brand Icon */}
         <div className="text-center space-y-3">
@@ -46,40 +46,42 @@ export default function AdminLogin() {
               className="h-12 w-auto mx-auto object-contain hover:opacity-90 transition-opacity" 
             />
           </Link>
-          <h1 className="font-display font-black text-2xl text-brand-deepPurple">ZEBA Admin Portal</h1>
-          <p className="text-xs text-[#805A82]">Sign in with your secure administrator credentials</p>
+          <h1 className="font-display font-black text-2xl text-brand-deepPurple">Admin Portal</h1>
+          <p className="text-xs text-[#805A82]">Enter your credentials to access the management hub</p>
         </div>
 
         {errorMsg && (
-          <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center space-x-2.5 animate-fadeIn">
-            <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+          <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center space-x-2.5 animate-fadeIn">
+            <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
             <span className="font-medium">{errorMsg}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-brand-darkPurple mb-1">Email Address / Username</label>
+            <label className="block text-xs font-bold text-brand-darkPurple mb-1.5">Email Address or Username</label>
             <div className="relative">
               <Mail className="w-4 h-4 text-[#805A82] absolute left-3.5 top-3.5" />
               <input
                 type="text"
                 required
+                autoComplete="username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="zebaofficial2013@gmail.com"
+                placeholder="admin@zebaofficial.in"
                 className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#FFF5FA] border border-brand-primaryPink/30 text-brand-darkPurple placeholder-[#805A82]/50 focus:border-brand-brightPink focus:bg-white focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium transition-colors"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-brand-darkPurple mb-1">Password</label>
+            <label className="block text-xs font-bold text-brand-darkPurple mb-1.5">Password</label>
             <div className="relative">
               <Lock className="w-4 h-4 text-[#805A82] absolute left-3.5 top-3.5" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
@@ -89,6 +91,7 @@ export default function AdminLogin() {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3.5 top-3.5 text-[#805A82] hover:text-brand-brightPink"
+                aria-label="Toggle password visibility"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -104,17 +107,6 @@ export default function AdminLogin() {
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
-
-        <div className="p-3 bg-[#FFF5FA] border border-brand-primaryPink/25 rounded-2xl space-y-1 text-center">
-          <p className="text-[11px] font-bold text-brand-deepPurple">Default Admin Credentials:</p>
-          <p className="text-[10px] text-[#805A82]">Email: <span className="font-mono text-brand-brightPink font-bold">zebaofficial2013@gmail.com</span></p>
-          <p className="text-[10px] text-[#805A82]">Password: <span className="font-mono text-brand-brightPink font-bold">Zeba@2026.?</span></p>
-        </div>
-
-        <div className="pt-1 text-center text-xs text-[#805A82] flex items-center justify-center space-x-1.5">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Protected by bcrypt & JWT token authorization</span>
-        </div>
 
         <div className="text-center pt-2">
           <Link to="/" className="text-xs text-brand-deepPurple hover:text-brand-brightPink font-bold hover:underline transition-colors">

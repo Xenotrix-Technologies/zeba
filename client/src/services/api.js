@@ -40,9 +40,9 @@ api.interceptors.response.use(
     let message = error.response?.data?.message;
     if (!message) {
       if (error.response?.status === 404) {
-        message = 'Backend API route not found (404). Please ensure the backend server is running on port 5000.';
+        message = 'The requested service endpoint was not found (404).';
       } else if (error.code === 'ERR_NETWORK' || !error.response) {
-        message = 'Cannot connect to backend server. Please verify the server is running.';
+        message = 'Unable to connect to the server. Please check your internet connection or try again shortly.';
       } else {
         message = error.message || 'An unexpected error occurred.';
       }
