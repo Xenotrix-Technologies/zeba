@@ -68,7 +68,7 @@ export default function AdminLogin() {
                 autoComplete="username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@zebaofficial.in"
+                placeholder="zebaofficial2013@gmail.com"
                 className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#FFF5FA] border border-brand-primaryPink/30 text-brand-darkPurple placeholder-[#805A82]/50 focus:border-brand-brightPink focus:bg-white focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium transition-colors"
               />
             </div>
