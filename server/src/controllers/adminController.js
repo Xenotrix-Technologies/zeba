@@ -160,19 +160,33 @@ export async function getAdminOrders(req, res, next) {
 export async function getAdminOrderDetail(req, res, next) {
   try {
     const { id } = req.params;
+    const isNumeric = /^\d+$/.test(id);
 
-    const orderRes = await query(
-      `SELECT o.*,
-              c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone,
-              a.house_building, a.street, a.area, a.city, a.state, a.pincode, a.country,
-              p.razorpay_order_id, p.razorpay_payment_id, p.payment_method, p.status AS payment_record_status
-       FROM orders o
-       JOIN customers c ON o.customer_id = c.id
-       LEFT JOIN addresses a ON o.address_id = a.id
-       LEFT JOIN payments p ON o.id = p.order_id
-       WHERE o.id = $1`,
-      [id]
-    );
+    const orderRes = isNumeric
+      ? await query(
+          `SELECT o.*,
+                  c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone,
+                  a.house_building, a.street, a.area, a.city, a.state, a.pincode, a.country,
+                  p.razorpay_order_id, p.razorpay_payment_id, p.payment_method, p.status AS payment_record_status
+           FROM orders o
+           JOIN customers c ON o.customer_id = c.id
+           LEFT JOIN addresses a ON o.address_id = a.id
+           LEFT JOIN payments p ON o.id = p.order_id
+           WHERE o.id = $1`,
+          [parseInt(id, 10)]
+        )
+      : await query(
+          `SELECT o.*,
+                  c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone,
+                  a.house_building, a.street, a.area, a.city, a.state, a.pincode, a.country,
+                  p.razorpay_order_id, p.razorpay_payment_id, p.payment_method, p.status AS payment_record_status
+           FROM orders o
+           JOIN customers c ON o.customer_id = c.id
+           LEFT JOIN addresses a ON o.address_id = a.id
+           LEFT JOIN payments p ON o.id = p.order_id
+           WHERE o.order_number = $1`,
+          [id]
+        );
 
     if (orderRes.rows.length === 0) {
       return res.status(404).json({
@@ -188,7 +202,7 @@ export async function getAdminOrderDetail(req, res, next) {
        FROM order_items oi
        LEFT JOIN products p ON oi.product_id = p.id
        WHERE oi.order_id = $1`,
-      [id]
+      [order.id]
     );
 
     // Fetch notification history
@@ -196,7 +210,7 @@ export async function getAdminOrderDetail(req, res, next) {
     try {
       const notifRes = await query(
         `SELECT * FROM order_notifications WHERE order_id = $1 ORDER BY created_at DESC`,
-        [id]
+        [order.id]
       );
       notifications = notifRes.rows;
     } catch (e) {

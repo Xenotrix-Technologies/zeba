@@ -158,29 +158,47 @@ export default function AdminOrderDetail() {
             </h2>
 
             <div className="divide-y divide-brand-primaryPink/15">
-              {order.items?.map((item) => (
-                <div key={item.id} className="py-3.5 flex items-center justify-between gap-4">
-                  <div className="flex items-center space-x-3">
-                    <img
-                      src={item.images && item.images.length > 0 ? (typeof item.images === 'string' ? JSON.parse(item.images)[0] : item.images[0]) : '/images/zeba-1pack.jpg'}
-                      alt={item.product_name}
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = '/images/zeba-1pack.jpg';
-                      }}
-                      className="w-14 h-14 object-cover rounded-xl border border-brand-primaryPink/20 flex-shrink-0 bg-brand-softPink"
-                    />
-                    <div>
-                      <h4 className="text-xs font-bold text-brand-dark">{item.product_name}</h4>
-                      <span className="text-[11px] text-brand-brightPink font-semibold block">{item.pack_size}</span>
-                      <span className="text-[11px] text-brand-plum/70">Qty: {item.quantity} × ₹{parseFloat(item.unit_price).toFixed(2)}</span>
+              {order.items?.map((item) => {
+                let itemImage = '/images/zeba-1pack.jpg';
+                if (Array.isArray(item.images) && item.images.length > 0) {
+                  itemImage = item.images[0];
+                } else if (typeof item.images === 'string') {
+                  if (item.images.startsWith('[')) {
+                    try {
+                      const parsed = JSON.parse(item.images);
+                      if (Array.isArray(parsed) && parsed.length > 0) itemImage = parsed[0];
+                    } catch (e) {
+                      itemImage = item.images;
+                    }
+                  } else {
+                    itemImage = item.images;
+                  }
+                }
+
+                return (
+                  <div key={item.id} className="py-3.5 flex items-center justify-between gap-4">
+                    <div className="flex items-center space-x-3">
+                      <img
+                        src={itemImage || '/images/zeba-1pack.jpg'}
+                        alt={item.product_name}
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = '/images/zeba-1pack.jpg';
+                        }}
+                        className="w-14 h-14 object-cover rounded-xl border border-brand-primaryPink/20 flex-shrink-0 bg-brand-softPink"
+                      />
+                      <div>
+                        <h4 className="text-xs font-bold text-brand-dark">{item.product_name}</h4>
+                        <span className="text-[11px] text-brand-brightPink font-semibold block">{item.pack_size}</span>
+                        <span className="text-[11px] text-brand-plum/70">Qty: {item.quantity} × ₹{parseFloat(item.unit_price || 0).toFixed(2)}</span>
+                      </div>
+                    </div>
+                    <div className="text-right font-extrabold text-sm text-brand-dark">
+                      ₹{parseFloat(item.subtotal_price || (item.quantity * item.unit_price) || 0).toFixed(2)}
                     </div>
                   </div>
-                  <div className="text-right font-extrabold text-sm text-brand-dark">
-                    ₹{parseFloat(item.subtotal_price).toFixed(2)}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Calculations Breakdown */}
