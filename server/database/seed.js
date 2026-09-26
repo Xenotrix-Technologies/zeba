@@ -8,9 +8,8 @@ export async function seedDatabase() {
   console.log('🌱 Seeding PostgreSQL database with authentic ZEBA product data...');
   await runMigrations();
 
-  // 1. Seed Admin
   const adminEmail = (config.ADMIN_DEFAULT_EMAIL || 'zebaofficial2013@gmail.com').toLowerCase().trim();
-  const adminPassword = (config.ADMIN_DEFAULT_PASSWORD || 'Zeba@2026.?').replace(/^["']|["']$/g, '').trim();
+  const adminPassword = (config.ADMIN_DEFAULT_PASSWORD || 'Zeba@2013.?').replace(/^["']|["']$/g, '').trim();
   const adminUsername = 'zeba_admin';
 
   const salt = await bcrypt.genSalt(10);
