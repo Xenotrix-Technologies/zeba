@@ -11,6 +11,7 @@ export const businessConfig = {
   // Brand & Legal Entity
   brandName: env.BUSINESS_BRAND_NAME || 'ZEBA',
   brandFullName: env.BUSINESS_FULL_NAME || 'ZEBA Period Care',
+  logoUrl: '/images/zeba-logo.png',
   legalEntityName: env.BUSINESS_LEGAL_NAME || 'ZEBA Wellness Technologies Private Limited',
   tagline: env.BUSINESS_TAGLINE || 'Fast-Acting Natural Heat Therapy for Period Cramp Relief',
   description: env.BUSINESS_DESCRIPTION || 'Ultra-thin, air-activated natural warming pads providing up to 8 hours of discreet, soothing menstrual cramp comfort on the go.',

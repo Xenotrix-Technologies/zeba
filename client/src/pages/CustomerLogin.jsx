@@ -46,12 +46,16 @@ export default function CustomerLogin() {
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-brand-primaryPink/30 shadow-xl space-y-6">
           
           {/* Brand Header */}
-          <div className="text-center space-y-2">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#5F3F68] to-[#805A82] flex items-center justify-center text-brand-gold mx-auto shadow-md border border-brand-gold/40">
-              <span className="font-serif-brand font-black text-2xl">Z</span>
-            </div>
+          <div className="text-center space-y-3">
+            <Link to="/" className="inline-block">
+              <img 
+                src="/images/zeba-logo.png" 
+                alt="ZEBA" 
+                className="h-12 w-auto mx-auto object-contain hover:opacity-90 transition-opacity" 
+              />
+            </Link>
             <h1 className="font-display font-extrabold text-2xl text-brand-deepPurple">
-              Sign In to ZEBA
+              Customer Sign In
             </h1>
             <p className="text-xs text-[#805A82]">
               Sign in with your email and password to access your dashboard and account

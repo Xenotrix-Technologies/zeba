@@ -38,10 +38,14 @@ export default function AdminLogin() {
       <div className="max-w-md w-full bg-white border-2 border-brand-primaryPink/30 rounded-3xl p-8 shadow-2xl space-y-6">
         
         {/* Brand Icon */}
-        <div className="text-center space-y-2">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#5F3F68] to-[#805A82] flex items-center justify-center text-brand-gold font-serif-brand font-black text-2xl mx-auto shadow-md border border-brand-gold/40">
-            Z
-          </div>
+        <div className="text-center space-y-3">
+          <Link to="/" className="inline-block">
+            <img 
+              src="/images/zeba-logo.png" 
+              alt="ZEBA" 
+              className="h-12 w-auto mx-auto object-contain hover:opacity-90 transition-opacity" 
+            />
+          </Link>
           <h1 className="font-display font-black text-2xl text-brand-deepPurple">ZEBA Admin Portal</h1>
           <p className="text-xs text-[#805A82]">Sign in with your secure administrator credentials</p>
         </div>

@@ -58,19 +58,13 @@ export default function Navbar() {
             </button>
           </div>
 
-          {/* ZEBA Logo matching exact box packaging: Gold branding on Deep Purple */}
-          <Link to="/" className="flex items-center space-x-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#5F3F68] to-[#805A82] flex items-center justify-center shadow-md border border-brand-gold/60 group-hover:scale-105 transition-transform">
-              <span className="font-serif-brand font-black text-xl text-brand-gold tracking-widest drop-shadow-sm">Z</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-serif-brand font-black text-2xl tracking-widest gold-gradient-text flex items-center drop-shadow-sm">
-                ZEBA
-              </span>
-              <span className="text-[9px] tracking-widest text-[#805A82] uppercase font-bold -mt-0.5">
-                Periods Pain Relief
-              </span>
-            </div>
+          {/* ZEBA Official Brand Logo */}
+          <Link to="/" className="flex items-center space-x-2 group py-1">
+            <img 
+              src="/images/zeba-logo.png" 
+              alt="ZEBA - Periods Pain Relief" 
+              className="h-9 sm:h-10 md:h-11 w-auto object-contain group-hover:opacity-90 transition-opacity" 
+            />
           </Link>
 
           {/* Desktop Navigation Links */}

@@ -56,14 +56,13 @@ export default function Footer() {
           
           {/* Col 1: Brand Info */}
           <div className="space-y-4 md:col-span-1">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#5F3F68] to-[#805A82] flex items-center justify-center border border-brand-gold/50 shadow-sm">
-                <span className="text-brand-gold font-serif-brand font-black text-lg">Z</span>
-              </div>
-              <span className="font-serif-brand font-extrabold text-2xl gold-gradient-text tracking-widest">
-                {businessConfig.brandName}
-              </span>
-            </div>
+            <Link to="/" className="inline-block">
+              <img 
+                src="/images/zeba-logo.png" 
+                alt={businessConfig.brandName} 
+                className="h-10 w-auto object-contain brightness-0 invert opacity-90 hover:opacity-100 transition-opacity" 
+              />
+            </Link>
             <p className="text-xs text-pink-100/75 leading-relaxed">
               {businessConfig.description}
             </p>
