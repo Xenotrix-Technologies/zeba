@@ -144,7 +144,7 @@ export async function sendCustomerWelcomeEmail({ customerId, name, email, phone 
           </div>
 
           <p style="color: #718096; font-size: 12px; line-height: 1.5; margin-bottom: 0;">
-            Have questions about our 1-Pack or 3-Pack heating pads? Reply directly to this email or chat with us on WhatsApp at <strong>+91 98765 43210</strong>.
+            Have questions about our 1-Pack or 3-Pack heating pads? Reply directly to this email or chat with us on WhatsApp at <strong>${config.WHATSAPP_DISPLAY || '+91 70259 61509'}</strong>.
           </p>
         </div>
 
@@ -505,7 +505,7 @@ export async function sendCustomerStatusNotification({
           </div>
 
           <p style="color: #718096; font-size: 12px; line-height: 1.5; margin-bottom: 0;">
-            Thank you for choosing ZEBA Periods Pain Relief. Contact us on WhatsApp at <strong>+91 98765 43210</strong> if you need any assistance.
+            Thank you for choosing ZEBA Periods Pain Relief. Contact us on WhatsApp at <strong>${config.WHATSAPP_DISPLAY || '+91 70259 61509'}</strong> if you need any assistance.
           </p>
         </div>
 

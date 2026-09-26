@@ -17,13 +17,13 @@ export const businessConfig = {
   supportEmail: process.env.CONTACT_EMAIL || process.env.SUPPORT_EMAIL || 'care@zebaofficial.in',
   businessEmail: process.env.BUSINESS_EMAIL || 'business@zebaofficial.in',
   ownerEmail: process.env.OWNER_EMAIL || process.env.ADMIN_DEFAULT_EMAIL || 'admin@zebaofficial.in',
-  supportPhone: process.env.CONTACT_PHONE || process.env.SUPPORT_PHONE || '+91 98765 00000',
-  supportPhoneRaw: process.env.CONTACT_PHONE_RAW || '9876500000',
+  supportPhone: process.env.CONTACT_PHONE || process.env.SUPPORT_PHONE || '+91 70259 61509',
+  supportPhoneRaw: process.env.CONTACT_PHONE_RAW || '7025961509',
   supportHours: process.env.SUPPORT_HOURS || 'Monday – Saturday: 9:00 AM – 7:00 PM IST',
 
   // WhatsApp
-  whatsappNumber: process.env.WHATSAPP_NUMBER || '+919876500000',
-  whatsappDisplay: process.env.WHATSAPP_DISPLAY || '+91 98765 00000',
+  whatsappNumber: process.env.WHATSAPP_NUMBER || '+917025961509',
+  whatsappDisplay: process.env.WHATSAPP_DISPLAY || '+91 70259 61509',
 
   // Address
   address: {
