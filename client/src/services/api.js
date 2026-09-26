@@ -12,12 +12,20 @@ api.interceptors.request.use((config) => {
   if (!config.headers.Authorization) {
     const adminToken = localStorage.getItem('zeba_admin_token');
     const customerToken = localStorage.getItem('zeba_customer_token');
-    if (adminToken && config.url?.includes('/admin')) {
-      config.headers.Authorization = `Bearer ${adminToken}`;
-    } else if (customerToken && config.url?.includes('/customer')) {
-      config.headers.Authorization = `Bearer ${customerToken}`;
+    const url = config.url || '';
+
+    if (url.includes('/customer')) {
+      if (customerToken) {
+        config.headers.Authorization = `Bearer ${customerToken}`;
+      }
+    } else if (url.includes('/admin') || url.includes('/auth')) {
+      if (adminToken) {
+        config.headers.Authorization = `Bearer ${adminToken}`;
+      }
     } else if (adminToken) {
       config.headers.Authorization = `Bearer ${adminToken}`;
+    } else if (customerToken) {
+      config.headers.Authorization = `Bearer ${customerToken}`;
     }
   }
   return config;
