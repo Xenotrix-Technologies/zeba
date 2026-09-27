@@ -52,8 +52,24 @@ async function calculateOrderTotals(items) {
     });
   }
 
-  // Shipping calculation
-  const shippingFee = subtotal >= config.FREE_SHIPPING_THRESHOLD ? 0.00 : config.STANDARD_SHIPPING_FEE;
+  // Shipping calculation dynamically from store_settings table in database
+  let freeShippingThreshold = config.FREE_SHIPPING_THRESHOLD || 499;
+  let standardShippingFee = config.STANDARD_SHIPPING_FEE || 49;
+
+  try {
+    const settingsRes = await query("SELECT setting_value FROM store_settings WHERE setting_key = 'shipping_commerce' LIMIT 1");
+    if (settingsRes.rows.length > 0) {
+      const val = typeof settingsRes.rows[0].setting_value === 'string' 
+        ? JSON.parse(settingsRes.rows[0].setting_value) 
+        : settingsRes.rows[0].setting_value;
+      if (val?.freeShippingThreshold !== undefined) freeShippingThreshold = parseFloat(val.freeShippingThreshold);
+      if (val?.standardShippingFee !== undefined) standardShippingFee = parseFloat(val.standardShippingFee);
+    }
+  } catch (e) {
+    // Fallback to config
+  }
+
+  const shippingFee = subtotal >= freeShippingThreshold ? 0.00 : standardShippingFee;
   const totalAmount = subtotal + shippingFee;
 
   return {
