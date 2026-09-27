@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { getFaqs, createFaq, updateFaq, deleteFaq } from '../controllers/contentController.js';
-import { authenticateAdmin } from '../middleware/auth.js';
+import { authenticateAdmin } from '../middleware/authMiddleware.js';
 
 const router = Router();
 

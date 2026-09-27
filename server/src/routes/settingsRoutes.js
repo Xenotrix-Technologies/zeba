@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { getPublicSettings, updateStoreSetting } from '../controllers/settingsController.js';
-import { authenticateAdmin } from '../middleware/auth.js';
+import { authenticateAdmin } from '../middleware/authMiddleware.js';
 
 const router = Router();
 

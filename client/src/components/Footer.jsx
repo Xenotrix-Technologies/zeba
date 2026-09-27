@@ -37,7 +37,7 @@ export default function Footer() {
             </div>
             <div>
               <h4 className="text-white text-xs md:text-sm font-bold">Secure Checkout</h4>
-              <p className="text-[11px] text-pink-200/80">{businessConfig.payments.gatewayName} 256-bit encryption</p>
+              <p className="text-[11px] text-pink-200/80">{settings.payments?.gatewayName || 'Razorpay'} 256-bit encryption</p>
             </div>
           </div>
 

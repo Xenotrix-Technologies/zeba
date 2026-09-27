@@ -42,3 +42,6 @@ export async function requireAdminAuth(req, res, next) {
     });
   }
 }
+
+export const authenticateAdmin = requireAdminAuth;
+
