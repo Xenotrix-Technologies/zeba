@@ -1,31 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import { Users, Search, Phone, Mail, ShoppingBag, DollarSign, Calendar, Eye, X } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Users, Search, Phone, Mail, ShoppingBag, DollarSign, Calendar, Eye, X, RefreshCw } from 'lucide-react';
 import api from '../../services/api';
 
 export default function AdminCustomers() {
   const [customers, setCustomers] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [customerDetailLoading, setCustomerDetailLoading] = useState(false);
 
-  const fetchCustomers = async () => {
-    setLoading(true);
+  const fetchCustomers = useCallback(async (isSilent = false) => {
+    if (!isSilent) setLoading(true);
+    setRefreshing(true);
     try {
-      const res = await api.get(`/admin/customers?search=${encodeURIComponent(search)}`);
-      if (res.success) {
+      const res = await api.get(`/admin/customers?search=${encodeURIComponent(search.trim())}`);
+      if (res.success && Array.isArray(res.customers)) {
         setCustomers(res.customers);
       }
     } catch (err) {
-      console.error('Failed to load customers', err);
+      console.error('Failed to load customers from database', err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, [search]);
 
   useEffect(() => {
     fetchCustomers();
-  }, []);
+  }, [fetchCustomers]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -54,9 +57,20 @@ export default function AdminCustomers() {
           <h1 className="font-display font-black text-2xl text-brand-dark">Customer Directory</h1>
           <p className="text-xs text-brand-plum/70 mt-0.5">Verified buyers stored in cloud database</p>
         </div>
-        <span className="text-xs font-bold text-brand-deepPurple bg-brand-softPink border border-brand-primaryPink/30 px-3.5 py-1.5 rounded-full">
-          Total Customers: {customers.length}
-        </span>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => fetchCustomers()}
+            disabled={refreshing || loading}
+            className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-white hover:bg-brand-softPink text-brand-deepPurple text-xs font-bold border border-brand-primaryPink/30 transition-colors shadow-sm disabled:opacity-50"
+            title="Refresh database records"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-brand-brightPink ${refreshing ? 'animate-spin' : ''}`} />
+            <span>{refreshing ? 'Syncing...' : 'Refresh'}</span>
+          </button>
+          <span className="text-xs font-bold text-brand-deepPurple bg-brand-softPink border border-brand-primaryPink/30 px-3.5 py-1.5 rounded-full">
+            Total Customers: {customers.length}
+          </span>
+        </div>
       </div>
 
       {/* Search toolbar */}
