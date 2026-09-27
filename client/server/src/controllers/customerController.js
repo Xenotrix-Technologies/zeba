@@ -25,37 +25,84 @@ export async function registerCustomer(req, res, next) {
     const cleanEmail = email.toLowerCase().trim();
     const cleanPhone = phone.trim();
 
-    // Check if customer already exists
+    // 1. Check if an admin account exists with this email
+    const adminCheck = await query(
+      'SELECT id FROM admins WHERE LOWER(TRIM(email)) = $1 LIMIT 1',
+      [cleanEmail]
+    );
+    if (adminCheck.rows.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'An account with this email address already exists. Please sign in instead.'
+      });
+    }
+
+    // 2. Check if customer already exists by email or phone
     const existing = await query(
-      'SELECT id, password_hash FROM customers WHERE email = $1 OR phone = $2',
+      'SELECT id, email, phone, password_hash FROM customers WHERE LOWER(TRIM(email)) = $1 OR phone = $2',
       [cleanEmail, cleanPhone]
     );
+
+    // 2a. Strict Email Check: If any existing customer record with this email has a registered account (password_hash)
+    const emailMatchRegistered = existing.rows.find(
+      (r) => r.email && r.email.toLowerCase().trim() === cleanEmail && r.password_hash
+    );
+    if (emailMatchRegistered) {
+      return res.status(400).json({
+        success: false,
+        message: 'An account with this email address already exists. Please sign in instead.'
+      });
+    }
+
+    // 2b. Strict Phone Check: If any existing customer record with this phone has a registered account (password_hash)
+    const phoneMatchRegistered = existing.rows.find(
+      (r) => r.phone && r.phone.trim() === cleanPhone && r.password_hash
+    );
+    if (phoneMatchRegistered) {
+      return res.status(400).json({
+        success: false,
+        message: 'An account with this mobile number already exists. Please sign in instead.'
+      });
+    }
 
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
     let customerId;
 
-    if (existing.rows.length > 0) {
-      const cust = existing.rows[0];
-      if (cust.password_hash) {
+    // Check if guest checkout record exists matching email or phone to link/upgrade
+    const guestEmailMatch = existing.rows.find(
+      (r) => r.email && r.email.toLowerCase().trim() === cleanEmail && !r.password_hash
+    );
+    const guestPhoneMatch = existing.rows.find(
+      (r) => r.phone && r.phone.trim() === cleanPhone && !r.password_hash
+    );
+    const guestToUpgrade = guestEmailMatch || guestPhoneMatch;
+
+    try {
+      if (guestToUpgrade) {
+        // Customer checked out as guest previously, link password and sync latest info
+        await query(
+          'UPDATE customers SET name = $1, email = $2, phone = $3, password_hash = $4, updated_at = CURRENT_TIMESTAMP WHERE id = $5',
+          [name.trim(), cleanEmail, cleanPhone, passwordHash, guestToUpgrade.id]
+        );
+        customerId = guestToUpgrade.id;
+      } else {
+        const newCust = await query(
+          'INSERT INTO customers (name, email, phone, password_hash) VALUES ($1, $2, $3, $4) RETURNING id',
+          [name.trim(), cleanEmail, cleanPhone, passwordHash]
+        );
+        customerId = newCust.rows[0].id;
+      }
+    } catch (dbErr) {
+      // Handle PostgreSQL unique constraint violation gracefully
+      if (dbErr.code === '23505') {
         return res.status(400).json({
           success: false,
-          message: 'An account with this email or phone already exists. Please sign in.'
+          message: 'An account with this email address or phone already exists. Please sign in instead.'
         });
       }
-      // Customer checked out as guest previously, link password
-      await query(
-        'UPDATE customers SET name = $1, password_hash = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
-        [name.trim(), passwordHash, cust.id]
-      );
-      customerId = cust.id;
-    } else {
-      const newCust = await query(
-        'INSERT INTO customers (name, email, phone, password_hash) VALUES ($1, $2, $3, $4) RETURNING id',
-        [name.trim(), cleanEmail, cleanPhone, passwordHash]
-      );
-      customerId = newCust.rows[0].id;
+      throw dbErr;
     }
 
     const token = jwt.sign(
