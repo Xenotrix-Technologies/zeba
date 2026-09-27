@@ -192,15 +192,6 @@ export default function Footer() {
                 <span className="text-[11px] leading-tight">{settings.address?.city}, {settings.address?.state}, {settings.address?.country}</span>
               </div>
             </div>
-
-            <div className="pt-2">
-              <Link
-                to="/admin/login"
-                className="inline-block text-[11px] text-pink-300/60 hover:text-brand-gold transition-colors underline"
-              >
-                Admin Portal Login
-              </Link>
-            </div>
           </div>
         </div>
 

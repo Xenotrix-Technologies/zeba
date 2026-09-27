@@ -273,13 +273,9 @@ export default function CustomerLogin() {
             </form>
           )}
 
-          <div className="text-center pt-2 flex items-center justify-center space-x-4 text-xs">
-            <Link to="/admin/login" className="text-[#805A82] hover:text-brand-brightPink font-semibold transition-colors">
-              Admin Sign In
-            </Link>
-            <span className="text-[#805A82]/40">•</span>
-            <Link to="/" className="text-[#805A82] hover:text-brand-deepPurple transition-colors">
-              Return to Store
+          <div className="text-center pt-2 text-xs">
+            <Link to="/" className="text-[#805A82] hover:text-brand-deepPurple font-semibold transition-colors">
+              ← Return to ZEBA Storefront
             </Link>
           </div>
 
