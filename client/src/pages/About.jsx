@@ -1,9 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldCheck, Sparkles, Target, Eye, Users } from 'lucide-react';
-import { businessConfig } from '../config/businessConfig';
+import { useStoreSettings } from '../context/StoreSettingsContext';
 
 export default function About() {
+  const { settings } = useStoreSettings();
   return (
     <div className="bg-[#FFF5FA] py-12 sm:py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">

@@ -1,9 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldCheck, Truck, Lock, Phone, Mail, MessageCircle, Instagram, Facebook, MapPin } from 'lucide-react';
-import { businessConfig } from '../config/businessConfig';
+import { useStoreSettings } from '../context/StoreSettingsContext';
 
 export default function Footer() {
+  const { settings, getWhatsAppUrl } = useStoreSettings();
   return (
     <footer className="bg-[#38283D] text-slate-200 pt-16 pb-24 md:pb-12 border-t border-[#5F3F68]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -59,17 +60,17 @@ export default function Footer() {
             <Link to="/" className="inline-block">
               <img 
                 src="/images/zeba-logo.png" 
-                alt={businessConfig.brandName} 
+                alt={settings.brandName} 
                 className="h-10 w-auto object-contain brightness-0 invert opacity-90 hover:opacity-100 transition-opacity" 
               />
             </Link>
             <p className="text-xs text-pink-100/75 leading-relaxed">
-              {businessConfig.description}
+              {settings.description}
             </p>
             <div className="flex items-center space-x-3 pt-2">
-              {businessConfig.social.instagram && (
+              {settings.social?.instagram && (
                 <a
-                  href={businessConfig.social.instagram}
+                  href={settings.social.instagram}
                   target="_blank"
                   rel="noreferrer"
                   className="w-9 h-9 rounded-lg bg-[#5F3F68] hover:bg-brand-brightPink text-pink-100 hover:text-white flex items-center justify-center transition-colors border border-white/10"
@@ -78,9 +79,9 @@ export default function Footer() {
                   <Instagram className="w-4 h-4" />
                 </a>
               )}
-              {businessConfig.social.facebook && (
+              {settings.social?.facebook && (
                 <a
-                  href={businessConfig.social.facebook}
+                  href={settings.social.facebook}
                   target="_blank"
                   rel="noreferrer"
                   className="w-9 h-9 rounded-lg bg-[#5F3F68] hover:bg-brand-brightPink text-pink-100 hover:text-white flex items-center justify-center transition-colors border border-white/10"
@@ -90,7 +91,7 @@ export default function Footer() {
                 </a>
               )}
               <a
-                href={businessConfig.whatsapp.getWhatsAppUrl()}
+                href={getWhatsAppUrl()}
                 target="_blank"
                 rel="noreferrer"
                 className="w-9 h-9 rounded-lg bg-[#5F3F68] hover:bg-emerald-600 text-pink-100 hover:text-white flex items-center justify-center transition-colors border border-white/10"
@@ -134,7 +135,7 @@ export default function Footer() {
             <ul className="space-y-2 text-xs">
               <li>
                 <Link to="/about" className="hover:text-brand-primaryPink transition-colors text-pink-100/80">
-                  About {businessConfig.brandName}
+                  About {settings.brandName}
                 </Link>
               </li>
               <li>
@@ -173,22 +174,22 @@ export default function Footer() {
             </p>
             <div className="space-y-2.5 text-xs pt-1">
               <a
-                href={`mailto:${businessConfig.supportEmail}`}
+                href={`mailto:${settings.supportEmail}`}
                 className="flex items-center space-x-2 hover:text-brand-primaryPink transition-colors text-pink-100/90"
               >
                 <Mail className="w-4 h-4 text-brand-primaryPink flex-shrink-0" />
-                <span className="truncate">{businessConfig.supportEmail}</span>
+                <span className="truncate">{settings.supportEmail}</span>
               </a>
               <a
-                href={`tel:${businessConfig.supportPhone.replace(/\s+/g, '')}`}
+                href={`tel:${(settings.supportPhone || '').replace(/\s+/g, '')}`}
                 className="flex items-center space-x-2 hover:text-brand-primaryPink transition-colors text-pink-100/90"
               >
                 <Phone className="w-4 h-4 text-brand-gold flex-shrink-0" />
-                <span>{businessConfig.supportPhone}</span>
+                <span>{settings.supportPhone}</span>
               </a>
               <div className="flex items-start space-x-2 text-pink-200/70">
                 <MapPin className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-                <span className="text-[11px] leading-tight">{businessConfig.address.city}, {businessConfig.address.state}, {businessConfig.address.country}</span>
+                <span className="text-[11px] leading-tight">{settings.address?.city}, {settings.address?.state}, {settings.address?.country}</span>
               </div>
             </div>
 
@@ -205,9 +206,9 @@ export default function Footer() {
 
         {/* Bottom copyright & Entity notice */}
         <div className="pt-8 mt-4 border-t border-white/10 text-center text-xs text-pink-200/60 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p>© {new Date().getFullYear()} {businessConfig.legalEntityName}. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {settings.legalEntityName}. All rights reserved.</p>
           <p className="text-[11px] text-pink-200/60">
-            GSTIN: {businessConfig.tax.gstin} • CIN: {businessConfig.tax.cin} • Designed for Menstrual Comfort
+            GSTIN: {settings.tax?.gstin} • CIN: {settings.tax?.cin} • Designed for Menstrual Comfort
           </p>
         </div>
 

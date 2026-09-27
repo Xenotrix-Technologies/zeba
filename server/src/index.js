@@ -14,6 +14,10 @@ import paymentRoutes from './routes/paymentRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import customerRoutes from './routes/customerRoutes.js';
+import settingsRoutes from './routes/settingsRoutes.js';
+import contentRoutes from './routes/contentRoutes.js';
+import faqRoutes from './routes/faqRoutes.js';
+import reviewRoutes from './routes/reviewRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,7 +30,7 @@ app.use(helmet({
 }));
 app.use(cors({
   origin: '*',
-  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -37,6 +41,10 @@ app.use('/images', express.static(path.resolve(__dirname, '../public/images')));
 
 // Mount routes on both /api and root prefixes
 const mountRouters = (prefix = '') => {
+  app.use(`${prefix}/settings`, settingsRoutes);
+  app.use(`${prefix}/content`, contentRoutes);
+  app.use(`${prefix}/faqs`, faqRoutes);
+  app.use(`${prefix}/reviews`, reviewRoutes);
   app.use(`${prefix}/auth`, authRoutes);
   app.use(`${prefix}/customer`, customerRoutes);
   app.use(`${prefix}/products`, productRoutes);

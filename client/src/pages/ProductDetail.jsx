@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   Star,
   Truck,
@@ -10,41 +10,115 @@ import {
   Minus,
   ShoppingBag,
   Zap,
-  MessageCircle
+  MessageCircle,
+  CheckCircle,
+  User,
+  Send
 } from 'lucide-react';
 import api from '../services/api';
 import { useCart } from '../context/CartContext';
-import { businessConfig } from '../config/businessConfig';
+import { useStoreSettings } from '../context/StoreSettingsContext';
+import { useToast } from '../context/ToastContext';
 
 export default function ProductDetail() {
+  const { slug } = useParams();
+  const { settings, getWhatsAppUrl } = useStoreSettings();
+  const { addToast } = useToast();
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('how_to_use');
+  const [reviews, setReviews] = useState([]);
+  const [reviewStats, setReviewStats] = useState({ count: 0, average: 5.0 });
+  const [faqs, setFaqs] = useState([]);
+  
+  // Review form state
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewForm, setReviewForm] = useState({
+    author_name: '',
+    rating: 5,
+    title: '',
+    comment: '',
+    location: ''
+  });
 
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
   useEffect(() => {
-    async function fetchProducts() {
+    async function loadProductAndReviews() {
       try {
-        const res = await api.get('/products');
-        if (res.success && res.products && res.products.length > 0) {
-          setProducts(res.products);
-          // Default to the 3-Pack (Value Pack)
-          const defaultProd = res.products.find(p => p.pack_count > 1) || res.products[0];
-          setSelectedProduct(defaultProd);
+        const [prodRes, revRes, faqRes] = await Promise.allSettled([
+          api.get('/products'),
+          api.get('/reviews'),
+          api.get('/faqs')
+        ]);
+
+        if (prodRes.status === 'fulfilled' && prodRes.value?.success && prodRes.value.products?.length > 0) {
+          const prods = prodRes.value.products;
+          setProducts(prods);
+
+          let initialProd = null;
+          if (slug) {
+            initialProd = prods.find(p => p.slug === slug);
+          }
+          if (!initialProd) {
+            initialProd = prods.find(p => p.pack_count > 1) || prods[0];
+          }
+          setSelectedProduct(initialProd);
+        }
+
+        if (revRes.status === 'fulfilled' && revRes.value?.success) {
+          setReviews(revRes.value.reviews || []);
+          setReviewStats({
+            count: revRes.value.totalReviews || revRes.value.count || 0,
+            average: revRes.value.averageRating || '5.0'
+          });
+        }
+
+        if (faqRes.status === 'fulfilled' && faqRes.value?.success) {
+          setFaqs(faqRes.value.faqs || []);
         }
       } catch (err) {
-        console.error('Failed to load products', err);
+        console.error('Failed to load product details from database', err);
       } finally {
         setLoading(false);
       }
     }
-    fetchProducts();
-  }, []);
+
+    loadProductAndReviews();
+  }, [slug]);
+
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    if (!reviewForm.author_name || !reviewForm.comment) {
+      addToast('Please provide your name and review comments.', 'error');
+      return;
+    }
+
+    setSubmittingReview(true);
+    try {
+      const res = await api.post('/reviews', {
+        ...reviewForm,
+        product_id: selectedProduct?.id
+      });
+      if (res.success) {
+        addToast('Thank you! Your review has been saved to the database.', 'success');
+        if (res.review) {
+          setReviews(prev => [res.review, ...prev]);
+        }
+        setShowReviewForm(false);
+        setReviewForm({ author_name: '', rating: 5, title: '', comment: '', location: '' });
+      }
+    } catch (err) {
+      addToast(err.message || 'Failed to submit review', 'error');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   const handleVariantSelect = (product) => {
     setSelectedProduct(product);
@@ -313,7 +387,7 @@ export default function ProductDetail() {
 
               {/* WhatsApp Support Button */}
               <a
-                href={businessConfig.whatsapp.getWhatsAppUrl(`Hi ZEBA Team, I have a question about the ${selectedProduct.name}`)}
+                href={getWhatsAppUrl(`Hi ZEBA Team, I have a question about the ${selectedProduct.name}`)}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full py-3 px-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 font-bold text-xs flex items-center justify-center space-x-2 transition-colors"
@@ -344,7 +418,6 @@ export default function ProductDetail() {
 
         {/* Tabbed Interactive Deep-Dive Sections */}
         <div className="bg-white rounded-3xl p-6 sm:p-10 border border-brand-primaryPink/25 shadow-md space-y-8">
-          
           <div className="flex border-b border-brand-primaryPink/20 space-x-4 sm:space-x-8 overflow-x-auto">
             <button
               onClick={() => setActiveTab('how_to_use')}
@@ -355,6 +428,16 @@ export default function ProductDetail() {
               }`}
             >
               How to Use (4 Steps)
+            </button>
+            <button
+              onClick={() => setActiveTab('reviews')}
+              className={`pb-4 text-xs sm:text-sm font-bold whitespace-nowrap transition-colors border-b-2 -mb-px ${
+                activeTab === 'reviews'
+                  ? 'border-brand-brightPink text-brand-brightPink font-extrabold'
+                  : 'border-transparent text-[#805A82] hover:text-brand-deepPurple'
+              }`}
+            >
+              Customer Reviews ({reviews.length})
             </button>
             <button
               onClick={() => setActiveTab('timeline')}
@@ -396,7 +479,7 @@ export default function ProductDetail() {
                   <div className="w-full lg:w-1/2 rounded-2xl overflow-hidden border border-brand-primaryPink/25 shadow-sm">
                     <img
                       src="/images/zeba-how-to-use-guide.jpg"
-                      alt="ZEBA How to Use Guide"
+                      alt="ZEBA How to Use It"
                       className="w-full h-auto object-cover"
                     />
                   </div>
@@ -423,6 +506,153 @@ export default function ProductDetail() {
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB: REVIEWS (Live Database Powered) */}
+            {activeTab === 'reviews' && (
+              <div className="space-y-8 animate-fade-in">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 bg-[#FFF5FA] rounded-2xl border border-brand-primaryPink/25">
+                  <div className="flex items-center space-x-4">
+                    <div className="text-center">
+                      <span className="font-display font-black text-4xl text-brand-deepPurple">
+                        {reviewStats.average}
+                      </span>
+                      <div className="flex items-center space-x-0.5 text-brand-gold mt-1 justify-center">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className="w-3.5 h-3.5 fill-brand-gold text-brand-gold" />
+                        ))}
+                      </div>
+                      <span className="text-[11px] text-[#805A82] block mt-0.5">
+                        Based on {reviews.length} verified ratings
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setShowReviewForm(!showReviewForm)}
+                    className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand-brightPink to-brand-deepPink text-white font-bold text-xs shadow-md hover:opacity-95 transition-all"
+                  >
+                    {showReviewForm ? 'Close Form' : 'Write a Review'}
+                  </button>
+                </div>
+
+                {/* Review Submission Form */}
+                {showReviewForm && (
+                  <form onSubmit={handleReviewSubmit} className="p-6 bg-white rounded-2xl border-2 border-brand-brightPink/30 shadow-md space-y-4">
+                    <h4 className="font-display font-bold text-base text-brand-deepPurple">
+                      Share Your Experience with ZEBA
+                    </h4>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-brand-deepPurple mb-1">Your Name *</label>
+                        <input
+                          type="text"
+                          required
+                          value={reviewForm.author_name}
+                          onChange={(e) => setReviewForm({ ...reviewForm, author_name: e.target.value })}
+                          placeholder="e.g. Priya Sharma"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-brand-primaryPink/30 text-xs focus:outline-none focus:border-brand-brightPink"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-brand-deepPurple mb-1">City / Location</label>
+                        <input
+                          type="text"
+                          value={reviewForm.location}
+                          onChange={(e) => setReviewForm({ ...reviewForm, location: e.target.value })}
+                          placeholder="e.g. Mumbai, Maharashtra"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-brand-primaryPink/30 text-xs focus:outline-none focus:border-brand-brightPink"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-brand-deepPurple mb-1">Rating *</label>
+                        <select
+                          value={reviewForm.rating}
+                          onChange={(e) => setReviewForm({ ...reviewForm, rating: parseInt(e.target.value, 10) })}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-brand-primaryPink/30 text-xs focus:outline-none focus:border-brand-brightPink"
+                        >
+                          <option value="5">⭐⭐⭐⭐⭐ (5 - Outstanding)</option>
+                          <option value="4">⭐⭐⭐⭐ (4 - Very Good)</option>
+                          <option value="3">⭐⭐⭐ (3 - Average)</option>
+                          <option value="2">⭐⭐ (2 - Below Expectations)</option>
+                          <option value="1">⭐ (1 - Disappointed)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-brand-deepPurple mb-1">Review Title</label>
+                        <input
+                          type="text"
+                          value={reviewForm.title}
+                          onChange={(e) => setReviewForm({ ...reviewForm, title: e.target.value })}
+                          placeholder="e.g. Amazing relief during work"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-brand-primaryPink/30 text-xs focus:outline-none focus:border-brand-brightPink"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-brand-deepPurple mb-1">Your Detailed Feedback *</label>
+                      <textarea
+                        rows={3}
+                        required
+                        value={reviewForm.comment}
+                        onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
+                        placeholder="Tell others how ZEBA helped with your period cramps..."
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-brand-primaryPink/30 text-xs focus:outline-none focus:border-brand-brightPink"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={submittingReview}
+                      className="px-6 py-2.5 rounded-xl bg-brand-deepPurple hover:bg-brand-brightPink text-white font-bold text-xs flex items-center space-x-2 transition-all disabled:opacity-50"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>{submittingReview ? 'Submitting to Database...' : 'Submit Review'}</span>
+                    </button>
+                  </form>
+                )}
+
+                {/* Reviews List */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {reviews.map((rev) => (
+                    <div key={rev.id} className="p-5 rounded-2xl bg-[#FFF5FA] border border-brand-primaryPink/20 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-1 text-brand-gold">
+                          {[...Array(rev.rating || 5)].map((_, i) => (
+                            <Star key={i} className="w-3.5 h-3.5 fill-brand-gold text-brand-gold" />
+                          ))}
+                        </div>
+                        <span className="text-[10px] text-[#805A82]">
+                          {new Date(rev.created_at || Date.now()).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </span>
+                      </div>
+
+                      {rev.title && (
+                        <h5 className="font-display font-bold text-sm text-brand-deepPurple">
+                          "{rev.title}"
+                        </h5>
+                      )}
+
+                      <p className="text-xs text-[#805A82] leading-relaxed">
+                        {rev.comment}
+                      </p>
+
+                      <div className="pt-2 border-t border-brand-primaryPink/15 flex items-center justify-between text-[11px]">
+                        <span className="font-bold text-brand-deepPurple">{rev.author_name}</span>
+                        <span className="text-emerald-700 font-semibold flex items-center space-x-1">
+                          <CheckCircle className="w-3 h-3 text-emerald-600" />
+                          <span>Verified Buyer</span>
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -502,35 +732,16 @@ export default function ProductDetail() {
               </div>
             )}
 
-            {/* TAB 4: FAQ */}
+            {/* TAB 4: FAQ (Dynamic from Database) */}
             {activeTab === 'faq' && (
               <div className="space-y-6 animate-fade-in">
-                <div className="flex flex-col lg:flex-row items-center gap-8">
-                  <div className="w-full lg:w-1/2 rounded-2xl overflow-hidden border border-brand-primaryPink/25 shadow-sm">
-                    <img
-                      src="/images/zeba-got-questions-faq.jpg"
-                      alt="ZEBA Got Questions We Got Answers"
-                      className="w-full h-auto object-cover"
-                    />
-                  </div>
-                  <div className="w-full lg:w-1/2 space-y-3 text-xs">
-                    <div className="p-3.5 rounded-xl bg-[#FDF5D6] border border-brand-gold/40">
-                      <strong className="text-brand-darkPurple font-bold block">Q: Is it safe for teenagers?</strong>
-                      <span className="text-brand-darkPurple">A: Yes, 13+. Natural heat, no drugs.</span>
+                <div className="space-y-3 text-xs">
+                  {faqs.map((f, i) => (
+                    <div key={f.id || i} className="p-4 rounded-xl bg-[#FFF5FA] border border-brand-primaryPink/25 space-y-1">
+                      <strong className="text-brand-deepPurple font-bold text-sm block">Q: {f.question}</strong>
+                      <p className="text-[#805A82] leading-relaxed">A: {f.answer}</p>
                     </div>
-                    <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200">
-                      <strong className="text-emerald-900 font-bold block">Q: Is it visible under clothes?</strong>
-                      <span className="text-slate-700">A: No, ultra-thin and blends naturally.</span>
-                    </div>
-                    <div className="p-3.5 rounded-xl bg-brand-softPink border border-brand-primaryPink/30">
-                      <strong className="text-brand-deepPink font-bold block">Q: What if it doesn’t work?</strong>
-                      <span className="text-brand-darkPurple">A: Satisfaction guarantee. Refund within 7 days if not satisfied.</span>
-                    </div>
-                    <div className="p-3.5 rounded-xl bg-brand-softPink border border-brand-primaryPink/30">
-                      <strong className="text-brand-deepPurple font-bold block">Q: Is there fragrance?</strong>
-                      <span className="text-brand-darkPurple">A: Fragrance-free and hypoallergenic.</span>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             )}

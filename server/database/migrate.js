@@ -156,6 +156,80 @@ const INLINE_MIGRATIONS = [
       ALTER TABLE customers ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT TRUE;
       CREATE INDEX IF NOT EXISTS idx_customers_email_phone ON customers(email, phone);
     `
+  },
+  {
+    name: '003_dynamic_store_data.sql',
+    sql: `
+      CREATE TABLE IF NOT EXISTS store_settings (
+          id SERIAL PRIMARY KEY,
+          setting_key VARCHAR(100) NOT NULL UNIQUE,
+          setting_value JSONB NOT NULL,
+          category VARCHAR(50) NOT NULL DEFAULT 'general',
+          description TEXT,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS site_content (
+          id SERIAL PRIMARY KEY,
+          section_key VARCHAR(100) NOT NULL UNIQUE,
+          title VARCHAR(255),
+          content JSONB NOT NULL,
+          is_active BOOLEAN DEFAULT TRUE,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS faqs (
+          id SERIAL PRIMARY KEY,
+          question TEXT NOT NULL,
+          answer TEXT NOT NULL,
+          category VARCHAR(100) DEFAULT 'general',
+          sort_order INTEGER DEFAULT 0,
+          is_active BOOLEAN DEFAULT TRUE,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS reviews (
+          id SERIAL PRIMARY KEY,
+          product_id INTEGER REFERENCES products(id) ON DELETE CASCADE,
+          author_name VARCHAR(255) NOT NULL,
+          rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+          title VARCHAR(255),
+          comment TEXT NOT NULL,
+          location VARCHAR(100) DEFAULT 'India',
+          is_verified_purchase BOOLEAN DEFAULT TRUE,
+          is_approved BOOLEAN DEFAULT TRUE,
+          is_featured BOOLEAN DEFAULT FALSE,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS b2b_inquiries (
+          id SERIAL PRIMARY KEY,
+          company_name VARCHAR(255) NOT NULL,
+          contact_person VARCHAR(255) NOT NULL,
+          email VARCHAR(255) NOT NULL,
+          phone VARCHAR(50) NOT NULL,
+          quantity INTEGER NOT NULL DEFAULT 50,
+          message TEXT,
+          status VARCHAR(50) DEFAULT 'new',
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS rating NUMERIC(3, 2) DEFAULT 4.9;
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS review_count INTEGER DEFAULT 128;
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS ingredients JSONB DEFAULT '[]'::jsonb;
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS category VARCHAR(100) DEFAULT 'Period Care';
+
+      CREATE INDEX IF NOT EXISTS idx_store_settings_key ON store_settings(setting_key);
+      CREATE INDEX IF NOT EXISTS idx_site_content_key ON site_content(section_key);
+      CREATE INDEX IF NOT EXISTS idx_faqs_category ON faqs(category);
+      CREATE INDEX IF NOT EXISTS idx_faqs_sort_order ON faqs(sort_order);
+      CREATE INDEX IF NOT EXISTS idx_reviews_product_id ON reviews(product_id);
+      CREATE INDEX IF NOT EXISTS idx_reviews_is_approved ON reviews(is_approved);
+    `
   }
 ];
 

@@ -4,11 +4,13 @@ import { Lock, ShieldCheck } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
 import { useCustomerAuth } from '../context/CustomerAuthContext';
+import { useStoreSettings } from '../context/StoreSettingsContext';
 import api from '../services/api';
 import RazorpayModal from '../components/RazorpayModal';
 
 export default function Checkout() {
   const { cart, subtotal, freeShippingThreshold, clearCart } = useCart();
+  const { settings } = useStoreSettings();
   const { customer, isCustomerAuthenticated } = useCustomerAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
@@ -50,7 +52,8 @@ export default function Checkout() {
   const [razorpayOrder, setRazorpayOrder] = useState(null);
   const [showSimulatedModal, setShowSimulatedModal] = useState(false);
 
-  const shippingFee = subtotal >= freeShippingThreshold ? 0.00 : (cart.length > 0 ? 49.00 : 0.00);
+  const standardShippingFee = Number(settings.commerce?.standardShippingFee || 49.00);
+  const shippingFee = subtotal >= freeShippingThreshold ? 0.00 : (cart.length > 0 ? standardShippingFee : 0.00);
   const totalAmount = subtotal + shippingFee;
 
   const handleChange = (e) => {

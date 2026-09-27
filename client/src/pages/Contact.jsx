@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { Mail, Phone, MessageCircle, Instagram, Facebook, Send, CheckCircle2, MapPin, Briefcase } from 'lucide-react';
 import api from '../services/api';
 import { useToast } from '../context/ToastContext';
-import { businessConfig } from '../config/businessConfig';
+import { useStoreSettings } from '../context/StoreSettingsContext';
 
 export default function Contact() {
+  const { settings, getWhatsAppUrl } = useStoreSettings();
   const { addToast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
@@ -53,7 +54,7 @@ export default function Contact() {
             We're Here For You
           </span>
           <h1 className="font-display font-extrabold text-3xl sm:text-4xl text-brand-deepPurple">
-            Get in Touch With {businessConfig.brandName} Care
+            Get in Touch With {settings.brandName} Care
           </h1>
           <p className="text-xs sm:text-sm text-[#805A82]">
             Have questions about pack sizing, usage recommendations, corporate wellness orders, or your delivery? Reach out anytime!
@@ -80,12 +81,12 @@ export default function Contact() {
                 Connect directly with our care specialists on WhatsApp for personalized support and instant order assistance.
               </p>
               <a
-                href={businessConfig.whatsapp.getWhatsAppUrl()}
+                href={getWhatsAppUrl()}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center justify-center w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider shadow-md transition-colors btn-tactile"
               >
-                Chat on WhatsApp ({businessConfig.whatsapp.displayNumber})
+                Chat on WhatsApp ({settings.whatsapp?.displayNumber || '+91 70259 61509'})
               </a>
             </div>
 
@@ -95,7 +96,7 @@ export default function Contact() {
               
               <div className="space-y-3 text-xs text-brand-darkPurple">
                 <a
-                  href={`mailto:${businessConfig.supportEmail}`}
+                  href={`mailto:${settings.supportEmail}`}
                   className="flex items-center space-x-3 p-3 rounded-2xl bg-[#FFF5FA] hover:bg-brand-softPink transition-colors group border border-brand-primaryPink/15"
                 >
                   <div className="w-8 h-8 rounded-xl bg-brand-softPink text-brand-brightPink flex items-center justify-center group-hover:bg-brand-brightPink group-hover:text-white transition-colors flex-shrink-0 border border-brand-primaryPink/30">
@@ -103,12 +104,12 @@ export default function Contact() {
                   </div>
                   <div>
                     <span className="font-bold text-brand-deepPurple block">Customer Support Email</span>
-                    <span className="text-[#805A82]">{businessConfig.supportEmail}</span>
+                    <span className="text-[#805A82]">{settings.supportEmail}</span>
                   </div>
                 </a>
 
                 <a
-                  href={`tel:${businessConfig.supportPhone.replace(/\s+/g, '')}`}
+                  href={`tel:${(settings.supportPhone || '').replace(/\s+/g, '')}`}
                   className="flex items-center space-x-3 p-3 rounded-2xl bg-[#FFF5FA] hover:bg-brand-softPink transition-colors group border border-brand-primaryPink/15"
                 >
                   <div className="w-8 h-8 rounded-xl bg-[#FDF5D6] text-brand-gold flex items-center justify-center group-hover:bg-brand-gold group-hover:text-white transition-colors flex-shrink-0 border border-brand-gold/40">
@@ -116,7 +117,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <span className="font-bold text-brand-deepPurple block">Helpline / Call Us</span>
-                    <span className="text-[#805A82]">{businessConfig.supportPhone} ({businessConfig.supportHours})</span>
+                    <span className="text-[#805A82]">{settings.supportPhone} ({settings.supportHours})</span>
                   </div>
                 </a>
 
@@ -127,32 +128,32 @@ export default function Contact() {
                   <div>
                     <span className="font-bold text-brand-deepPurple block">Registered & Fulfillment Address</span>
                     <span className="text-[#805A82] text-[11px] leading-relaxed block mt-0.5">
-                      {businessConfig.address.formatted}
+                      {settings.address?.formatted}
                     </span>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between p-3 rounded-2xl bg-brand-softPink border border-brand-primaryPink/20 text-[11px]">
-                  <span className="text-brand-darkPurple font-medium">GSTIN: <strong className="text-brand-deepPurple">{businessConfig.tax.gstin}</strong></span>
-                  <span className="text-brand-darkPurple font-medium">CIN: <strong className="text-brand-deepPurple">{businessConfig.tax.cin}</strong></span>
+                  <span className="text-brand-darkPurple font-medium">GSTIN: <strong className="text-brand-deepPurple">{settings.tax?.gstin}</strong></span>
+                  <span className="text-brand-darkPurple font-medium">CIN: <strong className="text-brand-deepPurple">{settings.tax?.cin}</strong></span>
                 </div>
               </div>
 
               {/* B2B / Wholesale Box */}
-              {businessConfig.b2b.enableB2BInquiries && (
+              {settings.b2b?.enableB2BInquiries && (
                 <div className="p-4 rounded-2xl bg-gradient-to-tr from-[#38283D] to-[#5F3F68] text-white space-y-2 border border-brand-gold/30">
                   <div className="flex items-center space-x-2 text-brand-gold">
                     <Briefcase className="w-4 h-4" />
                     <span className="font-bold text-xs uppercase tracking-wider">Corporate & B2B Orders</span>
                   </div>
                   <p className="text-[11px] text-pink-100/80">
-                    Planning corporate wellness gifts or wholesale procurement (Min: {businessConfig.b2b.minOrderQuantity} units)? Reach our B2B desk directly:
+                    Planning corporate wellness gifts or wholesale procurement (Min: {settings.b2b?.minOrderQuantity || 50} units)? Reach our B2B desk directly:
                   </p>
                   <a
-                    href={`mailto:${businessConfig.b2b.inquiryEmail}`}
+                    href={`mailto:${settings.b2b?.inquiryEmail || settings.supportEmail}`}
                     className="inline-block text-xs font-bold text-brand-lightGold hover:underline"
                   >
-                    ✉️ {businessConfig.b2b.inquiryEmail}
+                    ✉️ {settings.b2b?.inquiryEmail || settings.supportEmail}
                   </a>
                 </div>
               )}
@@ -160,9 +161,9 @@ export default function Contact() {
               {/* Social Channels */}
               <div className="pt-4 border-t border-brand-primaryPink/15 flex items-center space-x-3">
                 <span className="text-xs font-bold text-[#805A82]">Follow us:</span>
-                {businessConfig.social.instagram && (
+                {settings.social?.instagram && (
                   <a
-                    href={businessConfig.social.instagram}
+                    href={settings.social.instagram}
                     target="_blank"
                     rel="noreferrer"
                     className="p-2 rounded-xl bg-brand-softPink hover:bg-brand-brightPink hover:text-white text-brand-deepPurple transition-colors border border-brand-primaryPink/20"
@@ -171,9 +172,9 @@ export default function Contact() {
                     <Instagram className="w-4 h-4" />
                   </a>
                 )}
-                {businessConfig.social.facebook && (
+                {settings.social?.facebook && (
                   <a
-                    href={businessConfig.social.facebook}
+                    href={settings.social.facebook}
                     target="_blank"
                     rel="noreferrer"
                     className="p-2 rounded-xl bg-brand-softPink hover:bg-brand-brightPink hover:text-white text-brand-deepPurple transition-colors border border-brand-primaryPink/20"
@@ -184,7 +185,6 @@ export default function Contact() {
                 )}
               </div>
             </div>
-
           </div>
 
           {/* Right Column: Inquiries Form */}

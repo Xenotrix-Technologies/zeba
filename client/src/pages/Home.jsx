@@ -18,153 +18,171 @@ import {
 } from 'lucide-react';
 import api from '../services/api';
 import ProductCard from '../components/ProductCard';
-import { businessConfig } from '../config/businessConfig';
+import { useStoreSettings } from '../context/StoreSettingsContext';
+
+const DEFAULT_TIMELINE = [
+  {
+    time: 'Minute 0',
+    title: 'Easy Application',
+    temp: 'Ambient',
+    reliefLevel: '0%',
+    desc: 'Peel adhesive and stick firmly to the outside of underwear over lower abdomen or back.',
+    action: 'Zero bare-skin contact required'
+  },
+  {
+    time: 'Minute 15',
+    title: 'Thermal Activation',
+    temp: '50°C',
+    reliefLevel: '45%',
+    desc: 'Natural minerals react gently with ambient air to release continuous therapeutic warmth.',
+    action: 'Uterine spasms begin to calm'
+  },
+  {
+    time: 'Hour 1',
+    title: 'Peak Muscle Relief',
+    temp: '53°C',
+    reliefLevel: '90%',
+    desc: 'Blood flow increases and deep oxygenation melts away pain for hours of uninterrupted ease.',
+    action: 'Pain drops from severe to comfortable'
+  },
+  {
+    time: 'Hour 8+',
+    title: 'All-Day Freedom',
+    temp: '52°C',
+    reliefLevel: '100%',
+    desc: 'Sustained warmth keeps you active throughout work, college, travel, or restful sleep.',
+    action: 'Full-day worry-free comfort'
+  }
+];
+
+const DEFAULT_STEPS = [
+  {
+    step: '01',
+    title: 'Peel & Stick',
+    subtitle: 'Apply to underwear exterior',
+    desc: 'Peel the protective backing and press firmly onto the outside of your underwear.',
+    badge: 'Zero Skin Irritation',
+    icon: Layers,
+    accent: 'text-brand-brightPink bg-brand-softPink'
+  },
+  {
+    step: '02',
+    title: 'Air-Activated Heat',
+    subtitle: 'Reaches 50–55°C in 15 mins',
+    desc: 'Exposed to air, the 100% natural mineral thermal core activates rapidly without microwaves or cords.',
+    badge: 'Instant Thermal Core',
+    icon: Flame,
+    accent: 'text-brand-gold bg-[#FDF5D6]'
+  },
+  {
+    step: '03',
+    title: '8+ Hours Relief',
+    subtitle: 'Continuous muscle relaxation',
+    desc: 'Continuous therapeutic heat dilates blood vessels, increasing oxygen flow to soothe pelvic cramps.',
+    badge: 'Clinically Proven Heat',
+    icon: Heart,
+    accent: 'text-brand-brightPink bg-brand-softPink'
+  },
+  {
+    step: '04',
+    title: 'Conquer Your Day',
+    subtitle: 'Ultra-thin and invisible',
+    desc: 'Slip into tight jeans, formal wear, or workout clothes with complete discretion and zero bulk.',
+    badge: 'All-Day Mobility',
+    icon: Sun,
+    accent: 'text-brand-gold bg-[#FDF5D6]'
+  }
+];
+
+const DEFAULT_INGREDIENTS = [
+  {
+    num: '01',
+    name: 'Iron Powder',
+    role: 'Core Thermal Source',
+    desc: 'Creates gentle, consistent therapeutic heat when naturally oxidised by air contact.'
+  },
+  {
+    num: '02',
+    name: 'Vermiculite',
+    role: 'Mineral Heat Insulator',
+    desc: 'Natural mineral that locks in heat and disperses steady warmth evenly across the pad surface.'
+  },
+  {
+    num: '03',
+    name: 'Purified Salt',
+    role: 'Thermal Catalyst',
+    desc: 'Natural catalyst that accelerates and stabilizes the heat curve for 8+ uninterrupted hours.'
+  },
+  {
+    num: '04',
+    name: 'Activated Carbon',
+    role: 'Temperature Regulator',
+    desc: 'Porous carbon ensures safe temperature moderation preventing hot spots or skin irritation.'
+  }
+];
 
 export default function Home() {
+  const { settings, getWhatsAppUrl } = useStoreSettings();
   const [products, setProducts] = useState([]);
+  const [timelineStages, setTimelineStages] = useState(DEFAULT_TIMELINE);
+  const [howToUseSteps, setHowToUseSteps] = useState(DEFAULT_STEPS);
+  const [naturalIngredients, setNaturalIngredients] = useState(DEFAULT_INGREDIENTS);
+  const [faqs, setFaqs] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTimelineIdx, setActiveTimelineIdx] = useState(1);
   const [openFaqIdx, setOpenFaqIdx] = useState(0);
 
   useEffect(() => {
-    async function fetchProducts() {
+    async function loadAllDatabaseData() {
       try {
-        const res = await api.get('/products');
-        if (res.success && res.products) {
-          setProducts(res.products);
+        const [prodRes, contentRes, faqRes, revRes] = await Promise.allSettled([
+          api.get('/products'),
+          api.get('/content'),
+          api.get('/faqs'),
+          api.get('/reviews')
+        ]);
+
+        if (prodRes.status === 'fulfilled' && prodRes.value?.success && prodRes.value.products?.length > 0) {
+          setProducts(prodRes.value.products);
+        }
+
+        if (contentRes.status === 'fulfilled' && contentRes.value?.success && contentRes.value.content) {
+          const c = contentRes.value.content;
+          if (c.timeline_stages?.items) setTimelineStages(c.timeline_stages.items);
+          if (c.natural_ingredients?.items) setNaturalIngredients(c.natural_ingredients.items);
+          if (c.how_to_use_steps?.items) {
+            const icons = [Layers, Flame, Heart, Sun];
+            const accents = [
+              'text-brand-brightPink bg-brand-softPink',
+              'text-brand-gold bg-[#FDF5D6]',
+              'text-brand-brightPink bg-brand-softPink',
+              'text-brand-gold bg-[#FDF5D6]'
+            ];
+            setHowToUseSteps(c.how_to_use_steps.items.map((item, idx) => ({
+              ...item,
+              icon: icons[idx % icons.length],
+              accent: accents[idx % accents.length]
+            })));
+          }
+        }
+
+        if (faqRes.status === 'fulfilled' && faqRes.value?.success && faqRes.value.faqs?.length > 0) {
+          setFaqs(faqRes.value.faqs.map(f => ({ q: f.question, a: f.answer })));
+        }
+
+        if (revRes.status === 'fulfilled' && revRes.value?.success && revRes.value.reviews?.length > 0) {
+          setReviews(revRes.value.reviews);
         }
       } catch (err) {
-        console.error('Failed to load products', err);
+        console.error('Failed to load database content', err);
       } finally {
         setLoading(false);
       }
     }
-    fetchProducts();
+
+    loadAllDatabaseData();
   }, []);
-
-  const timelineStages = [
-    {
-      time: 'Minute 0',
-      title: 'Easy Application',
-      temp: 'Ambient',
-      reliefLevel: '0%',
-      desc: 'Peel adhesive and stick firmly to the outside of underwear over lower abdomen or back.',
-      action: 'Zero bare-skin contact required'
-    },
-    {
-      time: 'Minute 15',
-      title: 'Thermal Activation',
-      temp: '50°C',
-      reliefLevel: '45%',
-      desc: 'Natural minerals react gently with ambient air to release continuous therapeutic warmth.',
-      action: 'Uterine spasms begin to calm'
-    },
-    {
-      time: 'Hour 1',
-      title: 'Peak Muscle Relief',
-      temp: '53°C',
-      reliefLevel: '90%',
-      desc: 'Blood flow increases and deep oxygenation melts away pain for hours of uninterrupted ease.',
-      action: 'Pain drops from severe to comfortable'
-    },
-    {
-      time: 'Hour 8+',
-      title: 'All-Day Freedom',
-      temp: '52°C',
-      reliefLevel: '100%',
-      desc: 'Sustained warmth keeps you active throughout work, college, travel, or restful sleep.',
-      action: 'Full-day worry-free comfort'
-    }
-  ];
-
-  const howToUseSteps = [
-    {
-      step: '01',
-      title: 'Peel & Stick',
-      subtitle: 'Apply to underwear exterior',
-      desc: 'Peel the protective backing and press firmly onto the outside of your underwear.',
-      badge: 'Zero Skin Irritation',
-      icon: Layers,
-      accent: 'text-brand-brightPink bg-brand-softPink'
-    },
-    {
-      step: '02',
-      title: 'Air-Activated Heat',
-      subtitle: 'Reaches 50–55°C in 15 mins',
-      desc: 'Exposed to air, the 100% natural mineral thermal core activates rapidly without microwaves or cords.',
-      badge: 'Instant Thermal Core',
-      icon: Flame,
-      accent: 'text-brand-gold bg-[#FDF5D6]'
-    },
-    {
-      step: '03',
-      title: '8+ Hours Relief',
-      subtitle: 'Continuous muscle relaxation',
-      desc: 'Continuous therapeutic heat dilates blood vessels, increasing oxygen flow to soothe pelvic cramps.',
-      badge: 'Clinically Proven Heat',
-      icon: Heart,
-      accent: 'text-brand-brightPink bg-brand-softPink'
-    },
-    {
-      step: '04',
-      title: 'Conquer Your Day',
-      subtitle: 'Ultra-thin and invisible',
-      desc: 'Slip into tight jeans, formal wear, or workout clothes with complete discretion and zero bulk.',
-      badge: 'All-Day Mobility',
-      icon: Sun,
-      accent: 'text-brand-gold bg-[#FDF5D6]'
-    }
-  ];
-
-  const naturalIngredients = [
-    {
-      num: '01',
-      name: 'Iron Powder',
-      role: 'Core Thermal Source',
-      desc: 'Creates gentle, consistent therapeutic heat when naturally oxidised by air contact.'
-    },
-    {
-      num: '02',
-      name: 'Vermiculite',
-      role: 'Mineral Heat Insulator',
-      desc: 'Natural mineral that locks in heat and disperses steady warmth evenly across the pad surface.'
-    },
-    {
-      num: '03',
-      name: 'Purified Salt',
-      role: 'Thermal Catalyst',
-      desc: 'Natural catalyst that accelerates and stabilizes the heat curve for 8+ uninterrupted hours.'
-    },
-    {
-      num: '04',
-      name: 'Activated Carbon',
-      role: 'Temperature Regulator',
-      desc: 'Porous carbon ensures safe temperature moderation preventing hot spots or skin irritation.'
-    }
-  ];
-
-  const faqs = [
-    {
-      q: 'Can teenagers and young girls use ZEBA Heating Pads?',
-      a: 'Yes, absolutely! ZEBA is 100% drug-free, non-invasive, and contains pure natural minerals. It is ideal for teenagers experiencing painful menstrual cycles without relying on painkillers.'
-    },
-    {
-      q: 'Will the heating pad be visible under tight clothing?',
-      a: 'Not at all. ZEBA pads are engineered with an ultra-thin, flexible contour that adheres smoothly to undergarments. They remain completely invisible under leggings, jeans, uniforms, and dresses.'
-    },
-    {
-      q: 'How long does the soothing heat last?',
-      a: 'Each ZEBA pad provides up to 8+ hours of continuous, steady therapeutic warmth between 50°C and 55°C, sustaining you through a full school or work day.'
-    },
-    {
-      q: 'Do I stick the pad directly onto my skin?',
-      a: 'No. For maximum safety and optimal heat diffusion, always stick the adhesive side to the OUTSIDE of your undergarments, never directly onto bare skin.'
-    },
-    {
-      q: 'What is your satisfaction & return guarantee?',
-      a: 'We stand 100% behind ZEBA. If you are not satisfied with your purchase, contact us within 7 days for prompt support and assistance.'
-    }
-  ];
 
   return (
     <div className="min-h-screen bg-[#FFF5FA] text-[#38283D]">
@@ -563,8 +581,70 @@ export default function Home() {
         </div>
       </section>
 
+      {/* 6.5 REAL CUSTOMER REVIEWS (Loaded from Database) */}
+      {reviews.length > 0 && (
+        <section className="py-16 sm:py-20 bg-white border-t border-brand-primaryPink/20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            <div className="text-center max-w-2xl mx-auto space-y-2">
+              <span className="text-xs font-extrabold uppercase tracking-widest text-brand-brightPink bg-brand-softPink px-3 py-1 rounded-full border border-brand-primaryPink/30">
+                Real Customer Stories
+              </span>
+              <h2 className="font-display font-black text-3xl sm:text-4xl text-brand-deepPurple">
+                Loved by Women Across India
+              </h2>
+              <p className="text-sm text-[#805A82]">
+                Real verified reviews from students, professionals, and mothers who trust ZEBA every month.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {reviews.map((rev) => (
+                <div
+                  key={rev.id}
+                  className="p-6 rounded-3xl bg-[#FFF5FA] border border-brand-primaryPink/25 shadow-sm space-y-3 flex flex-col justify-between hover:shadow-md transition-all"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-1 text-brand-gold">
+                      {[...Array(rev.rating || 5)].map((_, i) => (
+                        <Star key={i} className="w-4 h-4 fill-brand-gold text-brand-gold" />
+                      ))}
+                    </div>
+
+                    {rev.title && (
+                      <h4 className="font-display font-bold text-sm text-brand-deepPurple">
+                        "{rev.title}"
+                      </h4>
+                    )}
+
+                    <p className="text-xs text-[#805A82] leading-relaxed italic">
+                      "{rev.comment}"
+                    </p>
+                  </div>
+
+                  <div className="pt-3 border-t border-brand-primaryPink/20 flex items-center justify-between">
+                    <div>
+                      <span className="font-bold text-xs text-brand-deepPurple block">
+                        {rev.author_name}
+                      </span>
+                      <span className="text-[10px] text-[#805A82] block">
+                        {rev.location || 'India'}
+                      </span>
+                    </div>
+                    {rev.is_verified_purchase && (
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        Verified
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* 7. GOT QUESTIONS? WE GOT ANSWERS (Clean Accordion) */}
-      <section className="py-16 sm:py-20 bg-white border-t border-brand-primaryPink/20" id="faq">
+      <section className="py-16 sm:py-20 bg-[#FFF5FA] border-t border-brand-primaryPink/20" id="faq">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           
           <div className="text-center max-w-2xl mx-auto space-y-2">
@@ -587,7 +667,7 @@ export default function Home() {
                 <div
                   key={idx}
                   className={`rounded-2xl border transition-all overflow-hidden ${
-                    isOpen ? 'border-brand-brightPink/50 bg-[#FFF5FA] shadow-sm' : 'border-brand-primaryPink/20 bg-white'
+                    isOpen ? 'border-brand-brightPink/50 bg-white shadow-sm' : 'border-brand-primaryPink/20 bg-white/90'
                   }`}
                 >
                   <button
@@ -638,7 +718,7 @@ export default function Home() {
             </Link>
 
             <a
-              href={businessConfig.whatsapp.getWhatsAppUrl('Hi ZEBA Team, I want to order ZEBA Heating Pads')}
+              href={getWhatsAppUrl('Hi ZEBA Team, I want to order ZEBA Heating Pads')}
               target="_blank"
               rel="noreferrer"
               className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-lg flex items-center justify-center space-x-2 btn-tactile"

@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from './ToastContext';
+import { useStoreSettings } from './StoreSettingsContext';
 
 const CartContext = createContext(null);
 
 export function CartProvider({ children }) {
   const { addToast } = useToast();
+  const { settings } = useStoreSettings();
   const [cart, setCart] = useState(() => {
     try {
       const saved = localStorage.getItem('zeba_cart');
@@ -78,7 +80,8 @@ export function CartProvider({ children }) {
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const originalSubtotal = cart.reduce((acc, item) => acc + (item.original_price || item.price) * item.quantity, 0);
   const totalSavings = Math.max(0, originalSubtotal - subtotal);
-  const freeShippingThreshold = 499;
+  const freeShippingThreshold = settings.commerce?.freeShippingThreshold || 499;
+  const standardShippingFee = settings.commerce?.standardShippingFee || 49;
   const freeShippingProgress = Math.min(100, (subtotal / freeShippingThreshold) * 100);
 
   return (

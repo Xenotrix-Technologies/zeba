@@ -1,9 +1,10 @@
 import React from 'react';
 import { MessageCircle } from 'lucide-react';
-import { businessConfig } from '../config/businessConfig';
+import { useStoreSettings } from '../context/StoreSettingsContext';
 
 export default function WhatsAppButton({ text }) {
-  const whatsappUrl = businessConfig.whatsapp.getWhatsAppUrl(text);
+  const { getWhatsAppUrl } = useStoreSettings();
+  const whatsappUrl = getWhatsAppUrl(text);
 
   return (
     <a

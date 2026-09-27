@@ -3,9 +3,10 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ShoppingBag, Menu, X, Sparkles, User, LogOut } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useCustomerAuth } from '../context/CustomerAuthContext';
-import { businessConfig } from '../config/businessConfig';
+import { useStoreSettings } from '../context/StoreSettingsContext';
 
 export default function Navbar() {
+  const { settings } = useStoreSettings();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -33,7 +34,7 @@ export default function Navbar() {
       {/* Top Notification Announcement Bar */}
       <div className="bg-[#5F3F68] text-white py-2 px-4 text-xs md:text-sm font-medium text-center border-b border-white/10 flex items-center justify-center space-x-2 shadow-sm">
         <Sparkles className="w-3.5 h-3.5 text-brand-gold animate-pulse flex-shrink-0" />
-        <span>Special Offer: <strong>Free Fast Shipping</strong> on orders above ₹{businessConfig.commerce.freeShippingThreshold}!</span>
+        <span>Special Offer: <strong>Free Fast Shipping</strong> on orders above ₹{settings.commerce?.freeShippingThreshold || 499}!</span>
         <span className="hidden md:inline text-brand-lightGold font-semibold">• 100% Safe Natural Minerals • Discreet Packaging</span>
       </div>
 

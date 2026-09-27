@@ -13,6 +13,10 @@ import orderRoutes from '../server/src/routes/orderRoutes.js';
 import paymentRoutes from '../server/src/routes/paymentRoutes.js';
 import contactRoutes from '../server/src/routes/contactRoutes.js';
 import adminRoutes from '../server/src/routes/adminRoutes.js';
+import settingsRoutes from '../server/src/routes/settingsRoutes.js';
+import contentRoutes from '../server/src/routes/contentRoutes.js';
+import faqRoutes from '../server/src/routes/faqRoutes.js';
+import reviewRoutes from '../server/src/routes/reviewRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,7 +29,7 @@ app.use(helmet({
 }));
 app.use(cors({
   origin: '*',
-  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -82,6 +86,10 @@ app.use((req, res, next) => {
 
 // Mount routes on all variations: /api/*, /*
 const mountRouters = (prefix = '') => {
+  app.use(`${prefix}/settings`, settingsRoutes);
+  app.use(`${prefix}/content`, contentRoutes);
+  app.use(`${prefix}/faqs`, faqRoutes);
+  app.use(`${prefix}/reviews`, reviewRoutes);
   app.use(`${prefix}/auth`, authRoutes);
   app.use(`${prefix}/customer`, customerRoutes);
   app.use(`${prefix}/products`, productRoutes);
