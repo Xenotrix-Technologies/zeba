@@ -52,7 +52,7 @@ export default function AdminCustomers() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-display font-black text-2xl text-brand-dark">Customer Directory</h1>
-          <p className="text-xs text-brand-plum/70 mt-0.5">Verified buyers stored in PostgreSQL database</p>
+          <p className="text-xs text-brand-plum/70 mt-0.5">Verified buyers stored in cloud database</p>
         </div>
         <span className="text-xs font-bold text-brand-deepPurple bg-brand-softPink border border-brand-primaryPink/30 px-3.5 py-1.5 rounded-full">
           Total Customers: {customers.length}

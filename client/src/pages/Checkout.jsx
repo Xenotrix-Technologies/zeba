@@ -88,7 +88,7 @@ export default function Checkout() {
     setLoading(true);
 
     try {
-      // 1. Request backend to calculate PostgreSQL verified price & create Razorpay order
+      // 1. Request backend to calculate database verified price & create Razorpay order
       const orderPayload = {
         items: cart.map(i => ({ productId: i.id, quantity: i.quantity })),
         customer: {

@@ -132,7 +132,7 @@ export default function AdminSettings() {
         description
       });
       if (res.success) {
-        addToast(`Section '${description || settingKey}' saved to PostgreSQL database!`, 'success');
+        addToast(`Section '${description || settingKey}' saved to cloud database!`, 'success');
         await refreshSettings();
       }
     } catch (err) {
@@ -515,10 +515,10 @@ export default function AdminSettings() {
         </div>
         <div className="space-y-1">
           <h4 className="font-display font-bold text-sm text-brand-dark">
-            Supabase Database Synced Real-Time
+            Cloud Database Synced Real-Time
           </h4>
           <p className="text-xs text-brand-plum/80 leading-relaxed">
-            Every update in these panels saves directly into your connected Supabase PostgreSQL instance. All storefront headers, announcement bars, WhatsApp click-to-chat dispatchers, product pricing thresholds, and invoices immediately reflect the updated database records.
+            Every update in these panels saves directly into your connected cloud database. All storefront headers, announcement bars, WhatsApp click-to-chat dispatchers, product pricing thresholds, and invoices immediately reflect the updated database records.
           </p>
         </div>
       </div>

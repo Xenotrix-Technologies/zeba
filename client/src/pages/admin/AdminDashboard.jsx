@@ -36,7 +36,7 @@ export default function AdminDashboard() {
     return (
       <div className="py-20 text-center">
         <div className="w-10 h-10 border-4 border-brand-brightPink border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-xs text-[#805A82]">Loading PostgreSQL live metrics...</p>
+        <p className="text-xs text-[#805A82]">Loading live store database metrics...</p>
       </div>
     );
   }
@@ -50,7 +50,7 @@ export default function AdminDashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-display font-black text-2xl sm:text-3xl text-brand-deepPurple">Live Store Overview</h1>
-          <p className="text-xs text-[#805A82] mt-0.5">Real-time metrics calculated dynamically from PostgreSQL database</p>
+          <p className="text-xs text-[#805A82] mt-0.5">Real-time metrics calculated dynamically from database</p>
         </div>
         <Link
           to="/admin/orders"
@@ -172,7 +172,7 @@ export default function AdminDashboard() {
         <div className="flex items-center justify-between pb-2 border-b border-brand-primaryPink/15">
           <div>
             <h2 className="font-display font-bold text-base text-brand-deepPurple">Recent Store Orders</h2>
-            <p className="text-xs text-[#805A82]">Latest customer checkouts placed in PostgreSQL</p>
+            <p className="text-xs text-[#805A82]">Latest customer checkouts placed in store database</p>
           </div>
           <Link to="/admin/orders" className="text-xs text-brand-brightPink hover:underline font-bold">
             View All →

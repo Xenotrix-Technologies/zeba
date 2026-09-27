@@ -354,7 +354,7 @@ export async function sendNewOrderAlertToOwner({
         {/* Header */}
         <div style="background-color: #172A6B; padding: 22px; border-radius: 14px; border: 1px solid #FF2D78; text-align: center;">
           <h2 style="color: #E5C06E; margin: 0; font-size: 22px; letter-spacing: 1px;">🚨 NEW CUSTOMER ORDER RECEIVED</h2>
-          <p style="color: #FDF1C7; font-size: 13px; margin: 6px 0 0 0;">ZEBA Periods Pain Relief Store • PostgreSQL Live</p>
+          <p style="color: #FDF1C7; font-size: 13px; margin: 6px 0 0 0;">ZEBA Periods Pain Relief Store • Cloud Database</p>
         </div>
 
         <div style="background-color: #081033; padding: 26px; border-radius: 16px; margin-top: 18px; border: 1px solid #1E3170; font-size: 13px; line-height: 1.6;">
@@ -410,7 +410,7 @@ export async function sendNewOrderAlertToOwner({
         </div>
 
         <div style="text-align: center; color: #718096; font-size: 11px; margin-top: 18px;">
-          ZEBA Automated Order Fulfillment System • PostgreSQL Engine
+          ZEBA Automated Order Fulfillment System • Cloud Database Engine
         </div>
       </div>
     `;
