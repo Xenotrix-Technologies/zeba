@@ -21,20 +21,37 @@ export async function getDb() {
   if (pool) return { query: (text, params) => pool.query(text, params), isPGlite: false };
   if (pgliteInstance) return { query: (text, params) => pgliteInstance.query(text, params), isPGlite: true };
 
-  const dbUrl = process.env.DATABASE_URL;
+  const rawDbUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL_NON_POOLING;
 
-  if (dbUrl && dbUrl.trim() !== '') {
+  if (rawDbUrl && rawDbUrl.trim() !== '') {
     try {
+      let dbUrl = rawDbUrl.trim();
+      const isRemote = dbUrl.includes('supabase.co') || dbUrl.includes('pooler.supabase.com') || dbUrl.includes('sslmode=require') || (!dbUrl.includes('localhost') && !dbUrl.includes('127.0.0.1'));
+      
+      // Clean query parameters like sslmode=require that cause pg verify-full self-signed certificate chain issues
+      let cleanUrl = dbUrl;
+      try {
+        const parsed = new URL(dbUrl);
+        parsed.searchParams.delete('sslmode');
+        parsed.searchParams.delete('supa');
+        cleanUrl = parsed.toString();
+      } catch {
+        cleanUrl = dbUrl.replace(/[?&]sslmode=[^&]+/g, '').replace(/[?&]supa=[^&]+/g, '');
+      }
+
       pool = new Pool({
-        connectionString: dbUrl,
-        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+        connectionString: cleanUrl,
+        ssl: isRemote ? { rejectUnauthorized: false } : false,
+        connectionTimeoutMillis: 15000,
+        idleTimeoutMillis: 30000,
+        max: 20
       });
       // Test connection
       await pool.query('SELECT 1');
-      console.log('✅ Connected to PostgreSQL via DATABASE_URL');
+      console.log('✅ Connected to Supabase / PostgreSQL database successfully');
       return { query: (text, params) => pool.query(text, params), isPGlite: false };
     } catch (err) {
-      console.warn('⚠️ Could not connect to remote DATABASE_URL, initializing embedded PostgreSQL (PGlite)...', err.message);
+      console.warn('⚠️ Could not connect to remote DATABASE_URL, falling back to embedded PostgreSQL (PGlite)...', err.message);
       pool = null;
     }
   }
@@ -71,3 +88,4 @@ export async function query(text, params = []) {
   const db = await getDb();
   return db.query(text, params);
 }
+
