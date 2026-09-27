@@ -123,7 +123,6 @@ app.use((req, res) => {
 // Error handling
 app.use(errorHandler);
 
-export default function handler(req, res) {
-  return app(req, res);
-}
+export default app;
 export { app };
+
