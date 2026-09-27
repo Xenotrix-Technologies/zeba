@@ -164,35 +164,7 @@ export async function seedDatabase() {
       );
       console.log(`✅ Seeded Product: ${prod.name}`);
     } else {
-      await query(
-        `UPDATE products SET
-          name = $1, pack_size = $2, pack_count = $3, price = $4, original_price = $5,
-          stock_quantity = $6, badge_text = $7, short_description = $8, description = $9,
-          benefits = $10, how_to_use = $11, features = $12, images = $13, rating = $14,
-          review_count = $15, category = $16, ingredients = $17, updated_at = CURRENT_TIMESTAMP
-         WHERE slug = $18`,
-        [
-          prod.name,
-          prod.pack_size,
-          prod.pack_count,
-          prod.price,
-          prod.original_price,
-          prod.stock_quantity,
-          prod.badge_text,
-          prod.short_description,
-          prod.description,
-          prod.benefits,
-          prod.how_to_use,
-          prod.features,
-          prod.images,
-          prod.rating,
-          prod.review_count,
-          prod.category,
-          prod.ingredients,
-          prod.slug
-        ]
-      );
-      console.log(`🔄 Updated Product: ${prod.name}`);
+      console.log(`ℹ️ Preserving existing database record for product: ${prod.slug}`);
     }
   }
 
@@ -307,12 +279,11 @@ export async function seedDatabase() {
     await query(
       `INSERT INTO store_settings (setting_key, setting_value, category, description)
        VALUES ($1, $2, $3, $4)
-       ON CONFLICT (setting_key) DO UPDATE
-       SET setting_value = $2, category = $3, description = $4, updated_at = CURRENT_TIMESTAMP`,
+       ON CONFLICT (setting_key) DO NOTHING`,
       [s.key, JSON.stringify(s.value), s.category, s.description]
     );
   }
-  console.log('✅ Seeded / Updated store_settings table in database');
+  console.log('✅ Synchronized store_settings table in database');
 
   // 4. Seed / Upsert Dynamic Site Content (Timeline, Ingredients, How-To, Badges)
   const siteContentSections = [
@@ -434,12 +405,11 @@ export async function seedDatabase() {
     await query(
       `INSERT INTO site_content (section_key, title, content, is_active)
        VALUES ($1, $2, $3, true)
-       ON CONFLICT (section_key) DO UPDATE
-       SET title = $2, content = $3, is_active = true, updated_at = CURRENT_TIMESTAMP`,
+       ON CONFLICT (section_key) DO NOTHING`,
       [c.key, c.title, JSON.stringify(c.content)]
     );
   }
-  console.log('✅ Seeded / Updated site_content table in database');
+  console.log('✅ Synchronized site_content table in database');
 
   // 5. Seed / Upsert Frequently Asked Questions (FAQs)
   const initialFaqs = [
@@ -489,15 +459,9 @@ export async function seedDatabase() {
          VALUES ($1, $2, $3, $4, true)`,
         [faq.question, faq.answer, faq.category, faq.sort_order]
       );
-    } else {
-      await query(
-        `UPDATE faqs SET answer = $1, category = $2, sort_order = $3, is_active = true, updated_at = CURRENT_TIMESTAMP
-         WHERE id = $4`,
-        [faq.answer, faq.category, faq.sort_order, existingFaq.rows[0].id]
-      );
     }
   }
-  console.log('✅ Seeded / Updated faqs table in database');
+  console.log('✅ Synchronized faqs table in database');
 
   // 6. Seed / Upsert Authentic Customer Reviews & Testimonials
   const sampleReviews = [
