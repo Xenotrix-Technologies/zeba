@@ -65,12 +65,6 @@ export default function AdminSettings() {
     returnWindowDays: 7
   });
 
-  const [taxForm, setTaxForm] = useState({
-    gstin: '29AAACZ1234F1Z5',
-    cin: 'U24239KA2026PTC123456',
-    pan: 'AAACZ1234F'
-  });
-
   useEffect(() => {
     async function loadSettings() {
       try {
@@ -107,11 +101,6 @@ export default function AdminSettings() {
             codAvailable: Boolean(s.commerce?.codAvailable),
             dispatchTime: s.commerce?.dispatchTime || 'Dispatched within 24 hours',
             returnWindowDays: Number(s.commerce?.returnWindowDays || 7)
-          });
-          setTaxForm({
-            gstin: s.tax?.gstin || '29AAACZ1234F1Z5',
-            cin: s.tax?.cin || 'U24239KA2026PTC123456',
-            pan: s.tax?.pan || 'AAACZ1234F'
           });
         }
       } catch (err) {
@@ -347,24 +336,23 @@ export default function AdminSettings() {
           </div>
         </div>
 
-        {/* 3. Registered Office & Tax Compliance */}
+        {/* 3. Registered Office Address */}
         <div className="bg-white border border-brand-primaryPink/20 rounded-3xl p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-brand-primaryPink/15">
             <div className="flex items-center space-x-2.5 text-brand-brightPink">
               <ShieldCheck className="w-5 h-5" />
-              <h3 className="font-display font-bold text-base text-brand-dark">Registered Address & GSTIN</h3>
+              <h3 className="font-display font-bold text-base text-brand-dark">Registered Address</h3>
             </div>
             <button
               onClick={() => {
                 const formatted = `${addressForm.building}, ${addressForm.street}, ${addressForm.city}, ${addressForm.state} - ${addressForm.pincode}, ${addressForm.country}`;
                 handleSaveSection('business_address', 'address', { ...addressForm, formatted }, 'Office Address');
-                handleSaveSection('tax_compliance', 'tax', taxForm, 'Tax Compliance');
               }}
-              disabled={savingKey === 'business_address' || savingKey === 'tax_compliance'}
+              disabled={savingKey === 'business_address'}
               className="px-3 py-1.5 rounded-xl bg-brand-deepPurple hover:bg-brand-brightPink text-white font-bold text-xs flex items-center space-x-1.5 transition-all shadow-sm disabled:opacity-50"
             >
               <Save className="w-3.5 h-3.5" />
-              <span>{savingKey ? 'Saving...' : 'Save Address & Tax'}</span>
+              <span>{savingKey ? 'Saving...' : 'Save Address'}</span>
             </button>
           </div>
 
@@ -400,7 +388,7 @@ export default function AdminSettings() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-brand-plum/70 block font-bold mb-1">State:</label>
                 <input
@@ -417,15 +405,6 @@ export default function AdminSettings() {
                   value={addressForm.pincode}
                   onChange={(e) => setAddressForm({ ...addressForm, pincode: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl border border-brand-primaryPink/30 text-xs focus:outline-none focus:border-brand-brightPink"
-                />
-              </div>
-              <div>
-                <label className="text-brand-plum/70 block font-bold mb-1">GSTIN ID:</label>
-                <input
-                  type="text"
-                  value={taxForm.gstin}
-                  onChange={(e) => setTaxForm({ ...taxForm, gstin: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-brand-primaryPink/30 text-xs font-mono focus:outline-none focus:border-brand-brightPink"
                 />
               </div>
             </div>

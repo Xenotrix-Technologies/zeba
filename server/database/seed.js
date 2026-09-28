@@ -224,10 +224,8 @@ export async function seedDatabase() {
     {
       key: 'tax_compliance',
       category: 'tax',
-      description: 'GSTIN, CIN, and PAN regulatory identifiers',
+      description: 'Tax and PAN regulatory identifiers',
       value: {
-        gstin: '29AAACZ1234F1Z5',
-        cin: 'U24239KA2026PTC123456',
         pan: 'AAACZ1234F',
         hsnCode: '30059090',
         gstPercentage: 18

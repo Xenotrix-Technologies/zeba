@@ -64,8 +64,6 @@ export async function getPublicSettings(req, res, next) {
 
         // Tax
         tax: tax || {
-          gstin: '29AAACZ1234F1Z5',
-          cin: 'U24239KA2026PTC123456',
           pan: 'AAACZ1234F',
           hsnCode: '30059090',
           gstPercentage: 18

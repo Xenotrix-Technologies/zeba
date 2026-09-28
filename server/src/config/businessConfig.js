@@ -41,8 +41,6 @@ export const businessConfig = {
 
   // Tax & Regulatory
   tax: {
-    gstin: process.env.BUSINESS_GSTIN || '29AAACZ1234F1Z5',
-    cin: process.env.BUSINESS_CIN || 'U24239KA2026PTC123456',
     pan: process.env.BUSINESS_PAN || 'AAACZ1234F'
   },
 

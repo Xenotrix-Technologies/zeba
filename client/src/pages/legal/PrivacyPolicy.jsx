@@ -38,8 +38,7 @@ export default function PrivacyPolicy() {
           </p>
           <div className="p-3.5 rounded-xl bg-[#FFF5FA] border border-brand-primaryPink/20 text-xs text-[#805A82] mt-2">
             <strong className="text-brand-deepPurple">{businessConfig.legalEntityName}</strong><br />
-            {businessConfig.address.formatted}<br />
-            GSTIN: {businessConfig.tax.gstin} • CIN: {businessConfig.tax.cin}
+            {businessConfig.address.formatted}
           </div>
         </section>
       </div>

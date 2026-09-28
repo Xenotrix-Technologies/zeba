@@ -132,11 +132,6 @@ export default function Contact() {
                     </span>
                   </div>
                 </div>
-
-                <div className="flex items-center justify-between p-3 rounded-2xl bg-brand-softPink border border-brand-primaryPink/20 text-[11px]">
-                  <span className="text-brand-darkPurple font-medium">GSTIN: <strong className="text-brand-deepPurple">{settings.tax?.gstin}</strong></span>
-                  <span className="text-brand-darkPurple font-medium">CIN: <strong className="text-brand-deepPurple">{settings.tax?.cin}</strong></span>
-                </div>
               </div>
 
               {/* B2B / Wholesale Box */}

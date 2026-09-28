@@ -62,8 +62,6 @@ export const businessConfig = {
 
   // Regulatory & Tax Compliance
   tax: {
-    gstin: env.BUSINESS_GSTIN || '29AAACZ1234F1Z5',
-    cin: env.BUSINESS_CIN || 'U24239KA2026PTC123456',
     pan: env.BUSINESS_PAN || 'AAACZ1234F',
     hsnCode: env.BUSINESS_HSN || '30059090',
     gstPercentage: Number(env.BUSINESS_GST_PERCENTAGE || 18)

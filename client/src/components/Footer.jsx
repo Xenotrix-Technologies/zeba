@@ -199,7 +199,7 @@ export default function Footer() {
         <div className="pt-8 mt-4 border-t border-white/10 text-center text-xs text-pink-200/60 flex flex-col md:flex-row items-center justify-between gap-4">
           <p>© {new Date().getFullYear()} {settings.legalEntityName}. All rights reserved.</p>
           <p className="text-[11px] text-pink-200/60">
-            GSTIN: {settings.tax?.gstin} • CIN: {settings.tax?.cin} • Designed for Menstrual Comfort
+            Designed for Menstrual Comfort
           </p>
         </div>
 
