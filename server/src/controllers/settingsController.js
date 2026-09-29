@@ -83,12 +83,12 @@ export async function getPublicSettings(req, res, next) {
         },
 
         // Social
-        social: social || {
-          instagram: 'https://instagram.com/zeba.care',
-          facebook: 'https://facebook.com/zeba.care',
-          youtube: 'https://youtube.com/@zeba.care',
-          twitter: 'https://x.com/zeba_care',
-          linkedin: 'https://linkedin.com/company/zeba-care'
+        social: {
+          instagram: (social?.instagram && !social.instagram.includes('zeba.care')) ? social.instagram : 'https://www.instagram.com/zebaofficial.in/?hl=en',
+          facebook: (social?.facebook && !social.facebook.includes('zeba.care')) ? social.facebook : 'https://www.facebook.com/profile.php?id=61594599914786',
+          youtube: social?.youtube || 'https://youtube.com/@zeba.care',
+          twitter: social?.twitter || 'https://x.com/zeba_care',
+          linkedin: social?.linkedin || 'https://linkedin.com/company/zeba-care'
         },
 
         // B2B

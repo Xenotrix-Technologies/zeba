@@ -46,8 +46,8 @@ export const businessConfig = {
 
   // Social
   social: {
-    instagram: process.env.INSTAGRAM_URL || 'https://instagram.com/zeba.care',
-    facebook: process.env.FACEBOOK_URL || 'https://facebook.com/zeba.care',
+    instagram: process.env.INSTAGRAM_URL || 'https://www.instagram.com/zebaofficial.in/?hl=en',
+    facebook: process.env.FACEBOOK_URL || 'https://www.facebook.com/profile.php?id=61594599914786',
     youtube: process.env.YOUTUBE_URL || 'https://youtube.com/@zeba.care',
     twitter: process.env.TWITTER_URL || 'https://x.com/zeba_care',
     linkedin: process.env.LINKEDIN_URL || 'https://linkedin.com/company/zeba-care'

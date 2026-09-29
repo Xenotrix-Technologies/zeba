@@ -61,35 +61,31 @@ export default function Footer() {
               <img 
                 src="/images/zeba-logo.png" 
                 alt={settings.brandName} 
-                className="h-10 w-auto object-contain brightness-0 invert opacity-90 hover:opacity-100 transition-opacity" 
+                className="h-10 w-auto object-contain hover:opacity-95 transition-opacity" 
               />
             </Link>
             <p className="text-xs text-pink-100/75 leading-relaxed">
               {settings.description}
             </p>
             <div className="flex items-center space-x-3 pt-2">
-              {settings.social?.instagram && (
-                <a
-                  href={settings.social.instagram}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-9 h-9 rounded-lg bg-[#5F3F68] hover:bg-brand-brightPink text-pink-100 hover:text-white flex items-center justify-center transition-colors border border-white/10"
-                  aria-label="Instagram"
-                >
-                  <Instagram className="w-4 h-4" />
-                </a>
-              )}
-              {settings.social?.facebook && (
-                <a
-                  href={settings.social.facebook}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-9 h-9 rounded-lg bg-[#5F3F68] hover:bg-brand-brightPink text-pink-100 hover:text-white flex items-center justify-center transition-colors border border-white/10"
-                  aria-label="Facebook"
-                >
-                  <Facebook className="w-4 h-4" />
-                </a>
-              )}
+              <a
+                href={settings.social?.instagram && !settings.social.instagram.includes('zeba.care') ? settings.social.instagram : 'https://www.instagram.com/zebaofficial.in/?hl=en'}
+                target="_blank"
+                rel="noreferrer"
+                className="w-9 h-9 rounded-lg bg-[#5F3F68] hover:bg-brand-brightPink text-pink-100 hover:text-white flex items-center justify-center transition-colors border border-white/10"
+                aria-label="Instagram"
+              >
+                <Instagram className="w-4 h-4" />
+              </a>
+              <a
+                href={settings.social?.facebook && !settings.social.facebook.includes('zeba.care') ? settings.social.facebook : 'https://www.facebook.com/profile.php?id=61594599914786'}
+                target="_blank"
+                rel="noreferrer"
+                className="w-9 h-9 rounded-lg bg-[#5F3F68] hover:bg-brand-brightPink text-pink-100 hover:text-white flex items-center justify-center transition-colors border border-white/10"
+                aria-label="Facebook"
+              >
+                <Facebook className="w-4 h-4" />
+              </a>
               <a
                 href={getWhatsAppUrl()}
                 target="_blank"

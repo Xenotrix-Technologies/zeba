@@ -252,8 +252,8 @@ export async function seedDatabase() {
       category: 'social',
       description: 'Official social media handles',
       value: {
-        instagram: 'https://instagram.com/zeba.care',
-        facebook: 'https://facebook.com/zeba.care',
+        instagram: 'https://www.instagram.com/zebaofficial.in/?hl=en',
+        facebook: 'https://www.facebook.com/profile.php?id=61594599914786',
         youtube: 'https://youtube.com/@zeba.care',
         twitter: 'https://x.com/zeba_care',
         linkedin: 'https://linkedin.com/company/zeba-care'
@@ -298,7 +298,7 @@ export async function seedDatabase() {
           action: 'Zero bare-skin contact required'
         },
         {
-          time: 'Minute 15',
+          time: 'Minute 5',
           title: 'Thermal Activation',
           temp: '50°C',
           reliefLevel: '45%',
@@ -367,7 +367,7 @@ export async function seedDatabase() {
         {
           step: '02',
           title: 'Air-Activated Heat',
-          subtitle: 'Reaches 50–55°C in 15 mins',
+          subtitle: 'Reaches 50–55°C in 5 mins',
           desc: 'Exposed to air, the 100% natural mineral thermal core activates rapidly without microwaves or cords.',
           badge: 'Instant Thermal Core'
         },
@@ -403,7 +403,7 @@ export async function seedDatabase() {
     await query(
       `INSERT INTO site_content (section_key, title, content, is_active)
        VALUES ($1, $2, $3, true)
-       ON CONFLICT (section_key) DO NOTHING`,
+       ON CONFLICT (section_key) DO UPDATE SET content = EXCLUDED.content, title = EXCLUDED.title`,
       [c.key, c.title, JSON.stringify(c.content)]
     );
   }

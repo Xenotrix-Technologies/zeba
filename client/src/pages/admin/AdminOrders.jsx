@@ -89,6 +89,7 @@ export default function AdminOrders() {
               <option value="confirmed">Confirmed</option>
               <option value="processing">Processing</option>
               <option value="shipped">Shipped</option>
+              <option value="out_for_delivery">Out For Delivery</option>
               <option value="delivered">Delivered</option>
               <option value="cancelled">Cancelled</option>
             </select>
@@ -105,6 +106,7 @@ export default function AdminOrders() {
               <option value="paid">Paid</option>
               <option value="pending">Pending</option>
               <option value="failed">Failed</option>
+              <option value="refunded">Refunded</option>
             </select>
           </div>
         </div>

@@ -69,8 +69,8 @@ export const businessConfig = {
 
   // Social Channels
   social: {
-    instagram: env.INSTAGRAM_URL || 'https://instagram.com/zeba.care',
-    facebook: env.FACEBOOK_URL || 'https://facebook.com/zeba.care',
+    instagram: env.INSTAGRAM_URL || 'https://www.instagram.com/zebaofficial.in/?hl=en',
+    facebook: env.FACEBOOK_URL || 'https://www.facebook.com/profile.php?id=61594599914786',
     youtube: env.YOUTUBE_URL || 'https://youtube.com/@zeba.care',
     twitter: env.TWITTER_URL || 'https://x.com/zeba_care',
     linkedin: env.LINKEDIN_URL || 'https://linkedin.com/company/zeba-care'

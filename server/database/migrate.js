@@ -232,6 +232,106 @@ const INLINE_MIGRATIONS = [
       CREATE INDEX IF NOT EXISTS idx_reviews_product_id ON reviews(product_id);
       CREATE INDEX IF NOT EXISTS idx_reviews_is_approved ON reviews(is_approved);
     `
+  },
+  {
+    name: '004_payment_order_resilience.sql',
+    sql: `
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS currency VARCHAR(10) DEFAULT 'INR';
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS razorpay_order_id VARCHAR(255);
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS razorpay_payment_id VARCHAR(255);
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS cancelled_at TIMESTAMP WITH TIME ZONE;
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP WITH TIME ZONE;
+
+      ALTER TABLE payments ADD COLUMN IF NOT EXISTS webhook_event_id VARCHAR(255);
+      ALTER TABLE payments ADD COLUMN IF NOT EXISTS fee NUMERIC(10, 2) DEFAULT 0.00;
+      ALTER TABLE payments ADD COLUMN IF NOT EXISTS tax NUMERIC(10, 2) DEFAULT 0.00;
+
+      CREATE TABLE IF NOT EXISTS payment_events (
+          id SERIAL PRIMARY KEY,
+          event_id VARCHAR(255) NOT NULL UNIQUE,
+          event_type VARCHAR(100) NOT NULL,
+          razorpay_order_id VARCHAR(255),
+          razorpay_payment_id VARCHAR(255),
+          payload JSONB NOT NULL,
+          status VARCHAR(50) DEFAULT 'processed',
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_orders_razorpay_order_id ON orders(razorpay_order_id);
+      CREATE INDEX IF NOT EXISTS idx_orders_razorpay_payment_id ON orders(razorpay_payment_id);
+      CREATE INDEX IF NOT EXISTS idx_payments_razorpay_payment_id ON payments(razorpay_payment_id);
+      CREATE INDEX IF NOT EXISTS idx_payment_events_event_id ON payment_events(event_id);
+      CREATE INDEX IF NOT EXISTS idx_payment_events_rzp_order_id ON payment_events(razorpay_order_id);
+    `
+  },
+  {
+    name: '005_order_management_enhancements.sql',
+    sql: `
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_number VARCHAR(100);
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS courier_partner VARCHAR(100);
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS estimated_delivery_date DATE;
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivered_at TIMESTAMP WITH TIME ZONE;
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS cancellation_reason TEXT;
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS refund_status VARCHAR(50) DEFAULT 'not_applicable';
+
+      CREATE TABLE IF NOT EXISTS order_status_history (
+          id SERIAL PRIMARY KEY,
+          order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE,
+          previous_status VARCHAR(50),
+          new_status VARCHAR(50) NOT NULL,
+          changed_by VARCHAR(50) DEFAULT 'admin',
+          notes TEXT,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_order_status_history_order_id ON order_status_history(order_id);
+      CREATE INDEX IF NOT EXISTS idx_order_status_history_created_at ON order_status_history(created_at);
+      CREATE INDEX IF NOT EXISTS idx_orders_refund_status ON orders(refund_status);
+      CREATE INDEX IF NOT EXISTS idx_orders_tracking_number ON orders(tracking_number);
+
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_order_notifications_unique_event ON order_notifications(order_id, notification_type);
+    `
+  },
+  {
+    name: '006_security_hardening_rls.sql',
+    sql: `
+      ALTER TABLE IF EXISTS admins ENABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS customers ENABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS addresses ENABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS orders ENABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS order_items ENABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS payments ENABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS payment_events ENABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS order_status_history ENABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS order_notifications ENABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS customer_notifications ENABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS contact_messages ENABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS store_settings ENABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS site_content ENABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS faqs ENABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS reviews ENABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS b2b_inquiries ENABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS products ENABLE ROW LEVEL SECURITY;
+
+      DROP POLICY IF EXISTS "Public Read Active Products" ON products;
+      DROP POLICY IF EXISTS "Public Read Store Settings" ON store_settings;
+      DROP POLICY IF EXISTS "Public Read Site Content" ON site_content;
+      DROP POLICY IF EXISTS "Public Read Active FAQs" ON faqs;
+      DROP POLICY IF EXISTS "Public Read Approved Reviews" ON reviews;
+      DROP POLICY IF EXISTS "Public Submit Contact Message" ON contact_messages;
+      DROP POLICY IF EXISTS "Public Submit Review" ON reviews;
+      DROP POLICY IF EXISTS "Public Submit B2B Inquiry" ON b2b_inquiries;
+
+      CREATE POLICY "Public Read Active Products" ON products FOR SELECT USING (is_active = true);
+      CREATE POLICY "Public Read Store Settings" ON store_settings FOR SELECT USING (true);
+      CREATE POLICY "Public Read Site Content" ON site_content FOR SELECT USING (is_active = true);
+      CREATE POLICY "Public Read Active FAQs" ON faqs FOR SELECT USING (is_active = true);
+      CREATE POLICY "Public Read Approved Reviews" ON reviews FOR SELECT USING (is_approved = true);
+
+      CREATE POLICY "Public Submit Contact Message" ON contact_messages FOR INSERT WITH CHECK (true);
+      CREATE POLICY "Public Submit Review" ON reviews FOR INSERT WITH CHECK (true);
+      CREATE POLICY "Public Submit B2B Inquiry" ON b2b_inquiries FOR INSERT WITH CHECK (true);
+    `
   }
 ];
 

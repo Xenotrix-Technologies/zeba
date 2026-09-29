@@ -30,7 +30,7 @@ const DEFAULT_TIMELINE = [
     action: 'Zero bare-skin contact required'
   },
   {
-    time: 'Minute 15',
+    time: 'Minute 5',
     title: 'Thermal Activation',
     temp: '50°C',
     reliefLevel: '45%',
@@ -68,7 +68,7 @@ const DEFAULT_STEPS = [
   {
     step: '02',
     title: 'Air-Activated Heat',
-    subtitle: 'Reaches 50–55°C in 15 mins',
+    subtitle: 'Reaches 50–55°C in 5 mins',
     desc: 'Exposed to air, the 100% natural mineral thermal core activates rapidly without microwaves or cords.',
     badge: 'Instant Thermal Core',
     icon: Flame,
@@ -200,11 +200,20 @@ export default function Home() {
             {/* Hero Text & Value Proposition */}
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
               
-              {/* Eyebrow badge */}
-              <div className="inline-flex items-center space-x-2 bg-white/95 border border-brand-primaryPink/30 rounded-full px-3.5 py-1.5 shadow-sm backdrop-blur-md">
-                <span className="w-2 h-2 rounded-full bg-brand-brightPink animate-ping" />
-                <span className="text-xs font-bold text-brand-deepPurple tracking-wide">
-                  Air-Activated • Up to 8 Hours Natural Warmth
+              {/* Modern Trust & Innovation Eyebrow */}
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 sm:gap-3.5 text-xs">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-brightPink/10 border border-brand-brightPink/25 text-brand-brightPink font-black text-[11px] tracking-wide shadow-xs">
+                  <Sparkles className="w-3 h-3 text-brand-gold animate-pulse" />
+                  India’s 1st
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-brand-darkPurple font-bold text-xs">
+                  <Award className="w-3.5 h-3.5 text-brand-gold flex-shrink-0" />
+                  Premium Imported Quality
+                </span>
+                <span className="hidden sm:inline text-brand-primaryPink/40">•</span>
+                <span className="inline-flex items-center gap-1.5 text-[#805A82] font-semibold text-xs">
+                  <Flame className="w-3.5 h-3.5 text-brand-brightPink flex-shrink-0" />
+                  Air-Activated 8H Heat
                 </span>
               </div>
 
@@ -244,7 +253,7 @@ export default function Home() {
                 <div className="p-3 rounded-2xl bg-white/90 border border-brand-primaryPink/20 shadow-sm backdrop-blur-sm">
                   <Flame className="w-4 h-4 text-brand-brightPink mx-auto mb-1" />
                   <span className="text-[11px] font-bold text-brand-deepPurple block">50–55°C Warmth</span>
-                  <span className="text-[9px] text-[#805A82]">Heats in 15 mins</span>
+                  <span className="text-[9px] text-[#805A82]">Heats in 5 mins</span>
                 </div>
                 <div className="p-3 rounded-2xl bg-white/90 border border-brand-primaryPink/20 shadow-sm backdrop-blur-sm">
                   <Clock className="w-4 h-4 text-brand-gold mx-auto mb-1" />
@@ -696,22 +705,45 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 8. FINAL HIGH-CONVERTING CTA BANNER (Packaging Plum & Deep Purple) */}
-      <section className="py-20 bg-gradient-to-tr from-[#38283D] to-[#5F3F68] text-white text-center relative overflow-hidden border-t border-brand-gold/30">
+      {/* 8. FINAL HIGH-CONVERTING CTA BANNER WITH FULL BACKGROUND VIDEO */}
+      <section className="py-24 sm:py-28 text-white text-center relative overflow-hidden border-t border-brand-gold/30 bg-[#2A1D2E]">
+        
+        {/* Full-Bleed Ambient Background Video */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            poster="/videos/zeba-video-poster.jpg"
+            className="w-full h-full object-cover scale-105 filter brightness-75"
+            src="/videos/zeba-comfort-video.mp4"
+          >
+            <source src="/videos/zeba-comfort-video.mp4" type="video/mp4" />
+            <source src="/images/gemini_generated_video_d291804a (online-video-cutter.com).mp4" type="video/mp4" />
+          </video>
+          {/* Deep plum & dark purple gradient overlays for contrast and brand harmony */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#2A1730]/95 via-[#38283D]/80 to-[#5F3F68]/85 mix-blend-multiply" />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
+        </div>
+
+        {/* Floating Brand Glows */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-brightPink/15 rounded-full blur-3xl pointer-events-none z-0" />
+
+        {/* Content Container */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-6">
-          <span className="text-xs font-bold uppercase tracking-widest text-brand-lightGold bg-white/10 px-4 py-1.5 rounded-full border border-brand-gold/40">
-            Convenient Period Pain Relief
-          </span>
-          <h2 className="font-display font-black text-3xl sm:text-5xl text-white">
+          <h2 className="font-display font-black text-3xl sm:text-5xl lg:text-6xl text-white tracking-tight leading-[1.1] drop-shadow-md">
             Ready for Worry-Free Period Comfort?
           </h2>
-          <p className="text-pink-100/90 text-sm sm:text-base max-w-xl mx-auto">
+
+          <p className="text-pink-100/90 text-sm sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-medium drop-shadow-sm">
             Order your ZEBA Periods Pain Relief Heating Pads today and experience gentle soothing warmth whenever you need it.
           </p>
+
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-3">
             <Link
               to="/products"
-              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-brand-brightPink to-brand-deepPink hover:opacity-95 text-white font-bold text-sm shadow-xl shadow-brand-pink/30 flex items-center justify-center space-x-2 btn-tactile animate-shimmer"
+              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-brand-brightPink to-brand-deepPink hover:opacity-95 text-white font-bold text-sm shadow-xl shadow-brand-pink/35 flex items-center justify-center space-x-2 btn-tactile animate-shimmer"
             >
               <span>Shop Heating Pads</span>
               <ArrowRight className="w-4 h-4" />
@@ -721,11 +753,27 @@ export default function Home() {
               href={getWhatsAppUrl('Hi ZEBA Team, I want to order ZEBA Heating Pads')}
               target="_blank"
               rel="noreferrer"
-              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-lg flex items-center justify-center space-x-2 btn-tactile"
+              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-xl shadow-emerald-900/30 flex items-center justify-center space-x-2 btn-tactile"
             >
               <MessageCircle className="w-4 h-4" />
               <span>WhatsApp Us</span>
             </a>
+          </div>
+
+          {/* Micro Trust Strip */}
+          <div className="pt-4 flex flex-wrap items-center justify-center gap-6 text-xs text-pink-200/90 font-medium">
+            <span className="flex items-center space-x-1.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <span>100% Drug-Free</span>
+            </span>
+            <span className="flex items-center space-x-1.5">
+              <Flame className="w-4 h-4 text-brand-brightPink" />
+              <span>8H Air-Activated Warmth</span>
+            </span>
+            <span className="flex items-center space-x-1.5">
+              <Sparkles className="w-4 h-4 text-brand-gold" />
+              <span>Discreet & Odorless</span>
+            </span>
           </div>
         </div>
       </section>

@@ -21,6 +21,7 @@ export default function RazorpayModal({
           razorpay_order_id: orderData.razorpayOrderId,
           razorpay_payment_id: simulatedPaymentId,
           razorpay_signature: 'SIMULATED_TEST_SIGNATURE_OK',
+          order_id: orderData.orderId,
           is_test_mode: true
         });
       } else {

@@ -15,6 +15,14 @@ export async function requireAdminAuth(req, res, next) {
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, config.JWT_SECRET);
 
+    // Verify token role claim
+    if (decoded.role !== 'admin' && decoded.role !== 'superadmin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden. Administrative privileges required.'
+      });
+    }
+
     const result = await query(
       'SELECT id, username, email, role, created_at FROM admins WHERE id = $1',
       [decoded.id]
@@ -27,7 +35,15 @@ export async function requireAdminAuth(req, res, next) {
       });
     }
 
-    req.admin = result.rows[0];
+    const admin = result.rows[0];
+    if (admin.role !== 'admin' && admin.role !== 'superadmin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden. Account does not have administrative rights.'
+      });
+    }
+
+    req.admin = admin;
     next();
   } catch (err) {
     if (err.name === 'TokenExpiredError') {

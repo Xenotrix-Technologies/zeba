@@ -2,6 +2,44 @@ import { query } from '../config/db.js';
 import { sendCustomerStatusNotification, generateWhatsAppMessage } from '../services/notificationService.js';
 
 /**
+ * Valid state transitions for order lifecycle
+ */
+export const VALID_ORDER_TRANSITIONS = {
+  pending: ['confirmed', 'cancelled'],
+  confirmed: ['processing', 'cancelled'],
+  processing: ['shipped', 'cancelled'],
+  shipped: ['out_for_delivery', 'delivered', 'cancelled'],
+  out_for_delivery: ['delivered', 'cancelled'],
+  delivered: [], // Terminal state
+  cancelled: []  // Terminal state
+};
+
+/**
+ * Helper to validate state transitions
+ */
+export function validateStatusTransition(currentStatus, targetStatus) {
+  if (!currentStatus || !targetStatus) {
+    return { valid: false, message: 'Current and target statuses are required.' };
+  }
+  const curr = currentStatus.toLowerCase().trim();
+  const target = targetStatus.toLowerCase().trim();
+
+  if (curr === target) {
+    return { valid: true, isNoOp: true };
+  }
+
+  const allowed = VALID_ORDER_TRANSITIONS[curr] || [];
+  if (!allowed.includes(target)) {
+    return {
+      valid: false,
+      message: `Invalid order status transition from "${curr}" to "${target}". Allowed transitions: ${allowed.length > 0 ? allowed.join(', ') : 'None (Terminal status)'}.`
+    };
+  }
+
+  return { valid: true, isNoOp: false };
+}
+
+/**
  * GET /api/admin/dashboard
  * Live PostgreSQL KPIs & metrics
  */
@@ -15,6 +53,7 @@ export async function getDashboardMetrics(req, res, next) {
         COUNT(*) FILTER (WHERE status = 'confirmed') AS confirmed_orders,
         COUNT(*) FILTER (WHERE status = 'processing') AS processing_orders,
         COUNT(*) FILTER (WHERE status = 'shipped') AS shipped_orders,
+        COUNT(*) FILTER (WHERE status = 'out_for_delivery') AS out_for_delivery_orders,
         COUNT(*) FILTER (WHERE status = 'delivered') AS delivered_orders,
         COUNT(*) FILTER (WHERE status = 'cancelled') AS cancelled_orders,
         COUNT(*) FILTER (WHERE payment_status = 'paid') AS paid_orders,
@@ -66,6 +105,7 @@ export async function getDashboardMetrics(req, res, next) {
         confirmedOrders: parseInt(stats.confirmed_orders || 0, 10),
         processingOrders: parseInt(stats.processing_orders || 0, 10),
         shippedOrders: parseInt(stats.shipped_orders || 0, 10),
+        outForDeliveryOrders: parseInt(stats.out_for_delivery_orders || 0, 10),
         deliveredOrders: parseInt(stats.delivered_orders || 0, 10),
         cancelledOrders: parseInt(stats.cancelled_orders || 0, 10),
         totalCustomers: parseInt(customerCountRes.rows[0]?.total_customers || 0, 10),
@@ -83,25 +123,51 @@ export async function getDashboardMetrics(req, res, next) {
 
 /**
  * GET /api/admin/orders
- * Filter, search, paginate orders
+ * Filter, search, paginate, and sort orders
  */
 export async function getAdminOrders(req, res, next) {
   try {
-    const { status, payment_status, search, page = 1, limit = 20 } = req.query;
-    const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+    const {
+      status,
+      payment_status,
+      refund_status,
+      search,
+      startDate,
+      endDate,
+      sortBy = 'created_at',
+      sortOrder = 'DESC',
+      page = 1,
+      limit = 20
+    } = req.query;
 
+    const offset = (Math.max(1, parseInt(page, 10)) - 1) * Math.max(1, parseInt(limit, 10));
     const conditions = [];
     const params = [];
     let paramIndex = 1;
 
     if (status && status !== 'all') {
       conditions.push(`o.status = $${paramIndex++}`);
-      params.push(status);
+      params.push(status.toLowerCase().trim());
     }
 
     if (payment_status && payment_status !== 'all') {
       conditions.push(`o.payment_status = $${paramIndex++}`);
-      params.push(payment_status);
+      params.push(payment_status.toLowerCase().trim());
+    }
+
+    if (refund_status && refund_status !== 'all') {
+      conditions.push(`o.refund_status = $${paramIndex++}`);
+      params.push(refund_status.toLowerCase().trim());
+    }
+
+    if (startDate) {
+      conditions.push(`o.created_at >= $${paramIndex++}`);
+      params.push(new Date(startDate).toISOString());
+    }
+
+    if (endDate) {
+      conditions.push(`o.created_at <= $${paramIndex++}`);
+      params.push(new Date(endDate).toISOString());
     }
 
     if (search && search.trim() !== '') {
@@ -109,13 +175,24 @@ export async function getAdminOrders(req, res, next) {
         o.order_number ILIKE $${paramIndex} OR
         c.name ILIKE $${paramIndex} OR
         c.email ILIKE $${paramIndex} OR
-        c.phone ILIKE $${paramIndex}
+        c.phone ILIKE $${paramIndex} OR
+        o.tracking_number ILIKE $${paramIndex}
       )`);
       params.push(`%${search.trim()}%`);
       paramIndex++;
     }
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    // Allowed sort columns
+    const allowedSortCols = {
+      created_at: 'o.created_at',
+      total_amount: 'o.total_amount',
+      order_number: 'o.order_number',
+      status: 'o.status'
+    };
+    const sortCol = allowedSortCols[sortBy] || 'o.created_at';
+    const orderDirection = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
     const countQuery = `
       SELECT COUNT(*) AS total
@@ -127,15 +204,17 @@ export async function getAdminOrders(req, res, next) {
     const total = parseInt(countRes.rows[0]?.total || 0, 10);
 
     const ordersQuery = `
-      SELECT o.id, o.order_number, o.status, o.payment_status, o.subtotal,
-             o.shipping_fee, o.total_amount, o.created_at, o.updated_at,
+      SELECT o.id, o.order_number, o.status, o.payment_status, o.refund_status, o.subtotal,
+             o.shipping_fee, o.total_amount, o.currency, o.tracking_number, o.courier_partner,
+             o.estimated_delivery_date, o.delivered_at, o.cancelled_at, o.notes,
+             o.created_at, o.updated_at,
              c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone,
              (SELECT COUNT(*) FROM order_items WHERE order_id = o.id) AS total_items,
              (SELECT string_agg(product_name, ', ') FROM order_items WHERE order_id = o.id) AS products_summary
       FROM orders o
       JOIN customers c ON o.customer_id = c.id
       ${whereClause}
-      ORDER BY o.created_at DESC
+      ORDER BY ${sortCol} ${orderDirection}
       LIMIT $${paramIndex++} OFFSET $${paramIndex++}
     `;
 
@@ -155,7 +234,7 @@ export async function getAdminOrders(req, res, next) {
 
 /**
  * GET /api/admin/orders/:id
- * Full detailed order view including customer notification history
+ * Full detailed order view including customer, address, items, transaction, timeline history, and notification logs
  */
 export async function getAdminOrderDetail(req, res, next) {
   try {
@@ -205,6 +284,18 @@ export async function getAdminOrderDetail(req, res, next) {
       [order.id]
     );
 
+    // Fetch status history timeline
+    let statusHistory = [];
+    try {
+      const historyRes = await query(
+        `SELECT * FROM order_status_history WHERE order_id = $1 ORDER BY created_at ASC`,
+        [order.id]
+      );
+      statusHistory = historyRes.rows;
+    } catch (e) {
+      statusHistory = [];
+    }
+
     // Fetch notification history
     let notifications = [];
     try {
@@ -222,6 +313,7 @@ export async function getAdminOrderDetail(req, res, next) {
       order: {
         ...order,
         items: itemsRes.rows,
+        statusHistory,
         notifications
       }
     });
@@ -232,42 +324,143 @@ export async function getAdminOrderDetail(req, res, next) {
 
 /**
  * PATCH /api/admin/orders/:id/status
- * Update order status and automatically dispatch status notifications to customer
+ * Authoritative Order Status Transition & Update
+ * - Enforces valid state machine transition rules
+ * - Appends audit record to order_status_history
+ * - Handles inventory restoration on cancellation
+ * - Triggers transactional notifications
  */
 export async function updateOrderStatus(req, res, next) {
   try {
     const { id } = req.params;
-    const { status, payment_status, notes, notify_customer = true } = req.body;
+    const {
+      status,
+      payment_status,
+      refund_status,
+      notes,
+      cancellation_reason,
+      tracking_number,
+      courier_partner,
+      estimated_delivery_date,
+      notify_customer = true
+    } = req.body;
 
+    const isNumeric = /^\d+$/.test(id);
+    const existingRes = isNumeric
+      ? await query('SELECT * FROM orders WHERE id = $1 LIMIT 1', [parseInt(id, 10)])
+      : await query('SELECT * FROM orders WHERE order_number = $1 LIMIT 1', [id]);
+
+    if (existingRes.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Order not found.' });
+    }
+
+    const currentOrder = existingRes.rows[0];
     const updates = [];
     const params = [];
     let paramIndex = 1;
 
-    if (status) {
-      const validStatuses = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
+    let targetStatus = currentOrder.status;
+    let isStatusChange = false;
+
+    // 1. Validate Order Status Transition
+    if (status && status !== currentOrder.status) {
+      const validStatuses = ['pending', 'confirmed', 'processing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled'];
       if (!validStatuses.includes(status)) {
-        return res.status(400).json({ success: false, message: `Invalid status. Must be one of: ${validStatuses.join(', ')}` });
+        return res.status(400).json({
+          success: false,
+          message: `Invalid order status. Must be one of: ${validStatuses.join(', ')}`
+        });
       }
+
+      const check = validateStatusTransition(currentOrder.status, status);
+      if (!check.valid) {
+        return res.status(400).json({
+          success: false,
+          message: check.message
+        });
+      }
+
+      targetStatus = status;
+      isStatusChange = true;
       updates.push(`status = $${paramIndex++}`);
       params.push(status);
+
+      // Status-specific timestamps & inventory adjustments
+      if (status === 'delivered') {
+        updates.push('delivered_at = CURRENT_TIMESTAMP');
+      } else if (status === 'cancelled') {
+        updates.push('cancelled_at = CURRENT_TIMESTAMP');
+        const reason = cancellation_reason || notes || 'Cancelled by admin';
+        updates.push(`cancellation_reason = $${paramIndex++}`);
+        params.push(reason);
+
+        // Restore Inventory Stock if order had deducted stock (confirmed/processing/shipped)
+        if (['confirmed', 'processing', 'shipped', 'out_for_delivery'].includes(currentOrder.status)) {
+          const itemsRes = await query('SELECT product_id, quantity FROM order_items WHERE order_id = $1', [currentOrder.id]);
+          for (const itm of itemsRes.rows) {
+            await query(
+              'UPDATE products SET stock_quantity = stock_quantity + $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+              [itm.quantity, itm.product_id]
+            );
+          }
+        }
+      }
     }
 
-    if (payment_status) {
-      const validPaymentStatuses = ['pending', 'paid', 'failed', 'refunded'];
+    // 2. Validate Payment Status
+    if (payment_status && payment_status !== currentOrder.payment_status) {
+      const validPaymentStatuses = ['pending', 'paid', 'failed', 'cancelled', 'refunded'];
       if (!validPaymentStatuses.includes(payment_status)) {
-        return res.status(400).json({ success: false, message: `Invalid payment status. Must be one of: ${validPaymentStatuses.join(', ')}` });
+        return res.status(400).json({
+          success: false,
+          message: `Invalid payment status. Must be one of: ${validPaymentStatuses.join(', ')}`
+        });
       }
       updates.push(`payment_status = $${paramIndex++}`);
       params.push(payment_status);
     }
 
+    // 3. Validate Refund Status
+    if (refund_status && refund_status !== currentOrder.refund_status) {
+      const validRefundStatuses = ['not_applicable', 'requested', 'processing', 'completed', 'failed'];
+      if (!validRefundStatuses.includes(refund_status)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid refund status. Must be one of: ${validRefundStatuses.join(', ')}`
+        });
+      }
+      updates.push(`refund_status = $${paramIndex++}`);
+      params.push(refund_status);
+    }
+
+    // 4. Shipping & Tracking Details
+    if (tracking_number !== undefined) {
+      updates.push(`tracking_number = $${paramIndex++}`);
+      params.push(tracking_number?.trim() || null);
+    }
+    if (courier_partner !== undefined) {
+      updates.push(`courier_partner = $${paramIndex++}`);
+      params.push(courier_partner?.trim() || null);
+    }
+    if (estimated_delivery_date !== undefined) {
+      updates.push(`estimated_delivery_date = $${paramIndex++}`);
+      params.push(estimated_delivery_date || null);
+    }
     if (notes !== undefined) {
       updates.push(`notes = $${paramIndex++}`);
-      params.push(notes);
+      params.push(notes?.trim() || null);
+    }
+
+    if (updates.length === 0) {
+      return res.json({
+        success: true,
+        message: 'No changes required (idempotent update).',
+        order: currentOrder
+      });
     }
 
     updates.push('updated_at = CURRENT_TIMESTAMP');
-    params.push(id);
+    params.push(currentOrder.id);
 
     const updateQuery = `
       UPDATE orders
@@ -277,14 +470,24 @@ export async function updateOrderStatus(req, res, next) {
     `;
 
     const result = await query(updateQuery, params);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, message: 'Order not found.' });
-    }
-
     const updatedOrder = result.rows[0];
 
-    // Fetch customer details to send notification
+    // 5. Append to order_status_history if status changed or notes provided
+    if (isStatusChange) {
+      await query(
+        `INSERT INTO order_status_history (order_id, previous_status, new_status, changed_by, notes)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [
+          updatedOrder.id,
+          currentOrder.status,
+          targetStatus,
+          req.admin?.username || 'admin',
+          notes || cancellation_reason || null
+        ]
+      );
+    }
+
+    // 6. Fetch customer details to dispatch notification
     const custRes = await query(
       'SELECT name, email, phone FROM customers WHERE id = $1',
       [updatedOrder.customer_id]
@@ -296,17 +499,19 @@ export async function updateOrderStatus(req, res, next) {
     if (custRes.rows.length > 0) {
       const customer = custRes.rows[0];
 
-      if (notify_customer && status) {
+      if (notify_customer && isStatusChange) {
         notificationResult = await sendCustomerStatusNotification({
           orderId: updatedOrder.id,
           orderNumber: updatedOrder.order_number,
           customerName: customer.name,
           customerEmail: customer.email,
           customerPhone: customer.phone,
-          status: status || updatedOrder.status,
-          paymentStatus: payment_status || updatedOrder.payment_status,
+          status: targetStatus,
+          paymentStatus: updatedOrder.payment_status,
           notes: notes || updatedOrder.notes,
-          totalAmount: updatedOrder.total_amount
+          totalAmount: updatedOrder.total_amount,
+          courierPartner: updatedOrder.courier_partner,
+          trackingNumber: updatedOrder.tracking_number
         });
       }
 
@@ -317,7 +522,7 @@ export async function updateOrderStatus(req, res, next) {
           customer_name: customer.name,
           total_amount: updatedOrder.total_amount
         },
-        status || updatedOrder.status,
+        targetStatus,
         notes || updatedOrder.notes
       );
 
@@ -326,10 +531,19 @@ export async function updateOrderStatus(req, res, next) {
       whatsappLink = `https://wa.me/${fullPhone}?text=${encodeURIComponent(msg)}`;
     }
 
+    // Fetch updated status history
+    const historyRes = await query(
+      'SELECT * FROM order_status_history WHERE order_id = $1 ORDER BY created_at ASC',
+      [updatedOrder.id]
+    );
+
     res.json({
       success: true,
-      message: `Order status updated to "${status || updatedOrder.status}". Customer notified successfully.`,
-      order: updatedOrder,
+      message: `Order status updated to "${targetStatus}".`,
+      order: {
+        ...updatedOrder,
+        statusHistory: historyRes.rows
+      },
       notification: notificationResult,
       whatsappLink
     });
@@ -565,12 +779,14 @@ export async function updateAdminMessageStatus(req, res, next) {
 
 /**
  * POST /api/admin/clear-test-data
- * Clears all dummy test orders, order items, addresses, customer records, and messages.
+ * Clears test orders, status history, payment events, and notifications
  */
 export async function clearAllTestData(req, res, next) {
   try {
-    await query('DELETE FROM payments');
+    try { await query('DELETE FROM payment_events'); } catch (_) {}
+    try { await query('DELETE FROM order_status_history'); } catch (_) {}
     try { await query('DELETE FROM order_notifications'); } catch (_) {}
+    await query('DELETE FROM payments');
     await query('DELETE FROM order_items');
     await query('DELETE FROM orders');
     await query('DELETE FROM addresses');

@@ -11,6 +11,7 @@ export const config = {
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
   RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID || 'rzp_test_zebaPeriodCare99',
   RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET || 'zebaSecretKeyRazorpay9988',
+  RAZORPAY_WEBHOOK_SECRET: process.env.RAZORPAY_WEBHOOK_SECRET || process.env.RAZORPAY_KEY_SECRET || 'zebaSecretKeyRazorpay9988',
   WHATSAPP_NUMBER: businessConfig.whatsappNumber,
   WHATSAPP_DISPLAY: businessConfig.whatsappDisplay,
   CONTACT_EMAIL: businessConfig.supportEmail,

@@ -88,23 +88,24 @@ export default function Checkout() {
     setLoading(true);
 
     try {
-      // 1. Request backend to calculate database verified price & create Razorpay order
+      // 1. Request backend to validate stock, calculate database verified price & create Razorpay order
       const orderPayload = {
         items: cart.map(i => ({ productId: i.id, quantity: i.quantity })),
         customer: {
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim()
         },
         address: {
-          house_building: formData.houseBuilding,
-          street: formData.street,
-          area: formData.area,
-          city: formData.city,
-          state: formData.state,
-          pincode: formData.pincode,
-          country: formData.country
-        }
+          house_building: formData.houseBuilding.trim(),
+          street: formData.street.trim(),
+          area: formData.area.trim(),
+          city: formData.city.trim(),
+          state: formData.state.trim(),
+          pincode: formData.pincode.trim(),
+          country: formData.country || 'India'
+        },
+        notes: formData.notes?.trim() || ''
       };
 
       const res = await api.post('/payments/create-order', orderPayload);
@@ -122,21 +123,37 @@ export default function Checkout() {
           amount: res.amount,
           currency: res.currency || 'INR',
           name: 'ZEBA Period Care',
-          description: 'Payment for ZEBA Period Pain Relief Heating Pad',
-          image: '/images/zeba-1pack.jpg',
+          description: `Order ${res.orderNumber} - Period Pain Relief Heating Pads`,
+          image: '/images/zeba-logo.png',
           order_id: res.razorpayOrderId,
           handler: async (response) => {
             await handlePaymentVerification({
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
+              order_id: res.orderId,
               is_test_mode: false
             });
           },
+          modal: {
+            ondismiss: async () => {
+              setLoading(false);
+              addToast('Payment was cancelled. Your order has not been confirmed. You can retry anytime.', 'info');
+              try {
+                await api.post('/payments/cancel', {
+                  razorpay_order_id: res.razorpayOrderId,
+                  order_id: res.orderId,
+                  reason: 'Customer closed the Razorpay payment window.'
+                });
+              } catch (e) {
+                // Non-blocking
+              }
+            }
+          },
           prefill: {
-            name: formData.name,
-            email: formData.email,
-            contact: formData.phone
+            name: formData.name.trim(),
+            email: formData.email.trim(),
+            contact: formData.phone.trim()
           },
           theme: {
             color: '#E84FA5'
@@ -144,9 +161,20 @@ export default function Checkout() {
         };
 
         const rzp = new window.Razorpay(options);
-        rzp.on('payment.failed', (failRes) => {
-          addToast(failRes.error?.description || 'Payment was unsuccessful.', 'error');
+        rzp.on('payment.failed', async (failRes) => {
           setLoading(false);
+          const errorDesc = failRes.error?.description || 'Payment was not completed. Your order has not been confirmed. You can retry the payment.';
+          addToast(errorDesc, 'error');
+          try {
+            await api.post('/payments/fail', {
+              razorpay_order_id: res.razorpayOrderId,
+              order_id: res.orderId,
+              error_code: failRes.error?.code || 'PAYMENT_FAILED',
+              error_description: failRes.error?.description || errorDesc
+            });
+          } catch (e) {
+            // Non-blocking
+          }
         });
         rzp.open();
       } else {
@@ -156,7 +184,6 @@ export default function Checkout() {
 
     } catch (err) {
       addToast(err.message || 'Payment initialization failed.', 'error');
-    } finally {
       setLoading(false);
     }
   };
@@ -168,23 +195,8 @@ export default function Checkout() {
         razorpay_order_id: paymentResult.razorpay_order_id,
         razorpay_payment_id: paymentResult.razorpay_payment_id,
         razorpay_signature: paymentResult.razorpay_signature,
-        is_test_mode: paymentResult.is_test_mode,
-        customer: {
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone
-        },
-        address: {
-          house_building: formData.houseBuilding,
-          street: formData.street,
-          area: formData.area,
-          city: formData.city,
-          state: formData.state,
-          pincode: formData.pincode,
-          country: formData.country
-        },
-        items: cart.map(i => ({ productId: i.id, quantity: i.quantity })),
-        notes: formData.notes
+        order_id: paymentResult.order_id || razorpayOrder?.orderId,
+        is_test_mode: paymentResult.is_test_mode
       };
 
       const res = await api.post('/payments/verify', verifyPayload);
@@ -194,10 +206,10 @@ export default function Checkout() {
         addToast('Order confirmed and paid successfully!', 'success');
         navigate(`/order-success?order=${res.order.orderNumber}`);
       } else {
-        throw new Error(res.message || 'Verification failed.');
+        throw new Error(res.message || 'Payment verification failed.');
       }
     } catch (err) {
-      addToast(err.message || 'Payment verification failed.', 'error');
+      addToast(err.message || 'Payment verification failed. If your account was debited, our team will confirm your order shortly.', 'error');
     } finally {
       setLoading(false);
       setShowSimulatedModal(false);

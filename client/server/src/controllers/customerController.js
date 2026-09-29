@@ -215,9 +215,11 @@ export async function getCustomerProfile(req, res, next) {
 export async function getCustomerOrders(req, res, next) {
   try {
     const ordersRes = await query(
-      `SELECT o.id, o.order_number, o.status, o.payment_status, o.subtotal,
-              o.shipping_fee, o.total_amount, o.notes, o.created_at,
-              a.house_building, a.city, a.state, a.pincode
+      `SELECT o.id, o.order_number, o.status, o.payment_status, o.refund_status,
+              o.subtotal, o.shipping_fee, o.total_amount, o.currency,
+              o.tracking_number, o.courier_partner, o.estimated_delivery_date,
+              o.delivered_at, o.cancelled_at, o.cancellation_reason, o.notes, o.created_at,
+              a.house_building, a.street, a.area, a.city, a.state, a.pincode
        FROM orders o
        LEFT JOIN addresses a ON o.address_id = a.id
        WHERE o.customer_id = $1
@@ -228,14 +230,24 @@ export async function getCustomerOrders(req, res, next) {
     const ordersWithItems = [];
     for (const ord of ordersRes.rows) {
       const itemsRes = await query(
-        `SELECT oi.*, p.images FROM order_items oi
+        `SELECT oi.*, p.images, p.slug FROM order_items oi
          LEFT JOIN products p ON oi.product_id = p.id
          WHERE oi.order_id = $1`,
         [ord.id]
       );
+
+      const historyRes = await query(
+        `SELECT id, previous_status, new_status, changed_by, notes, created_at
+         FROM order_status_history
+         WHERE order_id = $1
+         ORDER BY created_at ASC`,
+        [ord.id]
+      );
+
       ordersWithItems.push({
         ...ord,
-        items: itemsRes.rows
+        items: itemsRes.rows,
+        statusHistory: historyRes.rows
       });
     }
 
@@ -248,3 +260,4 @@ export async function getCustomerOrders(req, res, next) {
     next(err);
   }
 }
+

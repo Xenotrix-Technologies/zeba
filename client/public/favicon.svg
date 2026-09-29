@@ -5,9 +5,9 @@
       <stop offset="100%" stop-color="#38283D" />
     </linearGradient>
     <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FDF5D6" />
-      <stop offset="50%" stop-color="#D9B62F" />
-      <stop offset="100%" stop-color="#B5941E" />
+      <stop offset="0%" stop-color="#FFF8A0" />
+      <stop offset="50%" stop-color="#FFEA00" />
+      <stop offset="100%" stop-color="#D9B62F" />
     </linearGradient>
   </defs>
   <rect width="100" height="100" rx="24" fill="url(#bg)" />

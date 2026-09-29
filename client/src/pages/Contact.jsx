@@ -156,28 +156,24 @@ export default function Contact() {
               {/* Social Channels */}
               <div className="pt-4 border-t border-brand-primaryPink/15 flex items-center space-x-3">
                 <span className="text-xs font-bold text-[#805A82]">Follow us:</span>
-                {settings.social?.instagram && (
-                  <a
-                    href={settings.social.instagram}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="p-2 rounded-xl bg-brand-softPink hover:bg-brand-brightPink hover:text-white text-brand-deepPurple transition-colors border border-brand-primaryPink/20"
-                    aria-label="Instagram"
-                  >
-                    <Instagram className="w-4 h-4" />
-                  </a>
-                )}
-                {settings.social?.facebook && (
-                  <a
-                    href={settings.social.facebook}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="p-2 rounded-xl bg-brand-softPink hover:bg-brand-brightPink hover:text-white text-brand-deepPurple transition-colors border border-brand-primaryPink/20"
-                    aria-label="Facebook"
-                  >
-                    <Facebook className="w-4 h-4" />
-                  </a>
-                )}
+                <a
+                  href={settings.social?.instagram && !settings.social.instagram.includes('zeba.care') ? settings.social.instagram : 'https://www.instagram.com/zebaofficial.in/?hl=en'}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="p-2 rounded-xl bg-brand-softPink hover:bg-brand-brightPink hover:text-white text-brand-deepPurple transition-colors border border-brand-primaryPink/20"
+                  aria-label="Instagram"
+                >
+                  <Instagram className="w-4 h-4" />
+                </a>
+                <a
+                  href={settings.social?.facebook && !settings.social.facebook.includes('zeba.care') ? settings.social.facebook : 'https://www.facebook.com/profile.php?id=61594599914786'}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="p-2 rounded-xl bg-brand-softPink hover:bg-brand-brightPink hover:text-white text-brand-deepPurple transition-colors border border-brand-primaryPink/20"
+                  aria-label="Facebook"
+                >
+                  <Facebook className="w-4 h-4" />
+                </a>
               </div>
             </div>
           </div>

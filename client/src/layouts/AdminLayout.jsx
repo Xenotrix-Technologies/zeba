@@ -53,7 +53,7 @@ export default function AdminLayout() {
           <img 
             src="/images/zeba-logo.png" 
             alt="ZEBA Admin" 
-            className="h-8 w-auto object-contain brightness-0 invert" 
+            className="h-8 w-auto object-contain" 
           />
           <span className="text-xs uppercase tracking-wider font-extrabold text-brand-lightGold ml-1 border-l border-white/20 pl-2">Admin</span>
         </Link>
@@ -78,7 +78,7 @@ export default function AdminLayout() {
             <img 
               src="/images/zeba-logo.png" 
               alt="ZEBA" 
-              className="h-9 w-auto object-contain brightness-0 invert group-hover:opacity-90 transition-opacity" 
+              className="h-9 w-auto object-contain group-hover:opacity-90 transition-opacity" 
             />
             <span className="text-[10px] text-brand-lightGold font-bold tracking-widest uppercase block text-center pt-1 border-t border-white/10">
               Admin Control Hub

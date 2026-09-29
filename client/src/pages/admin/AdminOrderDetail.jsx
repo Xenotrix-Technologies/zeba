@@ -16,7 +16,10 @@ import {
   MessageCircle,
   Send,
   BellRing,
-  History
+  History,
+  Calendar,
+  RefreshCw,
+  XCircle
 } from 'lucide-react';
 import api from '../../services/api';
 import { useToast } from '../../context/ToastContext';
@@ -29,7 +32,12 @@ export default function AdminOrderDetail() {
   const [loading, setLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState('');
+  const [selectedRefundStatus, setSelectedRefundStatus] = useState('not_applicable');
+  const [courierPartner, setCourierPartner] = useState('');
+  const [trackingNumber, setTrackingNumber] = useState('');
+  const [estimatedDeliveryDate, setEstimatedDeliveryDate] = useState('');
   const [orderNotes, setOrderNotes] = useState('');
+  const [cancellationReason, setCancellationReason] = useState('');
   const [notifyCustomer, setNotifyCustomer] = useState(true);
   const [saving, setSaving] = useState(false);
   const [whatsappLink, setWhatsappLink] = useState('');
@@ -38,10 +46,16 @@ export default function AdminOrderDetail() {
     try {
       const res = await api.get(`/admin/orders/${id}`);
       if (res.success && res.order) {
-        setOrder(res.order);
-        setSelectedStatus(res.order.status);
-        setSelectedPaymentStatus(res.order.payment_status);
-        setOrderNotes(res.order.notes || '');
+        const o = res.order;
+        setOrder(o);
+        setSelectedStatus(o.status);
+        setSelectedPaymentStatus(o.payment_status);
+        setSelectedRefundStatus(o.refund_status || 'not_applicable');
+        setCourierPartner(o.courier_partner || '');
+        setTrackingNumber(o.tracking_number || '');
+        setEstimatedDeliveryDate(o.estimated_delivery_date ? o.estimated_delivery_date.split('T')[0] : '');
+        setOrderNotes(o.notes || '');
+        setCancellationReason(o.cancellation_reason || '');
       }
     } catch (err) {
       console.error('Failed to load order', err);
@@ -60,15 +74,20 @@ export default function AdminOrderDetail() {
       const res = await api.patch(`/admin/orders/${id}/status`, {
         status: selectedStatus,
         payment_status: selectedPaymentStatus,
+        refund_status: selectedRefundStatus,
+        courier_partner: courierPartner,
+        tracking_number: trackingNumber,
+        estimated_delivery_date: estimatedDeliveryDate || null,
         notes: orderNotes,
+        cancellation_reason: cancellationReason,
         notify_customer: notifyCustomer
       });
 
       if (res.success) {
         addToast(
-          notifyCustomer
+          notifyCustomer && selectedStatus !== order.status
             ? `Order updated to "${selectedStatus}" & notification dispatched to customer!`
-            : 'Order status updated successfully.',
+            : 'Order details saved successfully.',
           'success'
         );
         if (res.whatsappLink) {
@@ -123,7 +142,13 @@ export default function AdminOrderDetail() {
           <div>
             <div className="flex items-center space-x-2">
               <h1 className="font-display font-black text-2xl text-brand-dark">{order.order_number}</h1>
-              <span className="capitalize px-3 py-0.5 rounded-full text-xs font-bold bg-brand-softPink text-brand-plum border border-brand-primaryPink/30">
+              <span className={`capitalize px-3 py-0.5 rounded-full text-xs font-bold border ${
+                order.status === 'delivered'
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                  : order.status === 'cancelled'
+                  ? 'bg-rose-50 text-rose-800 border-rose-300'
+                  : 'bg-brand-softPink text-brand-plum border-brand-primaryPink/30'
+              }`}>
                 {order.status}
               </span>
             </div>
@@ -147,14 +172,14 @@ export default function AdminOrderDetail() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        {/* Left Column: Items, Customer, Address, Payment, Notifications */}
+        {/* Left Column: Items, Customer, Address, Payment, Timeline History, Notifications */}
         <div className="lg:col-span-8 space-y-6">
           
           {/* Ordered Products */}
           <div className="bg-white rounded-3xl p-6 border border-brand-primaryPink/20 shadow-sm space-y-4">
             <h2 className="font-display font-bold text-base text-brand-dark flex items-center space-x-2">
               <Package className="w-4 h-4 text-brand-brightPink" />
-              <span>Ordered Products</span>
+              <span>Ordered Products (Historical Frozen Prices)</span>
             </h2>
 
             <div className="divide-y divide-brand-primaryPink/15">
@@ -261,20 +286,24 @@ export default function AdminOrderDetail() {
 
           </div>
 
-          {/* Payment & Transaction Info */}
+          {/* Payment & Refund Details */}
           <div className="bg-white rounded-3xl p-6 border border-brand-primaryPink/20 shadow-sm space-y-3">
             <h3 className="font-bold text-xs uppercase tracking-wider text-brand-plum/70 flex items-center space-x-2">
               <CreditCard className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Razorpay Transaction Details</span>
+              <span>Payment & Gateway Status</span>
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-brand-plum">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs text-brand-plum">
               <div>
                 <span className="text-[11px] text-brand-plum/60 block">Payment Mode</span>
                 <span className="font-bold text-brand-dark">{order.payment_method || 'Razorpay Gateway'}</span>
               </div>
               <div>
-                <span className="text-[11px] text-brand-plum/60 block">Razorpay Order ID</span>
-                <span className="font-mono text-brand-plum/80 text-[11px]">{order.razorpay_order_id || 'N/A'}</span>
+                <span className="text-[11px] text-brand-plum/60 block">Payment Status</span>
+                <span className="font-bold uppercase text-emerald-700">{order.payment_status}</span>
+              </div>
+              <div>
+                <span className="text-[11px] text-brand-plum/60 block">Refund Status</span>
+                <span className="font-bold uppercase text-purple-700">{order.refund_status || 'NOT_APPLICABLE'}</span>
               </div>
               <div>
                 <span className="text-[11px] text-brand-plum/60 block">Razorpay Payment ID</span>
@@ -283,16 +312,55 @@ export default function AdminOrderDetail() {
             </div>
           </div>
 
+          {/* Status History Audit Timeline */}
+          <div className="bg-white rounded-3xl p-6 border border-brand-primaryPink/20 shadow-sm space-y-4">
+            <h3 className="font-display font-bold text-base text-brand-dark flex items-center space-x-2">
+              <History className="w-4 h-4 text-brand-brightPink" />
+              <span>Order Status Audit Trail ({order.statusHistory?.length || 0})</span>
+            </h3>
+
+            {(!order.statusHistory || order.statusHistory.length === 0) ? (
+              <p className="text-xs text-brand-plum/60">No status transitions logged yet.</p>
+            ) : (
+              <div className="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-brand-primaryPink/30">
+                {order.statusHistory.map((hist, idx) => (
+                  <div key={hist.id || idx} className="relative">
+                    <div className="absolute -left-6 top-1 w-3.5 h-3.5 rounded-full bg-brand-brightPink border-2 border-white shadow-sm" />
+                    <div className="text-xs">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-bold uppercase text-brand-dark">{hist.new_status}</span>
+                        {hist.previous_status && (
+                          <span className="text-[10px] text-brand-plum/60">(from {hist.previous_status})</span>
+                        )}
+                        <span className="text-[10px] bg-brand-softPink px-2 py-0.5 rounded-full font-semibold text-brand-deepPurple">
+                          by {hist.changed_by}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-brand-plum/60 block mt-0.5">
+                        {new Date(hist.created_at).toLocaleString('en-IN')}
+                      </span>
+                      {hist.notes && (
+                        <p className="text-xs text-brand-darkPurple mt-1 bg-[#FFF5FA] p-2 rounded-lg border border-brand-primaryPink/15">
+                          {hist.notes}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Customer Notifications Dispatch History Log */}
           <div className="bg-white rounded-3xl p-6 border border-brand-primaryPink/20 shadow-sm space-y-4">
             <h3 className="font-display font-bold text-base text-brand-dark flex items-center space-x-2">
               <BellRing className="w-4 h-4 text-brand-gold" />
-              <span>Customer Status Notifications Log ({order.notifications?.length || 0})</span>
+              <span>Transactional Notifications Dispatch History ({order.notifications?.length || 0})</span>
             </h3>
 
             {(!order.notifications || order.notifications.length === 0) ? (
               <p className="text-xs text-brand-plum/60">
-                No notification logged yet. When you update the order status above with notification enabled, dispatch records appear here.
+                No notification logged yet. When order status updates are triggered, records appear here.
               </p>
             ) : (
               <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
@@ -301,7 +369,7 @@ export default function AdminOrderDetail() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
-                          notif.notification_type === 'whatsapp'
+                          notif.notification_type?.includes('whatsapp')
                             ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                             : 'bg-brand-primaryPink/20 text-brand-deepPurple border border-brand-primaryPink/40'
                         }`}>
@@ -326,7 +394,7 @@ export default function AdminOrderDetail() {
 
         </div>
 
-        {/* Right Column: Update Order & Payment Status + Notification Dispatch */}
+        {/* Right Column: Update Order & Payment Status + Courier Dispatch */}
         <div className="lg:col-span-4 bg-white rounded-3xl p-6 border border-brand-primaryPink/20 shadow-sm space-y-6">
           <h2 className="font-display font-bold text-base text-brand-dark border-b border-brand-primaryPink/15 pb-3">
             Update Order Status
@@ -343,7 +411,8 @@ export default function AdminOrderDetail() {
                 <option value="pending">Pending</option>
                 <option value="confirmed">Confirmed</option>
                 <option value="processing">Processing</option>
-                <option value="shipped">Shipped (Dispatched)</option>
+                <option value="shipped">Shipped</option>
+                <option value="out_for_delivery">Out For Delivery</option>
                 <option value="delivered">Delivered</option>
                 <option value="cancelled">Cancelled</option>
               </select>
@@ -359,17 +428,86 @@ export default function AdminOrderDetail() {
                 <option value="paid">Paid</option>
                 <option value="pending">Pending</option>
                 <option value="failed">Failed</option>
+                <option value="cancelled">Cancelled</option>
                 <option value="refunded">Refunded</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-brand-dark mb-1">Tracking Number / Customer Note</label>
+              <label className="block text-xs font-bold text-brand-dark mb-1">Refund Status</label>
+              <select
+                value={selectedRefundStatus}
+                onChange={(e) => setSelectedRefundStatus(e.target.value)}
+                className="w-full bg-brand-softPink/40 border border-brand-primaryPink/30 text-brand-dark rounded-xl px-3 py-2 text-xs outline-none focus:border-brand-brightPink font-semibold"
+              >
+                <option value="not_applicable">Not Applicable</option>
+                <option value="requested">Requested</option>
+                <option value="processing">Processing</option>
+                <option value="completed">Completed</option>
+                <option value="failed">Failed</option>
+              </select>
+            </div>
+
+            {/* Courier Dispatch Tracking Fields */}
+            <div className="pt-2 border-t border-brand-primaryPink/15 space-y-3">
+              <h3 className="text-xs font-bold text-brand-dark flex items-center space-x-1.5">
+                <Truck className="w-3.5 h-3.5 text-brand-brightPink" />
+                <span>Courier Tracking Details</span>
+              </h3>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-brand-plum mb-1">Courier Partner</label>
+                <input
+                  type="text"
+                  value={courierPartner}
+                  onChange={(e) => setCourierPartner(e.target.value)}
+                  placeholder="e.g. DTDC, Blue Dart, Delhivery"
+                  className="w-full bg-brand-softPink/40 border border-brand-primaryPink/30 text-brand-dark rounded-xl px-3 py-2 text-xs outline-none focus:border-brand-brightPink"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-brand-plum mb-1">AWB / Tracking Number</label>
+                <input
+                  type="text"
+                  value={trackingNumber}
+                  onChange={(e) => setTrackingNumber(e.target.value)}
+                  placeholder="e.g. 748291039"
+                  className="w-full bg-brand-softPink/40 border border-brand-primaryPink/30 text-brand-dark rounded-xl px-3 py-2 text-xs outline-none focus:border-brand-brightPink font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-brand-plum mb-1">Estimated Delivery Date</label>
+                <input
+                  type="date"
+                  value={estimatedDeliveryDate}
+                  onChange={(e) => setEstimatedDeliveryDate(e.target.value)}
+                  className="w-full bg-brand-softPink/40 border border-brand-primaryPink/30 text-brand-dark rounded-xl px-3 py-2 text-xs outline-none focus:border-brand-brightPink"
+                />
+              </div>
+            </div>
+
+            {selectedStatus === 'cancelled' && (
+              <div>
+                <label className="block text-xs font-bold text-rose-700 mb-1">Cancellation Reason</label>
+                <input
+                  type="text"
+                  value={cancellationReason}
+                  onChange={(e) => setCancellationReason(e.target.value)}
+                  placeholder="Reason for order cancellation..."
+                  className="w-full bg-rose-50 border border-rose-200 text-rose-900 rounded-xl px-3 py-2 text-xs outline-none focus:border-rose-400"
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs font-bold text-brand-dark mb-1">Admin Notes / Remarks</label>
               <textarea
-                rows="3"
+                rows="2"
                 value={orderNotes}
                 onChange={(e) => setOrderNotes(e.target.value)}
-                placeholder="e.g. DTDC AWB #8492049, estimated delivery in 2 days..."
+                placeholder="Internal notes or customer notes..."
                 className="w-full bg-brand-softPink/40 border border-brand-primaryPink/30 text-brand-dark rounded-xl p-3 text-xs outline-none focus:border-brand-brightPink"
               />
             </div>
@@ -385,7 +523,7 @@ export default function AdminOrderDetail() {
               />
               <label htmlFor="notifyCust" className="text-[11px] text-brand-plum font-medium cursor-pointer">
                 <strong className="text-brand-dark block">Notify Customer Automatically</strong>
-                Send email & WhatsApp status update to {order.customer_name} ({order.customer_phone})
+                Send email & WhatsApp status update to {order.customer_name}
               </label>
             </div>
 
@@ -395,7 +533,7 @@ export default function AdminOrderDetail() {
               className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-brand-brightPink to-brand-deepPink hover:from-brand-deepPink hover:to-brand-brightPink text-white font-bold text-xs uppercase tracking-wider shadow-md shadow-brand-brightPink/25 flex items-center justify-center space-x-2 transition-all disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
-              <span>{saving ? 'Updating & Notifying...' : 'Save & Send Status Alert'}</span>
+              <span>{saving ? 'Saving...' : 'Save & Send Status Alert'}</span>
             </button>
 
             {whatsappLink && (

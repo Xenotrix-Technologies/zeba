@@ -23,17 +23,94 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+import { authLimiter, checkoutLimiter, contactLimiter, apiLimiter } from '../server/src/middleware/rateLimiter.js';
+
+// Allowed CORS origins
+const allowedOrigins = [
+  'https://www.zebaofficial.in',
+  'https://zebaofficial.in',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:5000'
+];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow server-to-server, curl, webhooks without origin header
+    if (!origin) return callback(null, true);
+    if (
+      allowedOrigins.includes(origin) ||
+      origin.endsWith('.vercel.app')
+    ) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS policy blocked access from origin: ${origin}`), false);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-bypass-rate-limit']
+};
+
 // Security & Middleware
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" }
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "https://checkout.razorpay.com",
+        "https://api.razorpay.com"
+      ],
+      frameSrc: [
+        "'self'",
+        "https://api.razorpay.com",
+        "https://checkout.razorpay.com"
+      ],
+      connectSrc: [
+        "'self'",
+        "https://*.supabase.co",
+        "https://api.razorpay.com",
+        "https://checkout.razorpay.com",
+        "https://lumberjack.razorpay.com",
+        "wss://*.supabase.co"
+      ],
+      imgSrc: [
+        "'self'",
+        "data:",
+        "blob:",
+        "https:",
+        "https://*.supabase.co",
+        "https://checkout.razorpay.com"
+      ],
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "https://fonts.googleapis.com"
+      ],
+      fontSrc: [
+        "'self'",
+        "https://fonts.gstatic.com",
+        "data:"
+      ],
+      objectSrc: ["'none'"]
+    }
+  }
 }));
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+
+app.use(cors(corsOptions));
+
+app.use(express.json({
+  limit: '10mb',
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  }
 }));
-app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Global API rate limiting
+app.use('/api', apiLimiter);
 
 // Static images
 app.use('/images', express.static(path.resolve(__dirname, '../client/public/images')));
@@ -90,12 +167,12 @@ const mountRouters = (prefix = '') => {
   app.use(`${prefix}/content`, contentRoutes);
   app.use(`${prefix}/faqs`, faqRoutes);
   app.use(`${prefix}/reviews`, reviewRoutes);
-  app.use(`${prefix}/auth`, authRoutes);
+  app.use(`${prefix}/auth`, authLimiter, authRoutes);
   app.use(`${prefix}/customer`, customerRoutes);
   app.use(`${prefix}/products`, productRoutes);
   app.use(`${prefix}/orders`, orderRoutes);
-  app.use(`${prefix}/payments`, paymentRoutes);
-  app.use(`${prefix}/contact`, contactRoutes);
+  app.use(`${prefix}/payments`, checkoutLimiter, paymentRoutes);
+  app.use(`${prefix}/contact`, contactLimiter, contactRoutes);
   app.use(`${prefix}/admin`, adminRoutes);
 };
 
