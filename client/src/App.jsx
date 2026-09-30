@@ -5,7 +5,6 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import CartDrawer from './components/CartDrawer';
 import StickyMobileBar from './components/StickyMobileBar';
-import WhatsAppButton from './components/WhatsAppButton';
 
 // Public Storefront Pages (Home loaded eagerly for immediate LCP, others lazy-loaded)
 import Home from './pages/Home';
@@ -56,7 +55,6 @@ function StorefrontLayout() {
       <Footer />
       <CartDrawer />
       <StickyMobileBar />
-      <WhatsAppButton />
     </div>
   );
 }

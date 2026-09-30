@@ -43,7 +43,9 @@ export default function Footer() {
 
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-300 flex-shrink-0">
-              <MessageCircle className="w-5 h-5" />
+              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+              </svg>
             </div>
             <div>
               <h4 className="text-white text-xs md:text-sm font-bold">WhatsApp Support</h4>
@@ -90,10 +92,13 @@ export default function Footer() {
                 href={getWhatsAppUrl()}
                 target="_blank"
                 rel="noreferrer"
-                className="w-9 h-9 rounded-lg bg-[#5F3F68] hover:bg-emerald-600 text-pink-100 hover:text-white flex items-center justify-center transition-colors border border-white/10"
-                aria-label="WhatsApp"
+                className="w-9 h-9 rounded-lg bg-[#5F3F68] hover:bg-[#25D366] text-pink-100 hover:text-white flex items-center justify-center transition-colors border border-white/10"
+                aria-label="WhatsApp Support"
+                title="Chat with us on WhatsApp"
               >
-                <MessageCircle className="w-4 h-4" />
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                </svg>
               </a>
             </div>
           </div>
@@ -191,12 +196,57 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Bottom copyright & Entity notice */}
-        <div className="pt-8 mt-4 border-t border-white/10 text-center text-xs text-pink-200/60 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p>© {new Date().getFullYear()} {settings.legalEntityName}. All rights reserved.</p>
-          <p className="text-[11px] text-pink-200/60">
-            Designed for Menstrual Comfort
-          </p>
+        {/* Secure Payments & Copyright */}
+        <div className="pt-8 mt-4 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-6">
+          {/* Secure Payments Icons */}
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 text-xs">
+            <span className="text-pink-100/70 font-semibold text-xs sm:text-sm mr-1">Secure Payments:</span>
+            
+            {/* Razorpay */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-white/[0.06] border border-white/15 text-white shadow-sm hover:border-white/30 transition-all select-none">
+              <span className="font-bold text-[13px] tracking-tight lowercase">razorpay</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#02a0e9] inline-block shadow-[0_0_6px_#02a0e9]"></span>
+            </div>
+
+            {/* UPI */}
+            <div className="inline-flex items-center px-3 py-1 rounded-md bg-white/[0.06] border border-white/15 text-white shadow-sm hover:border-white/30 transition-all select-none">
+              <span className="font-black italic tracking-wider text-[12px]">UPI</span>
+            </div>
+
+            {/* VISA */}
+            <div className="inline-flex items-center px-2.5 py-1 rounded-md bg-white text-[#1a1f71] shadow-sm hover:bg-slate-50 transition-all select-none">
+              <span className="font-black italic tracking-tighter text-[13px] leading-none">VISA</span>
+            </div>
+
+            {/* Mastercard */}
+            <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/[0.06] border border-white/15 text-white shadow-sm hover:border-white/30 transition-all select-none">
+              <div className="flex items-center -space-x-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#eb001b] inline-block"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f00] inline-block opacity-90"></span>
+              </div>
+              <span className="font-bold text-[12px] tracking-tight lowercase ml-0.5">mc</span>
+            </div>
+
+            {/* RuPay */}
+            <div className="inline-flex items-center px-3 py-1 rounded-md bg-white/[0.06] border border-white/15 text-white shadow-sm hover:border-white/30 transition-all select-none">
+              <span className="font-bold text-[13px] tracking-tight text-white">RuPay</span>
+            </div>
+          </div>
+
+          <div className="text-center md:text-right text-xs text-pink-200/60 space-y-1">
+            <p>© {new Date().getFullYear()} {settings.legalEntityName}. All rights reserved.</p>
+            <p className="text-[11px] text-pink-200/60">
+              Designed for Menstrual Comfort • Developed by{' '}
+              <a
+                href="https://www.xenotrix.in"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-brand-lightGold hover:text-white font-medium underline underline-offset-2 transition-colors"
+              >
+                Xenotrix
+              </a>
+            </p>
+          </div>
         </div>
 
       </div>
