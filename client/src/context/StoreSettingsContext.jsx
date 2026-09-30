@@ -20,6 +20,16 @@ export function StoreSettingsProvider({ children }) {
         setSettings((prev) => ({
           ...prev,
           ...res.settings,
+          commerce: {
+            ...prev.commerce,
+            ...(res.settings.commerce || {}),
+            freeShippingThreshold: res.settings.commerce?.freeShippingThreshold !== undefined && res.settings.commerce?.freeShippingThreshold !== null
+              ? Number(res.settings.commerce.freeShippingThreshold)
+              : prev.commerce?.freeShippingThreshold,
+            standardShippingFee: res.settings.commerce?.standardShippingFee !== undefined && res.settings.commerce?.standardShippingFee !== null
+              ? Number(res.settings.commerce.standardShippingFee)
+              : prev.commerce?.standardShippingFee
+          },
           whatsapp: {
             ...prev.whatsapp,
             ...res.settings.whatsapp,

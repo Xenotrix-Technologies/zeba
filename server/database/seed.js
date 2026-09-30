@@ -484,26 +484,29 @@ export async function seedDatabase() {
       is_featured: true
     },
     {
-      author_name: 'Rhea Sen',
+      author_name: 'Drishya K.',
       rating: 5,
       title: 'Must-have for travel and college',
       comment: 'Ordered the 3-pack bundle and it arrived in 2 days. The lavender packaging is so premium and pretty. Highly recommended to all girls!',
-      location: 'Mumbai, Maharashtra',
+      location: 'Malappuram, Kerala',
       is_verified_purchase: true,
       is_approved: true,
       is_featured: true
     },
     {
-      author_name: 'Sneha Patel',
+      author_name: 'Fathima Noureen',
       rating: 5,
       title: 'No more popping painkillers every month',
       comment: 'I was looking for a 100% drug-free solution and ZEBA exceeded my expectations. The temperature is consistent and very soothing.',
-      location: 'Ahmedabad, Gujarat',
+      location: 'Calicut, Kerala',
       is_verified_purchase: true,
       is_approved: true,
       is_featured: true
     }
   ];
+
+  // Clean up previous sample reviews if present in DB
+  await query("DELETE FROM reviews WHERE author_name IN ('Sneha Patel', 'Rhea Sen')");
 
   for (const rev of sampleReviews) {
     const existingRev = await query('SELECT id FROM reviews WHERE author_name = $1 AND comment = $2', [rev.author_name, rev.comment]);

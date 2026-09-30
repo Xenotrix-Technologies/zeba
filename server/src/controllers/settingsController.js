@@ -10,17 +10,25 @@ export async function getPublicSettings(req, res, next) {
     
     const settingsMap = {};
     for (const row of result.rows) {
-      settingsMap[row.setting_key] = row.setting_value;
+      let val = row.setting_value;
+      if (typeof val === 'string') {
+        try {
+          val = JSON.parse(val);
+        } catch {
+          // Keep raw string if not JSON
+        }
+      }
+      settingsMap[row.setting_key] = val;
     }
 
     // Consolidated business configuration structure
-    const brand = settingsMap.brand_info || {};
-    const contact = settingsMap.contact_channels || {};
-    const address = settingsMap.business_address || {};
-    const tax = settingsMap.tax_compliance || {};
-    const commerce = settingsMap.shipping_commerce || {};
-    const social = settingsMap.social_channels || {};
-    const b2b = settingsMap.b2b_wholesale || {};
+    const brand = typeof settingsMap.brand_info === 'object' && settingsMap.brand_info !== null ? settingsMap.brand_info : {};
+    const contact = typeof settingsMap.contact_channels === 'object' && settingsMap.contact_channels !== null ? settingsMap.contact_channels : {};
+    const address = typeof settingsMap.business_address === 'object' && settingsMap.business_address !== null ? settingsMap.business_address : {};
+    const tax = typeof settingsMap.tax_compliance === 'object' && settingsMap.tax_compliance !== null ? settingsMap.tax_compliance : {};
+    const commerce = typeof settingsMap.shipping_commerce === 'object' && settingsMap.shipping_commerce !== null ? settingsMap.shipping_commerce : {};
+    const social = typeof settingsMap.social_channels === 'object' && settingsMap.social_channels !== null ? settingsMap.social_channels : {};
+    const b2b = typeof settingsMap.b2b_wholesale === 'object' && settingsMap.b2b_wholesale !== null ? settingsMap.b2b_wholesale : {};
 
     res.json({
       success: true,
@@ -70,16 +78,16 @@ export async function getPublicSettings(req, res, next) {
         },
 
         // Shipping & Commerce
-        commerce: commerce || {
-          currency: '₹',
-          currencyCode: 'INR',
-          freeShippingThreshold: 499,
-          standardShippingFee: 49,
-          codAvailable: true,
-          codFee: 0,
-          estimatedDeliveryDays: '3 - 5 business days',
-          dispatchTime: 'Dispatched within 24 hours in discreet, unmarked packaging',
-          returnWindowDays: 7
+        commerce: {
+          currency: commerce.currency || '₹',
+          currencyCode: commerce.currencyCode || 'INR',
+          freeShippingThreshold: commerce.freeShippingThreshold !== undefined && commerce.freeShippingThreshold !== null ? Number(commerce.freeShippingThreshold) : null,
+          standardShippingFee: commerce.standardShippingFee !== undefined && commerce.standardShippingFee !== null ? Number(commerce.standardShippingFee) : null,
+          codAvailable: commerce.codAvailable !== undefined ? Boolean(commerce.codAvailable) : true,
+          codFee: commerce.codFee !== undefined ? Number(commerce.codFee) : 0,
+          estimatedDeliveryDays: commerce.estimatedDeliveryDays || '3 - 5 business days',
+          dispatchTime: commerce.dispatchTime || 'Dispatched within 24 hours in discreet, unmarked packaging',
+          returnWindowDays: commerce.returnWindowDays !== undefined ? Number(commerce.returnWindowDays) : 7
         },
 
         // Social

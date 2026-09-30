@@ -121,6 +121,45 @@ const DEFAULT_INGREDIENTS = [
   }
 ];
 
+const DEFAULT_REVIEWS = [
+  {
+    id: 1,
+    author_name: 'Fathima Noureen',
+    rating: 5,
+    title: 'No more popping painkillers every month',
+    comment: 'I was looking for a 100% drug-free solution and ZEBA exceeded my expectations. The temperature is consistent and very soothing.',
+    location: 'Calicut, Kerala',
+    is_verified_purchase: true
+  },
+  {
+    id: 2,
+    author_name: 'Drishya K.',
+    rating: 5,
+    title: 'Must-have for travel and college',
+    comment: 'Ordered the 3-pack bundle and it arrived in 2 days. The lavender packaging is so premium and pretty. Highly recommended to all girls!',
+    location: 'Malappuram, Kerala',
+    is_verified_purchase: true
+  },
+  {
+    id: 3,
+    author_name: 'Pooja Nair',
+    rating: 5,
+    title: 'Gentle warmth with zero skin irritation',
+    comment: 'Since you stick it on the outside of your underwear, there is zero itching or red marks. Heats up so fast and feels like a warm comforting hug.',
+    location: 'Kochi, Kerala',
+    is_verified_purchase: true
+  },
+  {
+    id: 4,
+    author_name: 'Ananya Sharma',
+    rating: 5,
+    title: 'Life Saver During Long Work Days!',
+    comment: 'I usually have crippling cramps on day 1 and 2. ZEBA is so discreet under my formal pants and keeps warming for more than 8 hours straight. Completely replaced my bulky hot water bag.',
+    location: 'Bengaluru, Karnataka',
+    is_verified_purchase: true
+  }
+];
+
 export default function Home() {
   const { settings, getWhatsAppUrl } = useStoreSettings();
   const [products, setProducts] = useState([]);
@@ -128,7 +167,7 @@ export default function Home() {
   const [howToUseSteps, setHowToUseSteps] = useState(DEFAULT_STEPS);
   const [naturalIngredients, setNaturalIngredients] = useState(DEFAULT_INGREDIENTS);
   const [faqs, setFaqs] = useState([]);
-  const [reviews, setReviews] = useState([]);
+  const [reviews, setReviews] = useState(DEFAULT_REVIEWS);
   const [loading, setLoading] = useState(true);
   const [activeTimelineIdx, setActiveTimelineIdx] = useState(1);
   const [openFaqIdx, setOpenFaqIdx] = useState(0);

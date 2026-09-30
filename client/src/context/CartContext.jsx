@@ -81,9 +81,9 @@ export function CartProvider({ children }) {
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const originalSubtotal = cart.reduce((acc, item) => acc + (item.original_price || item.price) * item.quantity, 0);
   const totalSavings = Math.max(0, originalSubtotal - subtotal);
-  const freeShippingThreshold = settings.commerce?.freeShippingThreshold || 499;
-  const standardShippingFee = settings.commerce?.standardShippingFee || 49;
-  const freeShippingProgress = Math.min(100, (subtotal / freeShippingThreshold) * 100);
+  const freeShippingThreshold = Number(settings.commerce?.freeShippingThreshold || 0);
+  const standardShippingFee = Number(settings.commerce?.standardShippingFee || 0);
+  const freeShippingProgress = freeShippingThreshold > 0 ? Math.min(100, (subtotal / freeShippingThreshold) * 100) : 100;
 
   return (
     <CartContext.Provider value={{

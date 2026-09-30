@@ -58,8 +58,8 @@ export default function AdminSettings() {
   });
 
   const [shippingForm, setShippingForm] = useState({
-    freeShippingThreshold: 499,
-    standardShippingFee: 49,
+    freeShippingThreshold: '',
+    standardShippingFee: '',
     codAvailable: true,
     dispatchTime: 'Dispatched within 24 hours in discreet, unmarked packaging',
     returnWindowDays: 7
@@ -96,8 +96,8 @@ export default function AdminSettings() {
             country: s.address?.country || 'India'
           });
           setShippingForm({
-            freeShippingThreshold: Number(s.commerce?.freeShippingThreshold || 499),
-            standardShippingFee: Number(s.commerce?.standardShippingFee || 49),
+            freeShippingThreshold: s.commerce?.freeShippingThreshold !== undefined && s.commerce?.freeShippingThreshold !== null ? s.commerce.freeShippingThreshold : '',
+            standardShippingFee: s.commerce?.standardShippingFee !== undefined && s.commerce?.standardShippingFee !== null ? s.commerce.standardShippingFee : '',
             codAvailable: Boolean(s.commerce?.codAvailable),
             dispatchTime: s.commerce?.dispatchTime || 'Dispatched within 24 hours',
             returnWindowDays: Number(s.commerce?.returnWindowDays || 7)
