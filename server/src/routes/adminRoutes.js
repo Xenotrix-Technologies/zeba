@@ -23,8 +23,9 @@ router.use(requireAdminAuth);
 router.post('/clear-test-data', clearAllTestData);
 router.delete('/clear-test-data', clearAllTestData);
 
-// Dashboard
+// Dashboard & Metrics
 router.get('/dashboard', getDashboardMetrics);
+router.get('/metrics', getDashboardMetrics);
 
 // Orders
 router.get('/orders', getAdminOrders);

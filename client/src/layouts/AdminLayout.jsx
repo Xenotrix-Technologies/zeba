@@ -57,7 +57,7 @@ export default function AdminLayout() {
     <div className="min-h-screen bg-[#FFF5FA] text-brand-darkPurple flex flex-col md:flex-row">
       
       {/* Mobile Top Header */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-[#5F3F68] border-b border-white/10 text-white">
+      <div className="md:hidden sticky top-0 z-30 flex items-center justify-between p-4 bg-[#5F3F68] border-b border-white/10 text-white shadow-md">
         <Link to="/" className="flex items-center space-x-2">
           <img 
             src="/images/zeba-logo.png" 
@@ -68,26 +68,35 @@ export default function AdminLayout() {
         </Link>
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-2 rounded-lg bg-white/10 text-white hover:bg-white/20"
+          className="p-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors"
+          aria-label="Toggle navigation"
         >
           {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>
 
-      {/* Sidebar (Deep Purple & Gold) */}
+      {/* Mobile Backdrop Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black/50 z-30 backdrop-blur-xs transition-opacity"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sticky Fixed Sidebar (Permanent on Desktop, Never Scrolls away) */}
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-40 w-64 bg-[#5F3F68] border-r border-[#4A2F52] text-white flex flex-col justify-between transform transition-transform duration-200 ease-in-out shadow-xl ${
+        className={`fixed md:sticky top-0 inset-y-0 left-0 z-40 w-64 md:h-screen bg-[#5F3F68] border-r border-[#4A2F52] text-white flex flex-col justify-between transform transition-transform duration-200 ease-in-out shadow-xl flex-shrink-0 select-none overflow-y-auto ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
-        <div className="p-6 space-y-8">
+        <div className="p-5 space-y-6">
           
           {/* Brand header */}
           <Link to="/" className="flex flex-col space-y-1 group">
             <img 
               src="/images/zeba-logo.png" 
               alt="ZEBA" 
-              className="h-9 w-auto object-contain group-hover:opacity-90 transition-opacity" 
+              className="h-8 w-auto object-contain group-hover:opacity-90 transition-opacity" 
             />
             <span className="text-[10px] text-brand-lightGold font-bold tracking-widest uppercase block text-center pt-1 border-t border-white/10">
               Admin Control Hub
@@ -104,14 +113,14 @@ export default function AdminLayout() {
                   key={item.path}
                   to={item.path}
                   onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center justify-between px-4 py-3 rounded-xl text-xs font-bold transition-all ${
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                     isActive
                       ? 'bg-gradient-to-r from-brand-brightPink to-brand-deepPink text-white shadow-lg shadow-brand-pink/30'
                       : 'text-pink-100/80 hover:bg-white/10 hover:text-white'
                   }`}
                 >
                   <div className="flex items-center space-x-3">
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-4 h-4 flex-shrink-0" />
                     <span>{item.label}</span>
                   </div>
                   {isActive && <ChevronRight className="w-4 h-4 text-white" />}
@@ -122,20 +131,20 @@ export default function AdminLayout() {
         </div>
 
         {/* Admin user info & Logout */}
-        <div className="p-6 border-t border-white/10 space-y-4">
+        <div className="p-5 border-t border-white/10 space-y-3 bg-[#4D3155]/60">
           <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-full bg-[#38283D] text-brand-gold font-bold flex items-center justify-center text-sm border border-brand-gold/40">
+            <div className="w-8 h-8 rounded-full bg-[#38283D] text-brand-gold font-bold flex items-center justify-center text-xs border border-brand-gold/40 flex-shrink-0">
               {admin?.username?.charAt(0).toUpperCase() || 'A'}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-bold text-white truncate">{admin?.username || 'Admin'}</p>
-              <p className="text-[11px] text-pink-200/70 truncate">{admin?.email}</p>
+              <p className="text-[10px] text-pink-200/70 truncate">{admin?.email}</p>
             </div>
           </div>
 
           <button
             onClick={handleLogout}
-            className="w-full py-2.5 px-3 rounded-xl bg-white/10 hover:bg-rose-900/40 hover:text-rose-200 text-pink-100 text-xs font-bold flex items-center justify-center space-x-2 transition-colors border border-white/10"
+            className="w-full py-2 px-3 rounded-xl bg-white/10 hover:bg-rose-900/40 hover:text-rose-200 text-pink-100 text-xs font-bold flex items-center justify-center space-x-2 transition-colors border border-white/10"
           >
             <LogOut className="w-4 h-4" />
             <span>Sign Out</span>
@@ -144,8 +153,8 @@ export default function AdminLayout() {
 
       </aside>
 
-      {/* Main Content Area (Clean, light soft-pink background) */}
-      <main className="flex-1 min-w-0 bg-[#FFF5FA] p-4 sm:p-8 overflow-y-auto">
+      {/* Main Content Area */}
+      <main className="flex-1 min-w-0 bg-[#FFF5FA] p-4 sm:p-8">
         <Suspense fallback={<AdminPageLoader />}>
           <Outlet />
         </Suspense>
