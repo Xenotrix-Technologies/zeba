@@ -49,7 +49,7 @@ export default function AdminProducts() {
       });
 
       if (res.success) {
-        addToast('Product successfully updated in database.', 'success');
+        addToast('Product successfully updated.', 'success');
         setProducts(prev => prev.map(p => p.id === editingProduct.id ? res.product : p));
         setEditingProduct(null);
       }
@@ -69,7 +69,7 @@ export default function AdminProducts() {
           <p className="text-xs text-[#805A82] mt-0.5">Manage the two ZEBA product packs, adjust live pricing and stock inventory</p>
         </div>
         <span className="text-xs font-bold text-brand-brightPink bg-brand-softPink border border-brand-primaryPink/30 px-3.5 py-1.5 rounded-full">
-          2 Active Variants in Database
+          2 Active Variants
         </span>
       </div>
 
@@ -241,7 +241,7 @@ export default function AdminProducts() {
 
                 <div className="pt-3 border-t border-brand-primaryPink/15 text-[11px] text-[#805A82] flex items-center justify-between">
                   <span>Slug: /{product.slug}</span>
-                  <span className="text-emerald-700 font-semibold">● Synced with Cloud Database</span>
+                  <span className="text-emerald-700 font-semibold">● Live on Storefront</span>
                 </div>
               </div>
             );

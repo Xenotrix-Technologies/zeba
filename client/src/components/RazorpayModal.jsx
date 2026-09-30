@@ -82,7 +82,7 @@ export default function RazorpayModal({
               className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2 transition-all disabled:opacity-50 btn-tactile"
             >
               <CheckCircle2 className="w-4 h-4" />
-              <span>{isProcessing ? 'Verifying payment with database...' : 'Complete Payment (Success)'}</span>
+              <span>{isProcessing ? 'Verifying payment...' : 'Complete Payment (Success)'}</span>
             </button>
 
             <button

@@ -121,7 +121,7 @@ export default function AdminSettings() {
         description
       });
       if (res.success) {
-        addToast(`Section '${description || settingKey}' saved to cloud database!`, 'success');
+        addToast(`Section '${description || settingKey}' saved successfully!`, 'success');
         await refreshSettings();
       }
     } catch (err) {
@@ -155,13 +155,13 @@ export default function AdminSettings() {
         <div>
           <div className="flex items-center space-x-2 text-brand-brightPink text-xs font-bold uppercase tracking-wider mb-1">
             <Building2 className="w-4 h-4" />
-            <span>Database Store Settings & Live Configuration</span>
+            <span>Store Settings & Live Configuration</span>
           </div>
           <h1 className="font-display font-black text-2xl sm:text-3xl text-brand-dark">
             Business & Store Settings
           </h1>
           <p className="text-xs text-brand-plum/70 mt-1">
-            All values below are stored directly in your Supabase database (<code className="font-mono text-brand-brightPink font-bold">store_settings</code>) and update the storefront in real time.
+            Configure your official brand identity, contact channels, delivery rules, and store information in real time.
           </p>
         </div>
 
@@ -487,17 +487,17 @@ export default function AdminSettings() {
 
       </div>
 
-      {/* Database Integration Guide */}
+      {/* Live Synchronization Info */}
       <div className="p-6 rounded-3xl bg-white border border-brand-primaryPink/25 shadow-sm flex items-start space-x-4">
         <div className="p-3 rounded-2xl bg-brand-softPink text-brand-brightPink flex-shrink-0">
           <Sparkles className="w-5 h-5" />
         </div>
         <div className="space-y-1">
           <h4 className="font-display font-bold text-sm text-brand-dark">
-            Cloud Database Synced Real-Time
+            Live Storefront Synchronization
           </h4>
           <p className="text-xs text-brand-plum/80 leading-relaxed">
-            Every update in these panels saves directly into your connected cloud database. All storefront headers, announcement bars, WhatsApp click-to-chat dispatchers, product pricing thresholds, and invoices immediately reflect the updated database records.
+            Every update in these panels takes effect across your storefront immediately. Headers, announcement bars, WhatsApp support links, pricing thresholds, and customer notifications update in real time.
           </p>
         </div>
       </div>

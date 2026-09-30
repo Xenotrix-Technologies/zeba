@@ -106,7 +106,7 @@ export default function ProductDetail() {
         product_id: selectedProduct?.id
       });
       if (res.success) {
-        addToast('Thank you! Your review has been saved to the database.', 'success');
+        addToast('Thank you! Your review has been submitted successfully.', 'success');
         if (res.review) {
           setReviews(prev => [res.review, ...prev]);
         }
@@ -621,7 +621,7 @@ export default function ProductDetail() {
                       className="px-6 py-2.5 rounded-xl bg-brand-deepPurple hover:bg-brand-brightPink text-white font-bold text-xs flex items-center space-x-2 transition-all disabled:opacity-50"
                     >
                       <Send className="w-3.5 h-3.5" />
-                      <span>{submittingReview ? 'Submitting to Database...' : 'Submit Review'}</span>
+                      <span>{submittingReview ? 'Submitting...' : 'Submit Review'}</span>
                     </button>
                   </form>
                 )}

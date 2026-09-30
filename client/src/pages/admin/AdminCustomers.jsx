@@ -55,14 +55,14 @@ export default function AdminCustomers() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-display font-black text-2xl text-brand-dark">Customer Directory</h1>
-          <p className="text-xs text-brand-plum/70 mt-0.5">Verified buyers stored in cloud database</p>
+          <p className="text-xs text-brand-plum/70 mt-0.5">Verified buyers and registered accounts</p>
         </div>
         <div className="flex items-center space-x-3">
           <button
             onClick={() => fetchCustomers()}
             disabled={refreshing || loading}
             className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-white hover:bg-brand-softPink text-brand-deepPurple text-xs font-bold border border-brand-primaryPink/30 transition-colors shadow-sm disabled:opacity-50"
-            title="Refresh database records"
+            title="Refresh customer list"
           >
             <RefreshCw className={`w-3.5 h-3.5 text-brand-brightPink ${refreshing ? 'animate-spin' : ''}`} />
             <span>{refreshing ? 'Syncing...' : 'Refresh'}</span>

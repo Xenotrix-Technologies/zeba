@@ -105,7 +105,7 @@ export default function AdminOrderDetail() {
   if (loading) {
     return (
       <div className="py-20 text-center text-xs text-brand-plum/70">
-        Loading order details from database...
+        Loading order details...
       </div>
     );
   }
