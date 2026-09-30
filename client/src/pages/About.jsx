@@ -55,8 +55,16 @@ export default function About() {
           <div className="lg:col-span-6">
             <div className="rounded-3xl overflow-hidden shadow-2xl border-2 border-brand-primaryPink/30 bg-white p-3">
               <img
-                src="/images/zeba-hero-lifestyle.jpg"
+                src="/images/zeba-hero-lifestyle.webp"
                 alt="ZEBA Brand Lifestyle"
+                width="600"
+                height="400"
+                loading="lazy"
+                decoding="async"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = '/images/zeba-hero-lifestyle.jpg';
+                }}
                 className="w-full h-auto rounded-2xl object-cover"
               />
             </div>

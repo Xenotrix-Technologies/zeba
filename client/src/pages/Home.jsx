@@ -276,8 +276,15 @@ export default function Home() {
                 {/* Main Authentic Packaging Card */}
                 <div className="rounded-3xl bg-white p-3.5 shadow-2xl border-2 border-brand-primaryPink/30 relative group overflow-hidden">
                   <img
-                    src="/images/zeba-1pack.jpg"
+                    src="/images/zeba-1pack.webp"
                     alt="ZEBA Periods Pain Relief Heating Pad Official Packaging"
+                    width="500"
+                    height="500"
+                    fetchPriority="high"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = '/images/zeba-1pack.jpg';
+                    }}
                     className="w-full h-auto rounded-2xl object-cover transform group-hover:scale-[1.02] transition-transform duration-500 shadow-sm"
                   />
 
@@ -477,8 +484,16 @@ export default function Home() {
           {/* Official Visual Infographic */}
           <div className="rounded-3xl bg-white p-4 sm:p-6 border-2 border-brand-gold/40 shadow-2xl max-w-5xl mx-auto overflow-hidden">
             <img
-              src="/images/zeba-how-to-use-guide.jpg"
+              src="/images/zeba-how-to-use-guide.webp"
               alt="ZEBA How to Use It - 4 Step Visual Guide"
+              width="1000"
+              height="600"
+              loading="lazy"
+              decoding="async"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = '/images/zeba-how-to-use-guide.jpg';
+              }}
               className="w-full h-auto rounded-2xl object-cover shadow-sm"
             />
           </div>
@@ -549,8 +564,16 @@ export default function Home() {
           {/* Official Ingredients Infographic */}
           <div className="rounded-3xl bg-white p-4 sm:p-6 border-2 border-brand-primaryPink/30 shadow-lg max-w-5xl mx-auto overflow-hidden">
             <img
-              src="/images/zeba-whats-inside-ingredients.jpg"
+              src="/images/zeba-whats-inside-ingredients.webp"
               alt="ZEBA What's Inside Pure Natural Goodness Ingredients"
+              width="1000"
+              height="600"
+              loading="lazy"
+              decoding="async"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = '/images/zeba-whats-inside-ingredients.jpg';
+              }}
               className="w-full h-auto rounded-2xl object-cover shadow-sm"
             />
           </div>
@@ -715,12 +738,11 @@ export default function Home() {
             loop
             muted
             playsInline
-            poster="/videos/zeba-video-poster.jpg"
+            preload="none"
+            poster="/videos/zeba-video-poster.webp"
             className="w-full h-full object-cover scale-105 filter brightness-75"
-            src="/videos/zeba-comfort-video.mp4"
           >
             <source src="/videos/zeba-comfort-video.mp4" type="video/mp4" />
-            <source src="/images/gemini_generated_video_d291804a (online-video-cutter.com).mp4" type="video/mp4" />
           </video>
           {/* Deep plum & dark purple gradient overlays for contrast and brand harmony */}
           <div className="absolute inset-0 bg-gradient-to-t from-[#2A1730]/95 via-[#38283D]/80 to-[#5F3F68]/85 mix-blend-multiply" />

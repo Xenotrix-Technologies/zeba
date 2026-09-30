@@ -194,6 +194,9 @@ export default function ProductDetail() {
               <img
                 src={allImages[activeImageIndex] || allImages[0]}
                 alt={selectedProduct.name}
+                width="600"
+                height="600"
+                fetchPriority="high"
                 onError={(e) => {
                   e.currentTarget.onerror = null;
                   e.currentTarget.src = '/images/zeba-1pack.jpg';
@@ -217,6 +220,10 @@ export default function ProductDetail() {
                   <img
                     src={img}
                     alt={`Thumb ${idx + 1}`}
+                    width="100"
+                    height="100"
+                    loading="lazy"
+                    decoding="async"
                     onError={(e) => {
                       e.currentTarget.onerror = null;
                       e.currentTarget.src = '/images/zeba-1pack.jpg';

@@ -1,42 +1,45 @@
 /**
  * ZEBA Image Utility
  * Safely parses and normalizes product image URLs from various backend formats
- * (Arrays, JSON strings, single URL strings, null/undefined).
+ * (Arrays, JSON strings, single URL strings, null/undefined) with modern WebP optimization.
  */
 
-export const DEFAULT_PRODUCT_IMAGE = '/images/zeba-1pack.jpg';
+export const DEFAULT_PRODUCT_IMAGE = '/images/zeba-1pack.webp';
+
+export function getWebpImageUrl(url) {
+  if (!url || typeof url !== 'string') return DEFAULT_PRODUCT_IMAGE;
+  if (url.startsWith('/images/') && (url.endsWith('.jpg') || url.endsWith('.jpeg') || url.endsWith('.png'))) {
+    return url.replace(/\.(jpg|jpeg|png)$/i, '.webp');
+  }
+  return url;
+}
 
 export function parseProductImages(images) {
   if (!images) {
     return [DEFAULT_PRODUCT_IMAGE];
   }
 
+  let list = [];
   if (Array.isArray(images)) {
-    const valid = images.filter(img => typeof img === 'string' && img.trim().length > 0);
-    return valid.length > 0 ? valid : [DEFAULT_PRODUCT_IMAGE];
-  }
-
-  if (typeof images === 'string') {
+    list = images.filter(img => typeof img === 'string' && img.trim().length > 0);
+  } else if (typeof images === 'string') {
     const trimmed = images.trim();
-    if (!trimmed) return [DEFAULT_PRODUCT_IMAGE];
-
-    // Check if it is a JSON array string e.g. '["/images/zeba-1pack.jpg"]'
     if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
       try {
         const parsed = JSON.parse(trimmed);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+          list = parsed;
         }
       } catch {
-        // Fallback to single string treatment if JSON parse fails
+        list = [trimmed];
       }
+    } else if (trimmed) {
+      list = [trimmed];
     }
-
-    // Direct image path / URL string
-    return [trimmed];
   }
 
-  return [DEFAULT_PRODUCT_IMAGE];
+  if (list.length === 0) return [DEFAULT_PRODUCT_IMAGE];
+  return list.map(img => getWebpImageUrl(img));
 }
 
 export function getProductMainImage(images) {
@@ -46,6 +49,7 @@ export function getProductMainImage(images) {
 
 export default {
   DEFAULT_PRODUCT_IMAGE,
+  getWebpImageUrl,
   parseProductImages,
   getProductMainImage
 };

@@ -26,13 +26,20 @@
     <meta name="twitter:description" content="Air-activated, ultra-thin period pain relief heating pads. 100% natural safe heat." />
     <meta name="twitter:image" content="https://www.zebaofficial.in/images/zeba-1pack.jpg" />
 
-    <!-- Google Fonts: Cinzel for Luxury ZEBA Brand, Outfit for Headings, Plus Jakarta Sans for UI Body -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Preload Critical LCP Hero Image -->
+    <link rel="preload" as="image" href="/images/zeba-1pack.webp" type="image/webp" fetchpriority="high" />
+    <link rel="preload" as="image" href="/images/zeba-logo.webp" type="image/webp" />
+
+    <!-- Google Fonts Optimization: Preconnect & Asynchronous Non-blocking Load -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'" />
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" />
+    </noscript>
     
-    <!-- Razorpay Checkout Script -->
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <!-- Razorpay Checkout Script: Deferred to avoid blocking initial render -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
   </head>
   <body class="bg-[#FFF5FA] text-[#38283D] font-sans antialiased selection:bg-brand-pink selection:text-white">
     <div id="root"></div>

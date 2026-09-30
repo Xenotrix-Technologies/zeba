@@ -72,8 +72,14 @@ export default function Navbar() {
           {/* ZEBA Official Brand Logo */}
           <Link to="/" className="flex items-center space-x-2 group py-1">
             <img 
-              src="/images/zeba-logo.png" 
+              src="/images/zeba-logo.webp" 
               alt="ZEBA - Periods Pain Relief" 
+              width="150"
+              height="44"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = '/images/zeba-logo.png';
+              }}
               className="h-9 sm:h-10 md:h-11 w-auto object-contain group-hover:opacity-90 transition-opacity" 
             />
           </Link>
