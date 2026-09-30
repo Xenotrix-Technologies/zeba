@@ -28,6 +28,18 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true
         }
       }
+    },
+    build: {
+      chunkSizeWarningLimit: 600,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+            'icons-vendor': ['lucide-react'],
+            'ui-vendor': ['canvas-confetti', 'axios']
+          }
+        }
+      }
     }
   };
 });

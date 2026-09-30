@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { businessConfig } from '../../config/businessConfig';
 
 export default function ShippingPolicy() {
@@ -37,7 +38,7 @@ export default function ShippingPolicy() {
         <section className="space-y-2">
           <h2 className="font-bold text-base text-brand-deepPurple">4. Tracking Your Order</h2>
           <p>
-            As soon as your parcel is handed over to our courier partner, tracking details are sent via SMS, WhatsApp, and registered email. You can also view live tracking anytime under your <a href="/account" className="text-brand-brightPink font-bold underline">Customer Account</a>.
+            As soon as your parcel is handed over to our courier partner, tracking details are sent via SMS, WhatsApp, and registered email. You can also view live tracking anytime under your <Link to="/account" className="text-brand-brightPink font-bold underline">Customer Account</Link> or on our public <Link to="/order-tracking" className="text-brand-brightPink font-bold underline">Order Tracking</Link> page.
           </p>
         </section>
       </div>

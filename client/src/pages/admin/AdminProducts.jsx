@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Edit2, Save, X } from 'lucide-react';
 import api from '../../services/api';
 import { useToast } from '../../context/ToastContext';
+import { parseProductImages } from '../../utils/imageUtils';
 
 export default function AdminProducts() {
   const { addToast } = useToast();
@@ -78,9 +79,7 @@ export default function AdminProducts() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {products.map((product) => {
             const isEditing = editingProduct?.id === product.id;
-            const images = Array.isArray(product.images)
-              ? product.images
-              : (typeof product.images === 'string' ? JSON.parse(product.images || '[]') : ['/images/zeba-1pack.jpg']);
+            const images = parseProductImages(product.images);
 
             return (
               <div

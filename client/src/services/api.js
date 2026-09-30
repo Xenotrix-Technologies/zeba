@@ -14,6 +14,11 @@ api.interceptors.request.use((config) => {
     const customerToken = localStorage.getItem('zeba_customer_token') || localStorage.getItem('customerToken');
     const url = config.url || '';
 
+    // Do not attach tokens to public auth login/register endpoints
+    if (url.includes('/login') || url.includes('/register')) {
+      return config;
+    }
+
     if (url.includes('/customer')) {
       if (customerToken) {
         config.headers.Authorization = `Bearer ${customerToken}`;
@@ -43,8 +48,10 @@ api.interceptors.response.use(
     if (!message) {
       if (error.response?.status === 404) {
         message = 'The requested service endpoint was not found (404).';
+      } else if (error.response?.status === 500 && (!error.response.data || typeof error.response.data === 'string')) {
+        message = 'Backend API is unreachable. Please verify that the backend server is running on port 5000.';
       } else if (error.code === 'ERR_NETWORK' || !error.response) {
-        message = 'Unable to connect to the server. Please check your internet connection or try again shortly.';
+        message = 'Unable to connect to the backend server. Please check your connection and ensure the server is running.';
       } else {
         message = error.message || 'An unexpected error occurred.';
       }

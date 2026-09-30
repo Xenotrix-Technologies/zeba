@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { Outlet, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -12,6 +12,15 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+
+function AdminPageLoader() {
+  return (
+    <div className="min-h-[40vh] flex flex-col items-center justify-center py-16 text-center space-y-3">
+      <div className="w-9 h-9 border-3 border-brand-brightPink border-t-transparent rounded-full animate-spin" />
+      <span className="text-xs font-semibold text-[#805A82]">Loading panel view...</span>
+    </div>
+  );
+}
 
 export default function AdminLayout() {
   const { admin, isAuthenticated, loading, logout } = useAuth();
@@ -137,7 +146,9 @@ export default function AdminLayout() {
 
       {/* Main Content Area (Clean, light soft-pink background) */}
       <main className="flex-1 min-w-0 bg-[#FFF5FA] p-4 sm:p-8 overflow-y-auto">
-        <Outlet />
+        <Suspense fallback={<AdminPageLoader />}>
+          <Outlet />
+        </Suspense>
       </main>
 
     </div>

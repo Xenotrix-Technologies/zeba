@@ -295,23 +295,23 @@ const INLINE_MIGRATIONS = [
   {
     name: '006_security_hardening_rls.sql',
     sql: `
-      ALTER TABLE IF EXISTS admins ENABLE ROW LEVEL SECURITY;
-      ALTER TABLE IF EXISTS customers ENABLE ROW LEVEL SECURITY;
-      ALTER TABLE IF EXISTS addresses ENABLE ROW LEVEL SECURITY;
-      ALTER TABLE IF EXISTS orders ENABLE ROW LEVEL SECURITY;
-      ALTER TABLE IF EXISTS order_items ENABLE ROW LEVEL SECURITY;
-      ALTER TABLE IF EXISTS payments ENABLE ROW LEVEL SECURITY;
-      ALTER TABLE IF EXISTS payment_events ENABLE ROW LEVEL SECURITY;
-      ALTER TABLE IF EXISTS order_status_history ENABLE ROW LEVEL SECURITY;
-      ALTER TABLE IF EXISTS order_notifications ENABLE ROW LEVEL SECURITY;
-      ALTER TABLE IF EXISTS customer_notifications ENABLE ROW LEVEL SECURITY;
-      ALTER TABLE IF EXISTS contact_messages ENABLE ROW LEVEL SECURITY;
-      ALTER TABLE IF EXISTS store_settings ENABLE ROW LEVEL SECURITY;
-      ALTER TABLE IF EXISTS site_content ENABLE ROW LEVEL SECURITY;
-      ALTER TABLE IF EXISTS faqs ENABLE ROW LEVEL SECURITY;
-      ALTER TABLE IF EXISTS reviews ENABLE ROW LEVEL SECURITY;
-      ALTER TABLE IF EXISTS b2b_inquiries ENABLE ROW LEVEL SECURITY;
-      ALTER TABLE IF EXISTS products ENABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS admins DISABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS customers DISABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS addresses DISABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS orders DISABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS order_items DISABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS payments DISABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS payment_events DISABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS order_status_history DISABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS order_notifications DISABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS customer_notifications DISABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS contact_messages DISABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS store_settings DISABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS site_content DISABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS faqs DISABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS reviews DISABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS b2b_inquiries DISABLE ROW LEVEL SECURITY;
+      ALTER TABLE IF EXISTS products DISABLE ROW LEVEL SECURITY;
 
       DROP POLICY IF EXISTS "Public Read Active Products" ON products;
       DROP POLICY IF EXISTS "Public Read Store Settings" ON store_settings;
@@ -321,16 +321,6 @@ const INLINE_MIGRATIONS = [
       DROP POLICY IF EXISTS "Public Submit Contact Message" ON contact_messages;
       DROP POLICY IF EXISTS "Public Submit Review" ON reviews;
       DROP POLICY IF EXISTS "Public Submit B2B Inquiry" ON b2b_inquiries;
-
-      CREATE POLICY "Public Read Active Products" ON products FOR SELECT USING (is_active = true);
-      CREATE POLICY "Public Read Store Settings" ON store_settings FOR SELECT USING (true);
-      CREATE POLICY "Public Read Site Content" ON site_content FOR SELECT USING (is_active = true);
-      CREATE POLICY "Public Read Active FAQs" ON faqs FOR SELECT USING (is_active = true);
-      CREATE POLICY "Public Read Approved Reviews" ON reviews FOR SELECT USING (is_approved = true);
-
-      CREATE POLICY "Public Submit Contact Message" ON contact_messages FOR INSERT WITH CHECK (true);
-      CREATE POLICY "Public Submit Review" ON reviews FOR INSERT WITH CHECK (true);
-      CREATE POLICY "Public Submit B2B Inquiry" ON b2b_inquiries FOR INSERT WITH CHECK (true);
     `
   }
 ];

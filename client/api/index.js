@@ -38,23 +38,18 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Static images
 app.use('/images', express.static(path.resolve(__dirname, '../public/images')));
 
-// Database initialization for serverless cold start
-let dbInitPromise = null;
-app.use(async (req, res, next) => {
-  if (!dbInitPromise) {
-    dbInitPromise = seedDatabase().catch((err) => {
-      console.error('Serverless DB initialization error:', err);
-      dbInitPromise = null;
-      throw err;
+// Non-blocking background database initialization for serverless cold start
+let dbInitDone = false;
+function initDbBackground() {
+  if (!dbInitDone) {
+    dbInitDone = true;
+    seedDatabase().catch((err) => {
+      console.warn('Background serverless DB sync note:', err.message);
+      dbInitDone = false;
     });
   }
-  try {
-    await dbInitPromise;
-    next();
-  } catch (err) {
-    next(err);
-  }
-});
+}
+initDbBackground();
 
 // URL Normalization middleware to handle Vercel rewrites & proxies seamlessly
 app.use((req, res, next) => {

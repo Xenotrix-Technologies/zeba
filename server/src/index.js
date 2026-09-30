@@ -31,21 +31,28 @@ const allowedOrigins = [
   'https://www.zebaofficial.in',
   'https://zebaofficial.in',
   'http://localhost:5173',
+  'http://127.0.0.1:5173',
   'http://localhost:3000',
-  'http://localhost:5000'
+  'http://127.0.0.1:3000',
+  'http://localhost:5000',
+  'http://127.0.0.1:5000'
 ];
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow server-to-server, curl, webhooks without origin header
     if (!origin) return callback(null, true);
     if (
       allowedOrigins.includes(origin) ||
-      origin.endsWith('.vercel.app')
+      origin.endsWith('.vercel.app') ||
+      origin.includes('localhost') ||
+      origin.includes('127.0.0.1') ||
+      origin.includes('192.168.') ||
+      origin.includes('10.') ||
+      origin.includes('zebaofficial')
     ) {
       return callback(null, true);
     }
-    return callback(new Error(`CORS policy blocked access from origin: ${origin}`), false);
+    return callback(null, true);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],

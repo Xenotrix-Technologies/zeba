@@ -39,7 +39,11 @@
       "destination": "/api"
     },
     {
-      "source": "/((?!api/|images/|assets/).*)",
+      "source": "/((?!api/|images/|videos/|assets/|favicon|robots\\.txt|sitemap\\.xml).*\\.[^/]+$)",
+      "destination": "/$1"
+    },
+    {
+      "source": "/((?!api/|images/|videos/|assets/|favicon|robots\\.txt|sitemap\\.xml).*)",
       "destination": "/index.html"
     }
   ]

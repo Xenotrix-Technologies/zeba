@@ -70,17 +70,34 @@ export default function Checkout() {
       return;
     }
 
-    if (!formData.name || !formData.email || !formData.phone) {
-      addToast('Please provide your name, email, and mobile number.', 'error');
+    if (!formData.name || !formData.name.trim()) {
+      addToast('Please enter your full name.', 'error');
       return;
     }
 
-    if (!formData.houseBuilding || !formData.city || !formData.state || !formData.pincode) {
-      addToast('Please complete all required shipping address fields.', 'error');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email || !formData.email.trim() || !emailRegex.test(formData.email.trim())) {
+      addToast('Please enter a valid email address.', 'error');
       return;
     }
 
-    if (!/^\d{6}$/.test(formData.pincode.trim())) {
+    const cleanPhone = (formData.phone || '').replace(/[^0-9]/g, '');
+    if (!cleanPhone || cleanPhone.length < 10) {
+      addToast('Please enter a valid phone number.', 'error');
+      return;
+    }
+
+    if (!formData.houseBuilding || !formData.houseBuilding.trim()) {
+      addToast('Please enter your delivery address.', 'error');
+      return;
+    }
+
+    if (!formData.city || !formData.city.trim() || !formData.state || !formData.state.trim()) {
+      addToast('Please enter your city and state.', 'error');
+      return;
+    }
+
+    if (!/^\d{6}$/.test((formData.pincode || '').trim())) {
       addToast('Please enter a valid 6-digit Indian PIN code.', 'error');
       return;
     }
@@ -478,7 +495,7 @@ export default function Checkout() {
                   className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-brand-brightPink to-brand-deepPink hover:from-brand-deepPink hover:to-brand-brightPink text-white font-bold text-sm shadow-xl shadow-brand-pink/30 flex items-center justify-center space-x-2 transition-all transform hover:-translate-y-0.5 disabled:opacity-50 btn-tactile"
                 >
                   <Lock className="w-4 h-4" />
-                  <span>{loading ? 'Initiating Razorpay...' : `Pay ₹${totalAmount.toFixed(0)} with Razorpay`}</span>
+                  <span>{loading ? 'Processing payment...' : `Pay ₹${totalAmount.toFixed(0)} with Razorpay`}</span>
                 </button>
 
                 <div className="p-3.5 rounded-2xl bg-[#FFF5FA] border border-brand-primaryPink/20 text-center space-y-1 text-[11px] text-[#805A82]">

@@ -22,11 +22,11 @@ export function AuthProvider({ children }) {
         if (res.success && res.admin) {
           setAdmin(res.admin);
         } else {
-          logout();
+          logout(false);
         }
       } catch (err) {
         console.warn('Auth token verification failed:', err.message);
-        logout();
+        logout(false);
       } finally {
         setLoading(false);
       }
@@ -52,11 +52,15 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const logout = () => {
+  const logout = (notify = true) => {
     localStorage.removeItem('zeba_admin_token');
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('token');
     setToken(null);
     setAdmin(null);
-    addToast('Logged out of Admin panel.', 'info');
+    if (notify) {
+      addToast('Logged out of Admin panel.', 'info');
+    }
   };
 
   return (

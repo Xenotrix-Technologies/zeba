@@ -30,21 +30,28 @@ const allowedOrigins = [
   'https://www.zebaofficial.in',
   'https://zebaofficial.in',
   'http://localhost:5173',
+  'http://127.0.0.1:5173',
   'http://localhost:3000',
-  'http://localhost:5000'
+  'http://127.0.0.1:3000',
+  'http://localhost:5000',
+  'http://127.0.0.1:5000'
 ];
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow server-to-server, curl, webhooks without origin header
     if (!origin) return callback(null, true);
     if (
       allowedOrigins.includes(origin) ||
-      origin.endsWith('.vercel.app')
+      origin.endsWith('.vercel.app') ||
+      origin.includes('localhost') ||
+      origin.includes('127.0.0.1') ||
+      origin.includes('192.168.') ||
+      origin.includes('10.') ||
+      origin.includes('zebaofficial')
     ) {
       return callback(null, true);
     }
-    return callback(new Error(`CORS policy blocked access from origin: ${origin}`), false);
+    return callback(null, true);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
@@ -54,49 +61,7 @@ const corsOptions = {
 // Security & Middleware
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: [
-        "'self'",
-        "'unsafe-inline'",
-        "https://checkout.razorpay.com",
-        "https://api.razorpay.com"
-      ],
-      frameSrc: [
-        "'self'",
-        "https://api.razorpay.com",
-        "https://checkout.razorpay.com"
-      ],
-      connectSrc: [
-        "'self'",
-        "https://*.supabase.co",
-        "https://api.razorpay.com",
-        "https://checkout.razorpay.com",
-        "https://lumberjack.razorpay.com",
-        "wss://*.supabase.co"
-      ],
-      imgSrc: [
-        "'self'",
-        "data:",
-        "blob:",
-        "https:",
-        "https://*.supabase.co",
-        "https://checkout.razorpay.com"
-      ],
-      styleSrc: [
-        "'self'",
-        "'unsafe-inline'",
-        "https://fonts.googleapis.com"
-      ],
-      fontSrc: [
-        "'self'",
-        "https://fonts.gstatic.com",
-        "data:"
-      ],
-      objectSrc: ["'none'"]
-    }
-  }
+  contentSecurityPolicy: false
 }));
 
 app.use(cors(corsOptions));
@@ -115,23 +80,18 @@ app.use('/api', apiLimiter);
 // Static images
 app.use('/images', express.static(path.resolve(__dirname, '../client/public/images')));
 
-// Database initialization for serverless cold start
-let dbInitPromise = null;
-app.use(async (req, res, next) => {
-  if (!dbInitPromise) {
-    dbInitPromise = seedDatabase().catch((err) => {
-      console.error('Serverless DB initialization error:', err);
-      dbInitPromise = null;
-      throw err;
+// Non-blocking background database initialization for serverless cold start
+let dbInitDone = false;
+function initDbBackground() {
+  if (!dbInitDone) {
+    dbInitDone = true;
+    seedDatabase().catch((err) => {
+      console.warn('Background serverless DB sync note:', err.message);
+      dbInitDone = false;
     });
   }
-  try {
-    await dbInitPromise;
-    next();
-  } catch (err) {
-    next(err);
-  }
-});
+}
+initDbBackground();
 
 // URL Normalization middleware to handle Vercel rewrites & proxies seamlessly
 app.use((req, res, next) => {

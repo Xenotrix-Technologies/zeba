@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingBag, Zap, Star, Flame, Clock } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { getProductMainImage } from '../utils/imageUtils';
 
 export default function ProductCard({ product, isFeatured = false }) {
   const { addToCart } = useCart();
@@ -13,11 +14,7 @@ export default function ProductCard({ product, isFeatured = false }) {
     navigate('/checkout');
   };
 
-  const images = Array.isArray(product.images)
-    ? product.images
-    : (typeof product.images === 'string' ? JSON.parse(product.images || '[]') : ['/images/zeba-1pack.jpg']);
-
-  const mainImage = images[0] || '/images/zeba-1pack.jpg';
+  const mainImage = getProductMainImage(product.images);
   const currentPrice = parseFloat(product.price) || 0;
   const originalPrice = parseFloat(product.original_price) || 0;
   const discountPercent = originalPrice > currentPrice
@@ -61,6 +58,8 @@ export default function ProductCard({ product, isFeatured = false }) {
         <img
           src={mainImage}
           alt={product.name}
+          loading="lazy"
+          decoding="async"
           onError={(e) => {
             e.currentTarget.onerror = null;
             e.currentTarget.src = '/images/zeba-1pack.jpg';

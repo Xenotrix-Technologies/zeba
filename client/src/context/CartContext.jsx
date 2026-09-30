@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from './ToastContext';
 import { useStoreSettings } from './StoreSettingsContext';
+import { getProductMainImage } from '../utils/imageUtils';
 
 const CartContext = createContext(null);
 
@@ -41,10 +42,10 @@ export function CartProvider({ children }) {
           slug: product.slug,
           name: product.name,
           pack_size: product.pack_size,
-          price: parseFloat(product.price),
-          original_price: parseFloat(product.original_price || product.price),
-          image: Array.isArray(product.images) && product.images.length > 0 ? product.images[0] : (typeof product.images === 'string' ? JSON.parse(product.images)[0] : '/images/zeba-1pack.jpg'),
-          quantity
+          price: parseFloat(product.price) || 0,
+          original_price: parseFloat(product.original_price || product.price) || 0,
+          image: getProductMainImage(product.images),
+          quantity: Math.max(1, quantity)
         }];
       }
     });

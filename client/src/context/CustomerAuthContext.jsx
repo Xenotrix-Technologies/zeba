@@ -22,11 +22,15 @@ export function CustomerAuthProvider({ children }) {
         if (res.success && res.customer) {
           setCustomer(res.customer);
         } else {
-          logout();
+          localStorage.removeItem('zeba_customer_token');
+          setToken(null);
+          setCustomer(null);
         }
       } catch (err) {
         console.warn('Customer token verification failed:', err.message);
-        logout();
+        localStorage.removeItem('zeba_customer_token');
+        setToken(null);
+        setCustomer(null);
       } finally {
         setLoading(false);
       }

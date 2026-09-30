@@ -79,7 +79,7 @@ export async function getDashboardMetrics(req, res, next) {
       SELECT o.id, o.order_number, o.status, o.payment_status, o.total_amount, o.created_at,
              c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone
       FROM orders o
-      JOIN customers c ON o.customer_id = c.id
+      LEFT JOIN customers c ON o.customer_id = c.id
       ORDER BY o.created_at DESC
       LIMIT 6
     `);
@@ -197,7 +197,7 @@ export async function getAdminOrders(req, res, next) {
     const countQuery = `
       SELECT COUNT(*) AS total
       FROM orders o
-      JOIN customers c ON o.customer_id = c.id
+      LEFT JOIN customers c ON o.customer_id = c.id
       ${whereClause}
     `;
     const countRes = await query(countQuery, params);
@@ -212,7 +212,7 @@ export async function getAdminOrders(req, res, next) {
              (SELECT COUNT(*) FROM order_items WHERE order_id = o.id) AS total_items,
              (SELECT string_agg(product_name, ', ') FROM order_items WHERE order_id = o.id) AS products_summary
       FROM orders o
-      JOIN customers c ON o.customer_id = c.id
+      LEFT JOIN customers c ON o.customer_id = c.id
       ${whereClause}
       ORDER BY ${sortCol} ${orderDirection}
       LIMIT $${paramIndex++} OFFSET $${paramIndex++}
@@ -248,7 +248,7 @@ export async function getAdminOrderDetail(req, res, next) {
                   a.house_building, a.street, a.area, a.city, a.state, a.pincode, a.country,
                   p.razorpay_order_id, p.razorpay_payment_id, p.payment_method, p.status AS payment_record_status
            FROM orders o
-           JOIN customers c ON o.customer_id = c.id
+           LEFT JOIN customers c ON o.customer_id = c.id
            LEFT JOIN addresses a ON o.address_id = a.id
            LEFT JOIN payments p ON o.id = p.order_id
            WHERE o.id = $1`,
@@ -260,7 +260,7 @@ export async function getAdminOrderDetail(req, res, next) {
                   a.house_building, a.street, a.area, a.city, a.state, a.pincode, a.country,
                   p.razorpay_order_id, p.razorpay_payment_id, p.payment_method, p.status AS payment_record_status
            FROM orders o
-           JOIN customers c ON o.customer_id = c.id
+           LEFT JOIN customers c ON o.customer_id = c.id
            LEFT JOIN addresses a ON o.address_id = a.id
            LEFT JOIN payments p ON o.id = p.order_id
            WHERE o.order_number = $1`,
