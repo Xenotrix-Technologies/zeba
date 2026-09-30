@@ -22,8 +22,13 @@ export async function login(req, res, next) {
     let result;
     try {
       result = await query(
-        'SELECT id, username, email, password_hash, role, created_at FROM admins WHERE LOWER(email) = $1 OR LOWER(username) = $1 LIMIT 1',
-        [cleanId]
+        `SELECT id, username, email, password_hash, role, created_at 
+         FROM admins 
+         WHERE LOWER(email) = $1 
+            OR LOWER(username) = $1 
+            OR ($1 IN ('admin', 'zeba', 'info@zebaofficial.in') AND (LOWER(username) = 'zeba_admin' OR LOWER(email) = $2))
+         LIMIT 1`,
+        [cleanId, configuredEmail]
       );
     } catch (dbErr) {
       console.warn('⚠️ Admin query failed, attempting database initialization...', dbErr.message);
@@ -31,8 +36,13 @@ export async function login(req, res, next) {
         const { seedDatabase } = await import('../../database/seed.js');
         await seedDatabase();
         result = await query(
-          'SELECT id, username, email, password_hash, role, created_at FROM admins WHERE LOWER(email) = $1 OR LOWER(username) = $1 LIMIT 1',
-          [cleanId]
+          `SELECT id, username, email, password_hash, role, created_at 
+           FROM admins 
+           WHERE LOWER(email) = $1 
+              OR LOWER(username) = $1 
+              OR ($1 IN ('admin', 'zeba', 'info@zebaofficial.in') AND (LOWER(username) = 'zeba_admin' OR LOWER(email) = $2))
+           LIMIT 1`,
+          [cleanId, configuredEmail]
         );
       } catch (seedErr) {
         console.error('Database migration/seed error during login:', seedErr.message);
@@ -49,6 +59,8 @@ export async function login(req, res, next) {
         cleanId === configuredEmail ||
         cleanId === 'zeba_admin' ||
         cleanId === 'admin' ||
+        cleanId === 'zeba' ||
+        cleanId === 'info@zebaofficial.in' ||
         cleanId === 'zebaofficial2013@gmail.com'
       );
 
