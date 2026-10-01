@@ -98,10 +98,13 @@ app.use((req, res, next) => {
   // If __path is passed from Vercel rewrite (?__path=auth/login)
   if (req.query && req.query.__path) {
     const rawPath = req.query.__path;
-    req.url = rawPath.startsWith('/') ? rawPath : `/${rawPath}`;
+    const base = rawPath.startsWith('/') ? rawPath : `/${rawPath}`;
+    const searchIdx = req.url.indexOf('?');
+    const queryString = searchIdx !== -1 ? req.url.slice(searchIdx) : '';
+    req.url = base + queryString;
   } else {
     const matched = req.headers['x-matched-path'] || req.headers['x-now-route-matches'] || req.headers['x-invoke-path'] || req.headers['x-forwarded-url'];
-    if (matched && (req.url === '/api/index.js' || req.url === '/index.js' || req.url.startsWith('/api/index.js') || req.url.startsWith('/index.js'))) {
+    if (matched && (req.url === '/api/index.js' || req.url === '/index.js' || req.url.startsWith('/api/index.js') || req.url.startsWith('/index.js') || req.url === '/api' || req.url === '/')) {
       try {
         const urlObj = new URL(matched, 'http://localhost');
         req.url = urlObj.pathname + (urlObj.search || '');

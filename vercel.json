@@ -72,14 +72,18 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api"
+      "destination": "/api/index.js"
     },
     {
-      "source": "/((?!api/|images/|videos/|assets/|favicon|robots\\.txt|sitemap\\.xml).*\\.[^/]+$)",
+      "source": "/api",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/((?!api(?:/|$)|images/|videos/|assets/|favicon|robots\\.txt|sitemap\\.xml).*\\.[^/]+$)",
       "destination": "/$1"
     },
     {
-      "source": "/((?!api/|images/|videos/|assets/|favicon|robots\\.txt|sitemap\\.xml).*)",
+      "source": "/((?!api(?:/|$)|images/|videos/|assets/|favicon|robots\\.txt|sitemap\\.xml).*)",
       "destination": "/index.html"
     }
   ]
