@@ -37,6 +37,13 @@
     @apply font-display tracking-tight text-[#5F3F68];
   }
 
+  p, .font-editorial, .font-serif, .text-description, .product-description {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    letter-spacing: 0.01em;
+  }
+
   ::selection {
     background-color: #E84FA5;
     color: #FFFFFF;
