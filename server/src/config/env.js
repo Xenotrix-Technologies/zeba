@@ -22,6 +22,15 @@ export const config = {
   STANDARD_SHIPPING_FEE: businessConfig.commerce.standardShippingFee,
   ADMIN_DEFAULT_EMAIL: process.env.ADMIN_DEFAULT_EMAIL || 'zebaofficial2013@gmail.com',
   ADMIN_DEFAULT_PASSWORD: process.env.ADMIN_DEFAULT_PASSWORD || 'Zeba@2013.?',
+  // SMTP Configuration
+  SMTP_HOST: process.env.SMTP_HOST || process.env.EMAIL_HOST || '',
+  SMTP_PORT: parseInt(process.env.SMTP_PORT || process.env.EMAIL_PORT || '587', 10),
+  SMTP_SECURE: process.env.SMTP_SECURE === 'true' || process.env.SMTP_PORT === '465',
+  SMTP_USER: process.env.SMTP_USER || process.env.EMAIL_USER || '',
+  SMTP_PASSWORD: process.env.SMTP_PASSWORD || process.env.SMTP_PASS || process.env.EMAIL_PASS || '',
+  EMAIL_FROM_NAME: process.env.EMAIL_FROM_NAME || 'ZEBA',
+  EMAIL_FROM_ADDRESS: process.env.EMAIL_FROM_ADDRESS || process.env.EMAIL_FROM || businessConfig.supportEmail || 'orders@zebaofficial.in',
+  ADMIN_EMAIL: process.env.ADMIN_EMAIL || process.env.OWNER_EMAIL || process.env.ADMIN_DEFAULT_EMAIL || 'admin@zebaofficial.in',
   business: businessConfig
 };
 

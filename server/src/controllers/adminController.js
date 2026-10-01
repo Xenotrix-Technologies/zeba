@@ -1,5 +1,12 @@
 import { query } from '../config/db.js';
 import { sendCustomerStatusNotification, generateWhatsAppMessage } from '../services/notificationService.js';
+import {
+  sendRefundEmail,
+  getEmailEvents,
+  retryFailedEmails,
+  verifySmtpConnection,
+  sendTestEmail
+} from '../services/emailService.js';
 
 /**
  * Valid state transitions for order lifecycle
@@ -515,6 +522,22 @@ export async function updateOrderStatus(req, res, next) {
         });
       }
 
+      // Check if refund status changed to dispatch refund-specific emails
+      if (notify_customer && refund_status && refund_status !== currentOrder.refund_status && ['requested', 'processing', 'completed', 'failed'].includes(refund_status)) {
+        try {
+          await sendRefundEmail({
+            order: {
+              ...updatedOrder,
+              customer
+            },
+            refundStatus: refund_status,
+            reason: notes || cancellation_reason || 'Admin processed refund update'
+          });
+        } catch (refundErr) {
+          console.error('Admin refund email dispatch note:', refundErr.message);
+        }
+      }
+
       // Generate WhatsApp Direct Send Link
       const msg = generateWhatsAppMessage(
         {
@@ -783,6 +806,7 @@ export async function updateAdminMessageStatus(req, res, next) {
  */
 export async function clearAllTestData(req, res, next) {
   try {
+    try { await query('DELETE FROM email_events'); } catch (_) {}
     try { await query('DELETE FROM payment_events'); } catch (_) {}
     try { await query('DELETE FROM order_status_history'); } catch (_) {}
     try { await query('DELETE FROM order_notifications'); } catch (_) {}
@@ -799,13 +823,67 @@ export async function clearAllTestData(req, res, next) {
       await query('ALTER SEQUENCE customers_id_seq RESTART WITH 1');
       await query('ALTER SEQUENCE addresses_id_seq RESTART WITH 1');
       await query('ALTER SEQUENCE payments_id_seq RESTART WITH 1');
+      await query('ALTER SEQUENCE email_events_id_seq RESTART WITH 1');
     } catch (_) {}
 
     res.json({
       success: true,
-      message: 'All dummy test data has been completely wiped from the database.'
+      message: 'All dummy test data and email logs have been completely wiped from the database.'
     });
   } catch (err) {
     next(err);
   }
 }
+
+/**
+ * GET /api/admin/emails
+ * Retrieve paginated email events and delivery statuses
+ */
+export async function getAdminEmailEvents(req, res, next) {
+  try {
+    const { page = 1, limit = 20, orderId, status, search } = req.query;
+    const result = await getEmailEvents({ page, limit, orderId, status, search });
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * POST /api/admin/emails/retry
+ * Safe admin-triggered retry for failed email notifications
+ */
+export async function retryAdminFailedEmails(req, res, next) {
+  try {
+    const { maxRetries = 3, limit = 10 } = req.body;
+    const result = await retryFailedEmails({ maxRetries, limit });
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * POST /api/admin/emails/test-smtp
+ * Verify SMTP connection and optionally send diagnostic test message
+ */
+export async function testAdminSmtp(req, res, next) {
+  try {
+    const { to, sendTest = false } = req.body;
+    const connCheck = await verifySmtpConnection();
+
+    let testSendResult = null;
+    if (sendTest) {
+      testSendResult = await sendTestEmail({ to });
+    }
+
+    res.json({
+      success: true,
+      connection: connCheck,
+      testSend: testSendResult
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+

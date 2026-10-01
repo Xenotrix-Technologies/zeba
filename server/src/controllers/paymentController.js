@@ -7,9 +7,12 @@ import {
   verifyRazorpayWebhookSignature
 } from '../config/razorpay.js';
 import {
-  sendOrderConfirmationToCustomer,
-  sendNewOrderAlertToOwner
-} from '../services/notificationService.js';
+  sendOrderReceivedEmail,
+  sendPaymentSuccessEmail,
+  sendPaymentFailedEmail,
+  sendAdminNewOrderEmail,
+  sendRefundEmail
+} from '../services/emailService.js';
 
 /**
  * Generate a unique, recognizable order number (e.g., ZEBA-2026-8942)
@@ -327,6 +330,16 @@ export async function createPaymentOrder(req, res, next) {
       ]
     );
 
+    // 9. Dispatch Order Received Notification to Customer (Non-blocking safe dispatch)
+    try {
+      const initialOrder = await fetchConsolidatedOrder(orderId);
+      if (initialOrder) {
+        await sendOrderReceivedEmail({ order: initialOrder });
+      }
+    } catch (notifErr) {
+      console.error('Order received email dispatch note:', notifErr.message);
+    }
+
     res.status(201).json({
       success: true,
       orderId,
@@ -506,38 +519,25 @@ export async function verifyPayment(req, res, next) {
     // 8. Fetch Full Consolidated Order Details for Confirmation & Emails
     const fullOrder = await fetchConsolidatedOrder(order.id);
 
-    // 9. Dispatch Customer Confirmation & Owner Alert Emails (Non-blocking safe dispatch)
+    // 9. Dispatch Customer Payment Success & Admin Order Alert Emails (Non-blocking safe dispatch)
     try {
-      await sendOrderConfirmationToCustomer({
-        orderId: fullOrder.id,
-        orderNumber: fullOrder.orderNumber,
-        customer: fullOrder.customer,
-        address: fullOrder.address,
-        items: fullOrder.items,
-        subtotal: fullOrder.subtotal,
-        shippingFee: fullOrder.shippingFee,
-        totalAmount: fullOrder.totalAmount,
-        razorpayPaymentId: razorpay_payment_id
+      await sendPaymentSuccessEmail({
+        order: fullOrder,
+        razorpayPaymentId: razorpay_payment_id,
+        paymentMethod
       });
     } catch (custNotifErr) {
-      console.error('Customer email notification dispatch note:', custNotifErr.message);
+      console.error('Customer payment success email dispatch note:', custNotifErr.message);
     }
 
     try {
-      await sendNewOrderAlertToOwner({
-        orderId: fullOrder.id,
-        orderNumber: fullOrder.orderNumber,
-        customer: fullOrder.customer,
-        address: fullOrder.address,
-        items: fullOrder.items,
-        subtotal: fullOrder.subtotal,
-        shippingFee: fullOrder.shippingFee,
-        totalAmount: fullOrder.totalAmount,
+      await sendAdminNewOrderEmail({
+        order: fullOrder,
         razorpayPaymentId: razorpay_payment_id,
         razorpayOrderId: razorpay_order_id
       });
     } catch (ownerNotifErr) {
-      console.error('Owner email notification dispatch note:', ownerNotifErr.message);
+      console.error('Admin new order email notification dispatch note:', ownerNotifErr.message);
     }
 
     res.json({
@@ -626,6 +626,19 @@ export async function recordPaymentFailure(req, res, next) {
              WHERE order_id = $3 AND status != 'paid'`,
             [error_code || 'PAYMENT_FAILED', error_description || 'Payment transaction failed', order.id]
           );
+
+          // Dispatch Payment Failed Notification to Customer
+          try {
+            const fullOrder = await fetchConsolidatedOrder(order.id);
+            if (fullOrder) {
+              await sendPaymentFailedEmail({
+                order: fullOrder,
+                errorMessage: error_description
+              });
+            }
+          } catch (failEmailErr) {
+            console.error('Payment failed email notification dispatch note:', failEmailErr.message);
+          }
         }
       }
     }
@@ -736,26 +749,12 @@ export async function handleRazorpayWebhook(req, res, next) {
             // Dispatch Notifications
             const fullOrder = await fetchConsolidatedOrder(order.id);
             try {
-              await sendOrderConfirmationToCustomer({
-                orderId: fullOrder.id,
-                orderNumber: fullOrder.orderNumber,
-                customer: fullOrder.customer,
-                address: fullOrder.address,
-                items: fullOrder.items,
-                subtotal: fullOrder.subtotal,
-                shippingFee: fullOrder.shippingFee,
-                totalAmount: fullOrder.totalAmount,
+              await sendPaymentSuccessEmail({
+                order: fullOrder,
                 razorpayPaymentId: rzpPaymentId
               });
-              await sendNewOrderAlertToOwner({
-                orderId: fullOrder.id,
-                orderNumber: fullOrder.orderNumber,
-                customer: fullOrder.customer,
-                address: fullOrder.address,
-                items: fullOrder.items,
-                subtotal: fullOrder.subtotal,
-                shippingFee: fullOrder.shippingFee,
-                totalAmount: fullOrder.totalAmount,
+              await sendAdminNewOrderEmail({
+                order: fullOrder,
                 razorpayPaymentId: rzpPaymentId,
                 razorpayOrderId: rzpOrderId
               });
@@ -780,6 +779,19 @@ export async function handleRazorpayWebhook(req, res, next) {
             rzpOrderId
           ]
         );
+
+        try {
+          const orderRes = await query('SELECT id FROM orders WHERE razorpay_order_id = $1 LIMIT 1', [rzpOrderId]);
+          if (orderRes.rows.length > 0) {
+            const fullOrder = await fetchConsolidatedOrder(orderRes.rows[0].id);
+            if (fullOrder) {
+              await sendPaymentFailedEmail({
+                order: fullOrder,
+                errorMessage: paymentEntity?.error_description || 'Payment capture failed'
+              });
+            }
+          }
+        } catch (_) {}
       }
     } else if (event === 'refund.processed' || event === 'refund.created') {
       if (rzpOrderId) {
@@ -791,6 +803,19 @@ export async function handleRazorpayWebhook(req, res, next) {
           `UPDATE payments SET status = 'refunded', updated_at = CURRENT_TIMESTAMP WHERE razorpay_order_id = $1`,
           [rzpOrderId]
         );
+
+        try {
+          const orderRes = await query('SELECT id FROM orders WHERE razorpay_order_id = $1 LIMIT 1', [rzpOrderId]);
+          if (orderRes.rows.length > 0) {
+            const fullOrder = await fetchConsolidatedOrder(orderRes.rows[0].id);
+            if (fullOrder) {
+              await sendRefundEmail({
+                order: fullOrder,
+                refundStatus: 'completed'
+              });
+            }
+          }
+        } catch (_) {}
       }
     }
 

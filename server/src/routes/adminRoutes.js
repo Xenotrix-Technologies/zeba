@@ -11,7 +11,10 @@ import {
   updateAdminProduct,
   getAdminMessages,
   updateAdminMessageStatus,
-  clearAllTestData
+  clearAllTestData,
+  getAdminEmailEvents,
+  retryAdminFailedEmails,
+  testAdminSmtp
 } from '../controllers/adminController.js';
 
 const router = Router();
@@ -31,6 +34,11 @@ router.get('/metrics', getDashboardMetrics);
 router.get('/orders', getAdminOrders);
 router.get('/orders/:id', getAdminOrderDetail);
 router.patch('/orders/:id/status', updateOrderStatus);
+
+// Email Notifications & SMTP Diagnostics
+router.get('/emails', getAdminEmailEvents);
+router.post('/emails/retry', retryAdminFailedEmails);
+router.post('/emails/test-smtp', testAdminSmtp);
 
 // Customers
 router.get('/customers', getAdminCustomers);
