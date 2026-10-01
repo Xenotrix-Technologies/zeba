@@ -238,7 +238,7 @@ export async function seedDatabase() {
       value: {
         currency: '₹',
         currencyCode: 'INR',
-        freeShippingThreshold: 499,
+        freeShippingThreshold: 1000,
         standardShippingFee: 49,
         codAvailable: true,
         codFee: 0,

@@ -57,7 +57,7 @@ export const businessConfig = {
   commerce: {
     currency: '₹',
     currencyCode: 'INR',
-    freeShippingThreshold: Number(process.env.FREE_SHIPPING_THRESHOLD || 499),
+    freeShippingThreshold: Number(process.env.FREE_SHIPPING_THRESHOLD || 1000),
     standardShippingFee: Number(process.env.STANDARD_SHIPPING_FEE || 49),
     codAvailable: process.env.COD_AVAILABLE !== 'false',
     codFee: Number(process.env.COD_FEE || 0),
