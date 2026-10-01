@@ -160,7 +160,7 @@ export default function ProductDetail() {
   // Combine authentic product packaging + official educational infographics
   const allImages = [
     ...baseImages,
-    '/images/zeba-how-to-use-guide.jpg',
+    '/images/zeba-how-to-use-guide.png',
     '/images/zeba-how-it-works-timeline.jpg',
     '/images/zeba-whats-inside-ingredients.jpg',
     '/images/zeba-got-questions-faq.jpg'
@@ -485,7 +485,7 @@ export default function ProductDetail() {
                 <div className="flex flex-col lg:flex-row items-center gap-8">
                   <div className="w-full lg:w-1/2 rounded-2xl overflow-hidden border border-brand-primaryPink/25 shadow-sm">
                     <img
-                      src="/images/zeba-how-to-use-guide.jpg"
+                      src="/images/zeba-how-to-use-guide.png"
                       alt="ZEBA How to Use It"
                       className="w-full h-auto object-cover"
                     />

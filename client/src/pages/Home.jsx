@@ -523,16 +523,12 @@ export default function Home() {
           {/* Official Visual Infographic */}
           <div className="rounded-3xl bg-white p-4 sm:p-6 border-2 border-brand-gold/40 shadow-2xl max-w-5xl mx-auto overflow-hidden">
             <img
-              src="/images/zeba-how-to-use-guide.webp"
+              src="/images/zeba-how-to-use-guide.png"
               alt="ZEBA How to Use It - 4 Step Visual Guide"
               width="1000"
               height="600"
               loading="lazy"
               decoding="async"
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = '/images/zeba-how-to-use-guide.jpg';
-              }}
               className="w-full h-auto rounded-2xl object-cover shadow-sm"
             />
           </div>
