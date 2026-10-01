@@ -77,12 +77,10 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+        sans: ['"Outfit"', '"Plus Jakarta Sans"', 'sans-serif'],
         display: ['"Outfit"', 'sans-serif'],
-        brand: ['"Cinzel"', 'serif'],
-        serif: ['"Cormorant Garamond"', 'serif'],
-        editorial: ['"Cormorant Garamond"', 'serif'],
-        body: ['"Cormorant Garamond"', 'serif']
+        body: ['"Outfit"', '"Plus Jakarta Sans"', 'sans-serif'],
+        brand: ['"Cinzel"', 'serif']
       },
       boxShadow: {
         'brand': '0 10px 30px -10px rgba(232, 79, 165, 0.25)',

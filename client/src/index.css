@@ -27,21 +27,20 @@
 
   body {
     @apply bg-[#FFF5FA] text-[#38283D] antialiased;
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-display tracking-tight text-[#5F3F68];
+  p, span, label, input, textarea, button, select, a, li, blockquote, dt, dd, div {
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
 
-  p, .font-editorial, .font-serif, .text-description, .product-description {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-size: 1.0625rem;
-    line-height: 1.6;
-    letter-spacing: 0.01em;
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight text-[#5F3F68];
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
 
   ::selection {
