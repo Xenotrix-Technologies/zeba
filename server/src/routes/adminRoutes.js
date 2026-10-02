@@ -14,7 +14,8 @@ import {
   clearAllTestData,
   getAdminEmailEvents,
   retryAdminFailedEmails,
-  testAdminSmtp
+  testAdminSmtp,
+  resendAdminOrderEmail
 } from '../controllers/adminController.js';
 
 const router = Router();
@@ -34,6 +35,7 @@ router.get('/metrics', getDashboardMetrics);
 router.get('/orders', getAdminOrders);
 router.get('/orders/:id', getAdminOrderDetail);
 router.patch('/orders/:id/status', updateOrderStatus);
+router.post('/orders/:id/resend-email', resendAdminOrderEmail);
 
 // Email Notifications & SMTP Diagnostics
 router.get('/emails', getAdminEmailEvents);

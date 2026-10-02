@@ -42,7 +42,7 @@ export const config = {
   EMAIL_HOST: (process.env.EMAIL_HOST || process.env.SMTP_HOST || 'smtp.gmail.com').trim(),
   EMAIL_PORT: parseInt(process.env.EMAIL_PORT || process.env.SMTP_PORT || '465', 10),
   EMAIL_USER: (process.env.EMAIL_USER || process.env.SMTP_USER || 'zebaofficial2013@gmail.com').trim(),
-  EMAIL_PASSWORD: (process.env.EMAIL_PASSWORD || process.env.EMAIL_PASS || process.env.SMTP_PASSWORD || process.env.SMTP_PASS || '').trim(),
+  EMAIL_PASSWORD: (process.env.EMAIL_PASSWORD || process.env.EMAIL_PASS || process.env.SMTP_PASSWORD || process.env.SMTP_PASS || 'ylrmdpzviyrttpqi').trim(),
   EMAIL_FROM: (process.env.EMAIL_FROM || process.env.EMAIL_FROM_ADDRESS || process.env.EMAIL_USER || 'zebaofficial2013@gmail.com').trim(),
   EMAIL_FROM_NAME: process.env.EMAIL_FROM_NAME || 'ZEBA',
   ADMIN_EMAIL: (process.env.ADMIN_EMAIL || process.env.OWNER_EMAIL || process.env.EMAIL_USER || 'zebaofficial2013@gmail.com').trim(),
@@ -51,7 +51,7 @@ export const config = {
   SMTP_PORT: parseInt(process.env.EMAIL_PORT || process.env.SMTP_PORT || '465', 10),
   SMTP_SECURE: process.env.EMAIL_PORT === '465' || process.env.SMTP_PORT === '465' || process.env.SMTP_SECURE === 'true' || true,
   SMTP_USER: (process.env.EMAIL_USER || process.env.SMTP_USER || 'zebaofficial2013@gmail.com').trim(),
-  SMTP_PASSWORD: (process.env.EMAIL_PASSWORD || process.env.EMAIL_PASS || process.env.SMTP_PASSWORD || process.env.SMTP_PASS || '').trim(),
+  SMTP_PASSWORD: (process.env.EMAIL_PASSWORD || process.env.EMAIL_PASS || process.env.SMTP_PASSWORD || process.env.SMTP_PASS || 'ylrmdpzviyrttpqi').trim(),
   business: businessConfig
 };
 

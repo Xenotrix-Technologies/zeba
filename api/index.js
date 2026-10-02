@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import '../server/src/config/env.js';
 import { seedDatabase } from '../server/database/seed.js';
 import { errorHandler } from '../server/src/middleware/errorHandler.js';
 

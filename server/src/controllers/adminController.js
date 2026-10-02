@@ -1,8 +1,11 @@
 import { query } from '../config/db.js';
 import { sendCustomerStatusNotification, generateWhatsAppMessage } from '../services/notificationService.js';
 import {
+  sendOrderConfirmationEmail,
+  sendPaymentConfirmationEmail,
   sendOrderStatusUpdateEmail,
   sendOrderCancelledEmail,
+  sendAdminNewOrderAlert,
   sendRefundEmail,
   getEmailNotifications,
   getEmailEvents,
@@ -10,6 +13,7 @@ import {
   verifySmtpConnection,
   sendTestEmail
 } from '../services/emailService.js';
+
 
 /**
  * Valid state transitions for order lifecycle
@@ -343,10 +347,29 @@ export async function getAdminOrderDetail(req, res, next) {
           emailStatusSummary.orderConfirmation = n.status;
         } else if (type.includes('payment_confirmation') || type.includes('payment_success')) {
           emailStatusSummary.paymentConfirmation = n.status;
-        } else if (type.includes('order_status_')) {
+        } else if (type.includes('order_status_') || type.includes('status_')) {
           emailStatusSummary.statusUpdate = n.status;
         } else if (type.includes('order_cancelled') || type.includes('cancellation')) {
           emailStatusSummary.cancellation = n.status;
+        }
+      }
+
+      // Fallback check on order_notifications table for historical continuity
+      if (emailNotifications.length === 0 && notifications.length > 0) {
+        for (const notif of notifications) {
+          const type = (notif.notification_type || '').toLowerCase();
+          if (type.includes('confirmation')) {
+            emailStatusSummary.orderConfirmation = 'sent';
+          }
+          if (type.includes('payment')) {
+            emailStatusSummary.paymentConfirmation = 'sent';
+          }
+          if (type.includes('status')) {
+            emailStatusSummary.statusUpdate = 'sent';
+          }
+          if (type.includes('cancelled')) {
+            emailStatusSummary.cancellation = 'sent';
+          }
         }
       }
     } catch (e) {
@@ -963,4 +986,70 @@ export async function testAdminSmtp(req, res, next) {
     next(err);
   }
 }
+
+/**
+ * POST /api/admin/orders/:id/resend-email
+ * Direct manual single-click resend for any order email type from Admin Order Detail UI
+ */
+export async function resendAdminOrderEmail(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { emailType } = req.body; // 'order_confirmation' | 'payment_confirmation' | 'status_update' | 'cancellation'
+
+    const isNumeric = /^\d+$/.test(id);
+    const orderRes = isNumeric
+      ? await query(`SELECT o.*, c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone FROM orders o JOIN customers c ON o.customer_id = c.id WHERE o.id = $1`, [parseInt(id, 10)])
+      : await query(`SELECT o.*, c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone FROM orders o JOIN customers c ON o.customer_id = c.id WHERE o.order_number = $1`, [id]);
+
+    if (orderRes.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Order not found.' });
+    }
+
+    const orderRow = orderRes.rows[0];
+    const itemsRes = await query(`SELECT * FROM order_items WHERE order_id = $1`, [orderRow.id]);
+    const addrRes = await query(`SELECT * FROM addresses WHERE id = $1`, [orderRow.address_id]);
+
+    const fullOrder = {
+      ...orderRow,
+      customer: {
+        name: orderRow.customer_name,
+        email: orderRow.customer_email,
+        phone: orderRow.customer_phone
+      },
+      address: addrRes.rows[0] || {},
+      items: itemsRes.rows
+    };
+
+    let result = null;
+
+    if (emailType === 'order_confirmation') {
+      result = await sendOrderConfirmationEmail({ order: fullOrder });
+    } else if (emailType === 'payment_confirmation') {
+      result = await sendPaymentConfirmationEmail({ order: fullOrder });
+    } else if (emailType === 'status_update') {
+      result = await sendOrderStatusUpdateEmail({
+        order: fullOrder,
+        newStatus: fullOrder.status,
+        courierPartner: fullOrder.courier_partner,
+        trackingNumber: fullOrder.tracking_number
+      });
+    } else if (emailType === 'cancellation') {
+      result = await sendOrderCancelledEmail({
+        order: fullOrder,
+        reason: fullOrder.cancellation_reason || 'Order cancelled upon request'
+      });
+    } else {
+      return res.status(400).json({ success: false, message: 'Invalid emailType specified.' });
+    }
+
+    res.json({
+      success: true,
+      message: `Email [${emailType}] dispatched to customer and admin.`,
+      result
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 

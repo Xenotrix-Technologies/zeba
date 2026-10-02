@@ -103,6 +103,24 @@ export default function AdminOrderDetail() {
   };
 
   const [retrying, setRetrying] = useState(false);
+  const [sendingType, setSendingType] = useState(null);
+
+  const handleResendEmail = async (emailType) => {
+    setSendingType(emailType);
+    try {
+      const res = await api.post(`/admin/orders/${order.id}/resend-email`, { emailType });
+      if (res.success) {
+        addToast(`Email [${emailType}] successfully sent to customer and admin!`, 'success');
+        await fetchOrderDetail();
+      } else {
+        addToast(res.message || 'Failed to send email.', 'error');
+      }
+    } catch (err) {
+      addToast(err.message || 'Failed to send email.', 'error');
+    } finally {
+      setSendingType(null);
+    }
+  };
 
   const handleRetryEmails = async () => {
     setRetrying(true);
@@ -120,6 +138,7 @@ export default function AdminOrderDetail() {
       setRetrying(false);
     }
   };
+
 
   if (loading) {
     return (
@@ -391,63 +410,113 @@ export default function AdminOrderDetail() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* Order Confirmation */}
-              <div className="p-3 rounded-xl bg-[#FAF8FA] border border-brand-primaryPink/15 flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-brand-dark block">Order Confirmation</span>
-                  <span className="text-[10px] text-brand-plum/60">Sent to customer</span>
+              <div className="p-3.5 rounded-2xl bg-[#FAF8FA] border border-brand-primaryPink/15 flex flex-col justify-between gap-2.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span className="text-xs font-bold text-brand-dark block">Order Confirmation</span>
+                    <span className="text-[10px] text-brand-plum/60">Sent to customer & admin</span>
+                  </div>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border shrink-0 ${
+                    order.emailStatusSummary?.orderConfirmation === 'sent' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
+                    order.emailStatusSummary?.orderConfirmation === 'failed' ? 'bg-rose-50 text-rose-800 border-rose-300' :
+                    'bg-brand-softPink text-brand-plum border-brand-primaryPink/30'
+                  }`}>
+                    {order.emailStatusSummary?.orderConfirmation || 'Not Sent'}
+                  </span>
                 </div>
-                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${
-                  order.emailStatusSummary?.orderConfirmation === 'sent' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
-                  order.emailStatusSummary?.orderConfirmation === 'failed' ? 'bg-rose-50 text-rose-800 border-rose-300' :
-                  'bg-brand-softPink text-brand-plum border-brand-primaryPink/30'
-                }`}>
-                  {order.emailStatusSummary?.orderConfirmation || 'Not Sent'}
-                </span>
+                <div className="flex justify-end pt-1 border-t border-brand-primaryPink/10">
+                  <button
+                    onClick={() => handleResendEmail('order_confirmation')}
+                    disabled={sendingType === 'order_confirmation'}
+                    className="px-2.5 py-1 rounded-lg bg-brand-softPink hover:bg-brand-primaryPink/20 text-brand-deepPurple text-[11px] font-bold flex items-center space-x-1.5 transition-colors disabled:opacity-50"
+                  >
+                    <Send className={`w-3 h-3 ${sendingType === 'order_confirmation' ? 'animate-spin' : ''}`} />
+                    <span>{sendingType === 'order_confirmation' ? 'Sending...' : 'Send / Resend'}</span>
+                  </button>
+                </div>
               </div>
 
               {/* Payment Confirmation */}
-              <div className="p-3 rounded-xl bg-[#FAF8FA] border border-brand-primaryPink/15 flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-brand-dark block">Payment Confirmation</span>
-                  <span className="text-[10px] text-brand-plum/60">Sent to customer & admin</span>
+              <div className="p-3.5 rounded-2xl bg-[#FAF8FA] border border-brand-primaryPink/15 flex flex-col justify-between gap-2.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span className="text-xs font-bold text-brand-dark block">Payment Confirmation</span>
+                    <span className="text-[10px] text-brand-plum/60">Sent to customer & admin</span>
+                  </div>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border shrink-0 ${
+                    order.emailStatusSummary?.paymentConfirmation === 'sent' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
+                    order.emailStatusSummary?.paymentConfirmation === 'failed' ? 'bg-rose-50 text-rose-800 border-rose-300' :
+                    'bg-brand-softPink text-brand-plum border-brand-primaryPink/30'
+                  }`}>
+                    {order.emailStatusSummary?.paymentConfirmation || 'Not Sent'}
+                  </span>
                 </div>
-                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${
-                  order.emailStatusSummary?.paymentConfirmation === 'sent' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
-                  order.emailStatusSummary?.paymentConfirmation === 'failed' ? 'bg-rose-50 text-rose-800 border-rose-300' :
-                  'bg-brand-softPink text-brand-plum border-brand-primaryPink/30'
-                }`}>
-                  {order.emailStatusSummary?.paymentConfirmation || 'Not Sent'}
-                </span>
+                <div className="flex justify-end pt-1 border-t border-brand-primaryPink/10">
+                  <button
+                    onClick={() => handleResendEmail('payment_confirmation')}
+                    disabled={sendingType === 'payment_confirmation'}
+                    className="px-2.5 py-1 rounded-lg bg-brand-softPink hover:bg-brand-primaryPink/20 text-brand-deepPurple text-[11px] font-bold flex items-center space-x-1.5 transition-colors disabled:opacity-50"
+                  >
+                    <Send className={`w-3 h-3 ${sendingType === 'payment_confirmation' ? 'animate-spin' : ''}`} />
+                    <span>{sendingType === 'payment_confirmation' ? 'Sending...' : 'Send / Resend'}</span>
+                  </button>
+                </div>
               </div>
 
               {/* Status Update */}
-              <div className="p-3 rounded-xl bg-[#FAF8FA] border border-brand-primaryPink/15 flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-brand-dark block">Status Update</span>
-                  <span className="text-[10px] text-brand-plum/60">Sent upon status change</span>
+              <div className="p-3.5 rounded-2xl bg-[#FAF8FA] border border-brand-primaryPink/15 flex flex-col justify-between gap-2.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span className="text-xs font-bold text-brand-dark block">Status Update</span>
+                    <span className="text-[10px] text-brand-plum/60">Sent upon status change</span>
+                  </div>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border shrink-0 ${
+                    order.emailStatusSummary?.statusUpdate === 'sent' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
+                    order.emailStatusSummary?.statusUpdate === 'failed' ? 'bg-rose-50 text-rose-800 border-rose-300' :
+                    'bg-brand-softPink text-brand-plum border-brand-primaryPink/30'
+                  }`}>
+                    {order.emailStatusSummary?.statusUpdate || 'Not Sent'}
+                  </span>
                 </div>
-                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${
-                  order.emailStatusSummary?.statusUpdate === 'sent' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
-                  order.emailStatusSummary?.statusUpdate === 'failed' ? 'bg-rose-50 text-rose-800 border-rose-300' :
-                  'bg-brand-softPink text-brand-plum border-brand-primaryPink/30'
-                }`}>
-                  {order.emailStatusSummary?.statusUpdate || 'Not Sent'}
-                </span>
+                <div className="flex justify-end pt-1 border-t border-brand-primaryPink/10">
+                  <button
+                    onClick={() => handleResendEmail('status_update')}
+                    disabled={sendingType === 'status_update'}
+                    className="px-2.5 py-1 rounded-lg bg-brand-softPink hover:bg-brand-primaryPink/20 text-brand-deepPurple text-[11px] font-bold flex items-center space-x-1.5 transition-colors disabled:opacity-50"
+                  >
+                    <Send className={`w-3 h-3 ${sendingType === 'status_update' ? 'animate-spin' : ''}`} />
+                    <span>{sendingType === 'status_update' ? 'Sending...' : 'Send / Resend'}</span>
+                  </button>
+                </div>
               </div>
 
               {/* Cancellation */}
-              <div className="p-3 rounded-xl bg-[#FAF8FA] border border-brand-primaryPink/15 flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-brand-dark block">Order Cancellation</span>
-                  <span className="text-[10px] text-brand-plum/60">Sent if cancelled</span>
+              <div className="p-3.5 rounded-2xl bg-[#FAF8FA] border border-brand-primaryPink/15 flex flex-col justify-between gap-2.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span className="text-xs font-bold text-brand-dark block">Order Cancellation</span>
+                    <span className="text-[10px] text-brand-plum/60">Sent if cancelled</span>
+                  </div>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border shrink-0 ${
+                    order.emailStatusSummary?.cancellation === 'sent' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
+                    order.emailStatusSummary?.cancellation === 'failed' ? 'bg-rose-50 text-rose-800 border-rose-300' :
+                    'bg-brand-softPink text-brand-plum border-brand-primaryPink/30'
+                  }`}>
+                    {order.emailStatusSummary?.cancellation || 'Not Applicable'}
+                  </span>
                 </div>
-                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${
-                  order.emailStatusSummary?.cancellation === 'sent' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
-                  order.emailStatusSummary?.cancellation === 'failed' ? 'bg-rose-50 text-rose-800 border-rose-300' :
-                  'bg-brand-softPink text-brand-plum border-brand-primaryPink/30'
-                }`}>
-                  {order.emailStatusSummary?.cancellation || 'Not Applicable'}
-                </span>
+                {order.status === 'cancelled' && (
+                  <div className="flex justify-end pt-1 border-t border-brand-primaryPink/10">
+                    <button
+                      onClick={() => handleResendEmail('cancellation')}
+                      disabled={sendingType === 'cancellation'}
+                      className="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-bold flex items-center space-x-1.5 transition-colors disabled:opacity-50"
+                    >
+                      <Send className={`w-3 h-3 ${sendingType === 'cancellation' ? 'animate-spin' : ''}`} />
+                      <span>{sendingType === 'cancellation' ? 'Sending...' : 'Resend Cancellation'}</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
