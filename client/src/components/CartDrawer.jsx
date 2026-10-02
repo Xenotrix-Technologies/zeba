@@ -52,8 +52,8 @@ export default function CartDrawer() {
         onClick={() => setIsCartOpen(false)}
       />
 
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col">
+      <div className="fixed inset-y-0 right-0 max-w-full flex sm:pl-10">
+        <div className="w-full sm:w-[28rem] max-w-full bg-white shadow-2xl flex flex-col h-full">
           
           {/* Header */}
           <div className="p-4 sm:p-6 border-b border-brand-pink/15 flex items-center justify-between bg-[#FFF5FA]">
@@ -122,7 +122,7 @@ export default function CartDrawer() {
               cart.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center space-x-4 p-3.5 rounded-2xl bg-white border border-brand-pink/20 shadow-sm hover:border-brand-primaryPink transition-all"
+                  className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-3.5 rounded-2xl bg-white border border-brand-pink/20 shadow-sm hover:border-brand-primaryPink transition-all"
                 >
                   <img
                     src={item.image}
@@ -131,16 +131,16 @@ export default function CartDrawer() {
                       e.currentTarget.onerror = null;
                       e.currentTarget.src = '/images/zeba-1pack.jpg';
                     }}
-                    className="w-20 h-20 object-cover rounded-xl border border-brand-pink/15 flex-shrink-0"
+                    className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl border border-brand-pink/15 flex-shrink-0"
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-start justify-between gap-1">
                       <h4 className="text-xs sm:text-sm font-bold text-brand-deepPurple truncate">
                         {item.name}
                       </h4>
                       <button
                         onClick={() => removeFromCart(item.id)}
-                        className="text-slate-400 hover:text-rose-500 p-1 transition-colors"
+                        className="text-slate-400 hover:text-rose-500 p-1 transition-colors flex-shrink-0"
                         aria-label="Remove item"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -151,7 +151,7 @@ export default function CartDrawer() {
                       {item.pack_size}
                     </span>
 
-                    <div className="flex items-center justify-between mt-3">
+                    <div className="flex items-center justify-between mt-2.5 sm:mt-3 gap-2">
                       {/* Quantity adjuster */}
                       <div className="flex items-center border border-brand-pink/30 rounded-lg bg-brand-softPink/50">
                         <button
@@ -161,7 +161,7 @@ export default function CartDrawer() {
                         >
                           <Minus className="w-3 h-3" />
                         </button>
-                        <span className="px-2.5 text-xs font-bold text-brand-deepPurple">
+                        <span className="px-2 sm:px-2.5 text-xs font-bold text-brand-deepPurple">
                           {item.quantity}
                         </span>
                         <button
@@ -174,7 +174,7 @@ export default function CartDrawer() {
                       </div>
 
                       {/* Item Price */}
-                      <div className="text-right">
+                      <div className="text-right flex-shrink-0">
                         <span className="text-xs sm:text-sm font-extrabold text-brand-deepPurple">
                           ₹{(item.price * item.quantity).toFixed(2)}
                         </span>
