@@ -153,21 +153,23 @@ export async function sendEmail({
     return { success: false, error: 'Invalid recipient email address.' };
   }
 
+  const safeOrderId = orderId && /^\d+$/.test(String(orderId)) ? parseInt(orderId, 10) : null;
+
   // 2. Idempotency Check & Pre-registration
-  if (orderId && notifType) {
+  if (safeOrderId && notifType) {
     try {
       // Check email_notifications table
       const existingNotif = await query(
         `SELECT id, status, provider_message_id FROM email_notifications
          WHERE order_id = $1 AND notification_type = $2 AND recipient_email = $3
          LIMIT 1`,
-        [orderId, notifType, cleanRecipient]
+        [safeOrderId, notifType, cleanRecipient]
       );
 
       if (existingNotif.rows.length > 0) {
         const existing = existingNotif.rows[0];
         if (existing.status === 'sent') {
-          console.log(`Notification skipped because already sent: [${notifType}] for Order #${orderId} to [${cleanRecipient}].`);
+          console.log(`Notification skipped because already sent: [${notifType}] for Order #${safeOrderId} to [${cleanRecipient}].`);
           return {
             success: true,
             alreadySent: true,
@@ -180,7 +182,7 @@ export async function sendEmail({
           `INSERT INTO email_notifications (order_id, notification_type, recipient_email, subject, status, payload)
            VALUES ($1, $2, $3, $4, 'pending', $5)
            ON CONFLICT (order_id, notification_type, recipient_email) DO NOTHING`,
-          [orderId, notifType, cleanRecipient, subject, payload ? JSON.stringify(payload) : null]
+          [safeOrderId, notifType, cleanRecipient, subject, payload ? JSON.stringify(payload) : null]
         );
       }
 
@@ -189,7 +191,7 @@ export async function sendEmail({
         `INSERT INTO email_events (order_id, event_type, recipient, status, payload)
          VALUES ($1, $2, $3, 'pending', $4)
          ON CONFLICT (order_id, event_type) DO NOTHING`,
-        [orderId, notifType, cleanRecipient, payload ? JSON.stringify(payload) : null]
+        [safeOrderId, notifType, cleanRecipient, payload ? JSON.stringify(payload) : null]
       );
     } catch (dbErr) {
       console.warn('Email idempotency registration note:', dbErr.message);
@@ -197,6 +199,7 @@ export async function sendEmail({
   }
 
   const from = getSenderAddress();
+  const replyTo = config.CONTACT_EMAIL || config.EMAIL_FROM || from;
   const transporter = getEmailTransporter();
 
   // 3. Dispatch Live SMTP or Simulated Fallback
@@ -204,7 +207,7 @@ export async function sendEmail({
     try {
       const info = await transporter.sendMail({
         from,
-        replyTo: from,
+        replyTo,
         to: cleanRecipient,
         subject,
         text: text || subject,
@@ -214,27 +217,27 @@ export async function sendEmail({
       console.log(`Email sent: [${cleanRecipient}] (Event: ${notifType}, Provider ID: ${info.messageId})`);
 
       // Update email_notifications to sent
-      if (orderId && notifType) {
+      if (safeOrderId && notifType) {
         try {
           await query(
             `UPDATE email_notifications
              SET status = 'sent', provider_message_id = $1, error_message = NULL, sent_at = CURRENT_TIMESTAMP
              WHERE order_id = $2 AND notification_type = $3 AND recipient_email = $4`,
-            [info.messageId, orderId, notifType, cleanRecipient]
+            [info.messageId, safeOrderId, notifType, cleanRecipient]
           );
 
           await query(
             `UPDATE email_events
              SET status = 'sent', provider_message_id = $1, error_message = NULL, sent_at = CURRENT_TIMESTAMP
              WHERE order_id = $2 AND event_type = $3`,
-            [info.messageId, orderId, notifType]
+            [info.messageId, safeOrderId, notifType]
           );
 
           await query(
             `INSERT INTO order_notifications (order_id, notification_type, recipient, status_sent, message)
              VALUES ($1, $2, $3, 'sent', $4)
              ON CONFLICT (order_id, notification_type) DO NOTHING`,
-            [orderId, `email_${notifType}`, cleanRecipient, `${subject}\n\n${html}`]
+            [safeOrderId, `email_${notifType}`, cleanRecipient, `${subject}\n\n${html}`]
           );
         } catch (_) {}
       }
@@ -250,20 +253,20 @@ export async function sendEmail({
       console.error(`Email failed to [${cleanRecipient}] (${notifType}):`, sendErr.message);
 
       // Record failure for safe retry
-      if (orderId && notifType) {
+      if (safeOrderId && notifType) {
         try {
           await query(
             `UPDATE email_notifications
              SET status = 'failed', error_message = $1, retry_count = retry_count + 1, failed_at = CURRENT_TIMESTAMP
              WHERE order_id = $2 AND notification_type = $3 AND recipient_email = $4`,
-            [sendErr.message, orderId, notifType, cleanRecipient]
+            [sendErr.message, safeOrderId, notifType, cleanRecipient]
           );
 
           await query(
             `UPDATE email_events
              SET status = 'failed', error_message = $1, retry_count = retry_count + 1
              WHERE order_id = $2 AND event_type = $3`,
-            [sendErr.message, orderId, notifType]
+            [sendErr.message, safeOrderId, notifType]
           );
         } catch (_) {}
       }
@@ -280,30 +283,31 @@ export async function sendEmail({
     console.log(`ℹ️ [Email Service - Simulated Dispatch Mode]`);
     console.log(`   To: ${cleanRecipient}`);
     console.log(`   From: ${from}`);
+    console.log(`   Reply-To: ${replyTo}`);
     console.log(`   Subject: ${subject}`);
     console.log(`   Notification: ${notifType}`);
 
-    if (orderId && notifType) {
+    if (safeOrderId && notifType) {
       try {
         await query(
           `UPDATE email_notifications
            SET status = 'sent', provider_message_id = 'SIMULATED_SUCCESS', sent_at = CURRENT_TIMESTAMP
            WHERE order_id = $1 AND notification_type = $2 AND recipient_email = $3`,
-          [orderId, notifType, cleanRecipient]
+          [safeOrderId, notifType, cleanRecipient]
         );
 
         await query(
           `UPDATE email_events
            SET status = 'sent', provider_message_id = 'SIMULATED_SUCCESS', sent_at = CURRENT_TIMESTAMP
            WHERE order_id = $1 AND event_type = $2`,
-          [orderId, notifType]
+          [safeOrderId, notifType]
         );
 
         await query(
           `INSERT INTO order_notifications (order_id, notification_type, recipient, status_sent, message)
            VALUES ($1, $2, $3, 'simulated', $4)
            ON CONFLICT (order_id, notification_type) DO NOTHING`,
-          [orderId, `email_${notifType}`, cleanRecipient, `${subject}\n\n${html}`]
+          [safeOrderId, `email_${notifType}`, cleanRecipient, `${subject}\n\n${html}`]
         );
       } catch (_) {}
     }
@@ -317,6 +321,8 @@ export async function sendEmail({
     };
   }
 }
+
+
 
 /**
  * 2.A Customer Order Confirmation Email

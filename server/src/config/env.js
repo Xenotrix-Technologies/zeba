@@ -1,6 +1,22 @@
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { businessConfig } from './businessConfig.js';
-dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load .env from multiple potential locations for root vs server execution
+const envPaths = [
+  path.resolve(process.cwd(), '.env'),
+  path.resolve(process.cwd(), 'server/.env'),
+  path.resolve(__dirname, '../../.env'),
+  path.resolve(__dirname, '../../../.env')
+];
+
+for (const p of envPaths) {
+  dotenv.config({ path: p });
+}
 
 export const config = {
   PORT: process.env.PORT || 5000,
@@ -14,7 +30,7 @@ export const config = {
   RAZORPAY_WEBHOOK_SECRET: process.env.RAZORPAY_WEBHOOK_SECRET || process.env.RAZORPAY_KEY_SECRET || 'zebaSecretKeyRazorpay9988',
   WHATSAPP_NUMBER: businessConfig.whatsappNumber,
   WHATSAPP_DISPLAY: businessConfig.whatsappDisplay,
-  CONTACT_EMAIL: businessConfig.supportEmail,
+  CONTACT_EMAIL: process.env.CONTACT_EMAIL || businessConfig.supportEmail || 'info@zebaofficial.in',
   CONTACT_PHONE: businessConfig.supportPhone,
   INSTAGRAM_URL: businessConfig.social.instagram,
   FACEBOOK_URL: businessConfig.social.facebook,
@@ -23,19 +39,20 @@ export const config = {
   ADMIN_DEFAULT_EMAIL: process.env.ADMIN_DEFAULT_EMAIL || 'zebaofficial2013@gmail.com',
   ADMIN_DEFAULT_PASSWORD: process.env.ADMIN_DEFAULT_PASSWORD || 'Zeba@2013.?',
   // Transactional Email / SMTP Configuration
-  EMAIL_HOST: process.env.EMAIL_HOST || process.env.SMTP_HOST || '',
-  EMAIL_PORT: parseInt(process.env.EMAIL_PORT || process.env.SMTP_PORT || '587', 10),
-  EMAIL_USER: process.env.EMAIL_USER || process.env.SMTP_USER || '',
-  EMAIL_PASSWORD: process.env.EMAIL_PASSWORD || process.env.EMAIL_PASS || process.env.SMTP_PASSWORD || process.env.SMTP_PASS || '',
-  EMAIL_FROM: process.env.EMAIL_FROM || process.env.EMAIL_FROM_ADDRESS || businessConfig.supportEmail || 'orders@zebaofficial.in',
+  EMAIL_HOST: (process.env.EMAIL_HOST || process.env.SMTP_HOST || 'smtp.gmail.com').trim(),
+  EMAIL_PORT: parseInt(process.env.EMAIL_PORT || process.env.SMTP_PORT || '465', 10),
+  EMAIL_USER: (process.env.EMAIL_USER || process.env.SMTP_USER || 'zebaofficial2013@gmail.com').trim(),
+  EMAIL_PASSWORD: (process.env.EMAIL_PASSWORD || process.env.EMAIL_PASS || process.env.SMTP_PASSWORD || process.env.SMTP_PASS || '').trim(),
+  EMAIL_FROM: (process.env.EMAIL_FROM || process.env.EMAIL_FROM_ADDRESS || process.env.EMAIL_USER || 'zebaofficial2013@gmail.com').trim(),
   EMAIL_FROM_NAME: process.env.EMAIL_FROM_NAME || 'ZEBA',
-  ADMIN_EMAIL: process.env.ADMIN_EMAIL || process.env.OWNER_EMAIL || process.env.ADMIN_DEFAULT_EMAIL || 'admin@zebaofficial.in',
+  ADMIN_EMAIL: (process.env.ADMIN_EMAIL || process.env.OWNER_EMAIL || process.env.EMAIL_USER || 'zebaofficial2013@gmail.com').trim(),
   // Backward compatibility SMTP aliases
-  SMTP_HOST: process.env.EMAIL_HOST || process.env.SMTP_HOST || '',
-  SMTP_PORT: parseInt(process.env.EMAIL_PORT || process.env.SMTP_PORT || '587', 10),
-  SMTP_SECURE: process.env.EMAIL_PORT === '465' || process.env.SMTP_PORT === '465' || process.env.SMTP_SECURE === 'true',
-  SMTP_USER: process.env.EMAIL_USER || process.env.SMTP_USER || '',
-  SMTP_PASSWORD: process.env.EMAIL_PASSWORD || process.env.EMAIL_PASS || process.env.SMTP_PASSWORD || process.env.SMTP_PASS || '',
+  SMTP_HOST: (process.env.EMAIL_HOST || process.env.SMTP_HOST || 'smtp.gmail.com').trim(),
+  SMTP_PORT: parseInt(process.env.EMAIL_PORT || process.env.SMTP_PORT || '465', 10),
+  SMTP_SECURE: process.env.EMAIL_PORT === '465' || process.env.SMTP_PORT === '465' || process.env.SMTP_SECURE === 'true' || true,
+  SMTP_USER: (process.env.EMAIL_USER || process.env.SMTP_USER || 'zebaofficial2013@gmail.com').trim(),
+  SMTP_PASSWORD: (process.env.EMAIL_PASSWORD || process.env.EMAIL_PASS || process.env.SMTP_PASSWORD || process.env.SMTP_PASS || '').trim(),
   business: businessConfig
 };
+
 
