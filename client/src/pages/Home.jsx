@@ -786,15 +786,13 @@ export default function Home() {
         </section>
       )}
 
-      {/* 7. GOT QUESTIONS? WE GOT ANSWERS (Modern High-End DTC Layout) */}
+      {/* 7. GOT QUESTIONS? WE GOT ANSWERS (Clean & Elevated Centered Layout) */}
       {(() => {
-        const faqCategories = ['All', 'Safety & Usage', 'How to Wear', 'Heat & Performance', 'Orders & Support'];
         const filteredFaqs = faqs.filter(faq => {
-          const matchesCategory = activeFaqCategory === 'All' || faq.category === activeFaqCategory;
           const matchesSearch = !faqSearchQuery.trim() || 
             faq.q.toLowerCase().includes(faqSearchQuery.toLowerCase()) || 
             faq.a.toLowerCase().includes(faqSearchQuery.toLowerCase());
-          return matchesCategory && matchesSearch;
+          return matchesSearch;
         });
 
         return (
@@ -803,10 +801,10 @@ export default function Home() {
             <div className="absolute top-1/3 -left-32 w-80 h-80 bg-brand-primaryPink/10 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute bottom-10 right-0 w-96 h-96 bg-brand-deepPurple/5 rounded-full blur-3xl pointer-events-none" />
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-12">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10">
               
               {/* Header */}
-              <div className="text-center max-w-3xl mx-auto space-y-3">
+              <div className="text-center max-w-2xl mx-auto space-y-3">
                 <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-white border border-brand-primaryPink/30 shadow-xs">
                   <Sparkles className="w-3.5 h-3.5 text-brand-brightPink" />
                   <span className="text-[11px] font-extrabold uppercase tracking-widest text-brand-brightPink">
@@ -818,234 +816,136 @@ export default function Home() {
                   Got Questions? We Got Answers.
                 </h2>
                 
-                <p className="text-sm sm:text-base text-[#805A82] max-w-2xl mx-auto leading-relaxed">
+                <p className="text-sm sm:text-base text-[#805A82] max-w-xl mx-auto leading-relaxed">
                   Everything you need to know about wearability, mineral safety, all-day heat therapy, and satisfaction guarantee.
                 </p>
               </div>
 
-              {/* 2-Column Responsive Layout */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                
-                {/* Left Column: Quick Filter Tabs + Helpline Widget */}
-                <div className="lg:col-span-4 space-y-5 lg:sticky lg:top-24">
-                  
-                  {/* Category Filter Card */}
-                  <div className="bg-white rounded-3xl p-5 sm:p-6 border border-brand-primaryPink/30 shadow-sm space-y-4">
-                    <div className="flex items-center justify-between border-b border-brand-primaryPink/15 pb-3">
-                      <span className="font-display font-bold text-sm text-brand-deepPurple flex items-center space-x-2">
-                        <HelpCircle className="w-4 h-4 text-brand-brightPink" />
-                        <span>Browse by Topic</span>
-                      </span>
-                      <span className="text-[11px] font-bold text-brand-brightPink bg-brand-softPink px-2.5 py-0.5 rounded-full">
-                        {faqs.length} Questions
-                      </span>
-                    </div>
-
-                    <div className="flex flex-col space-y-1.5">
-                      {faqCategories.map((cat) => {
-                        const count = cat === 'All' ? faqs.length : faqs.filter(f => f.category === cat).length;
-                        const isActive = activeFaqCategory === cat;
-                        return (
-                          <button
-                            key={cat}
-                            onClick={() => {
-                              setActiveFaqCategory(cat);
-                              setOpenFaqIdx(0);
-                            }}
-                            className={`w-full px-3.5 py-2.5 rounded-xl text-xs font-bold text-left flex items-center justify-between transition-all ${
-                              isActive
-                                ? 'bg-gradient-to-r from-brand-deepPurple to-[#5F3F68] text-white shadow-md'
-                                : 'text-brand-darkPurple hover:bg-brand-softPink/60 bg-transparent'
-                            }`}
-                          >
-                            <span>{cat === 'All' ? 'All Questions' : cat}</span>
-                            <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${
-                              isActive ? 'bg-white/20 text-brand-lightGold' : 'bg-brand-softPink text-brand-purple'
-                            }`}>
-                              {count}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Personal Help Card */}
-                  <div className="bg-gradient-to-br from-[#5F3F68] to-[#38283D] rounded-3xl p-6 text-white border border-brand-gold/40 shadow-xl space-y-4">
-                    <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center border border-white/20">
-                      <MessageCircle className="w-5 h-5 text-brand-gold" />
-                    </div>
-
-                    <div>
-                      <h3 className="font-display font-bold text-base text-white">Still have questions?</h3>
-                      <p className="text-xs text-pink-100/80 mt-1 leading-relaxed">
-                        Our women's care specialists are online to help you with pack sizing, delivery, or custom bulk orders.
-                      </p>
-                    </div>
-
-                    <div className="space-y-2 pt-1">
-                      <a
-                        href={getWhatsAppUrl('Hi ZEBA Team, I have a question about the heating pads')}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="w-full py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs shadow-md flex items-center justify-center space-x-2 transition-colors btn-tactile"
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                        <span>Chat on WhatsApp</span>
-                      </a>
-
-                      <a
-                        href="mailto:info@zebaofficial.in"
-                        className="w-full py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs border border-white/20 flex items-center justify-center space-x-2 transition-colors"
-                      >
-                        <Mail className="w-3.5 h-3.5 text-pink-200" />
-                        <span>Email Support</span>
-                      </a>
-                    </div>
-
-                    <div className="flex items-center justify-center space-x-1.5 text-[11px] text-pink-200/90 pt-1 border-t border-white/10">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                      <span>Avg reply time: <strong>under 15 mins</strong></span>
-                    </div>
-                  </div>
-
-                </div>
-
-                {/* Right Column: Search + FAQ Accordion Cards */}
-                <div className="lg:col-span-8 space-y-4">
-                  
-                  {/* Search Bar */}
-                  <div className="relative">
-                    <Search className="w-4 h-4 text-brand-purple absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <input
-                      type="text"
-                      value={faqSearchQuery}
-                      onChange={(e) => setFaqSearchQuery(e.target.value)}
-                      placeholder="Search questions (e.g. skin, travel, heat duration)..."
-                      className="w-full pl-11 pr-16 py-3.5 rounded-2xl bg-white border border-brand-primaryPink/30 text-xs sm:text-sm text-brand-deepPurple placeholder:text-[#805A82]/60 focus:outline-none focus:ring-2 focus:ring-brand-brightPink/40 focus:border-brand-brightPink shadow-xs transition-all"
-                    />
-                    {faqSearchQuery && (
-                      <button
-                        onClick={() => setFaqSearchQuery('')}
-                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-[#805A82] hover:text-brand-deepPurple bg-brand-softPink px-2 py-0.5 rounded-md font-bold"
-                      >
-                        Clear
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Accordion Cards */}
-                  {filteredFaqs.length === 0 ? (
-                    <div className="bg-white rounded-3xl p-10 text-center border border-brand-primaryPink/25 space-y-3">
-                      <HelpCircle className="w-8 h-8 text-brand-brightPink mx-auto" />
-                      <h4 className="font-display font-bold text-sm text-brand-deepPurple">No questions match your search</h4>
-                      <p className="text-xs text-[#805A82]">Try searching with a different term or browse by category on the left.</p>
-                      <button
-                        onClick={() => {
-                          setFaqSearchQuery('');
-                          setActiveFaqCategory('All');
-                        }}
-                        className="px-4 py-2 rounded-xl bg-brand-softPink text-brand-brightPink text-xs font-bold hover:bg-brand-primaryPink/30 transition-colors"
-                      >
-                        Reset Filter
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-3.5">
-                      {filteredFaqs.map((faq, idx) => {
-                        const isOpen = openFaqIdx === idx;
-                        const hasVoted = helpfulVotes[faq.id || idx];
-
-                        return (
-                          <div
-                            key={faq.id || idx}
-                            className={`rounded-3xl bg-white border transition-all duration-300 overflow-hidden ${
-                              isOpen
-                                ? 'border-brand-brightPink/50 shadow-md ring-1 ring-brand-brightPink/20'
-                                : 'border-brand-primaryPink/25 hover:border-brand-primaryPink/60 shadow-xs'
-                            }`}
-                          >
-                            <button
-                              onClick={() => setOpenFaqIdx(isOpen ? null : idx)}
-                              className="w-full p-5 sm:p-6 text-left flex items-start justify-between gap-4 group focus:outline-none"
-                            >
-                              <div className="space-y-1.5 flex-1 min-w-0">
-                                {faq.badge && (
-                                  <span className="inline-block text-[10px] font-bold text-brand-brightPink bg-brand-softPink px-2.5 py-0.5 rounded-full border border-brand-primaryPink/20">
-                                    {faq.badge}
-                                  </span>
-                                )}
-                                <h3 className={`font-display font-bold text-sm sm:text-base leading-snug transition-colors ${
-                                  isOpen ? 'text-brand-brightPink' : 'text-brand-deepPurple group-hover:text-brand-brightPink'
-                                }`}>
-                                  {faq.q}
-                                </h3>
-                              </div>
-
-                              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
-                                isOpen
-                                  ? 'bg-brand-brightPink text-white rotate-180 shadow-xs'
-                                  : 'bg-brand-softPink text-brand-deepPurple group-hover:bg-brand-brightPink group-hover:text-white'
-                              }`}>
-                                <ChevronDown className="w-4 h-4" />
-                              </div>
-                            </button>
-
-                            {isOpen && (
-                              <div className="px-5 sm:px-6 pb-6 pt-1 space-y-4 border-t border-brand-primaryPink/15 bg-gradient-to-b from-brand-softPink/20 to-transparent">
-                                <p className="text-xs sm:text-sm text-[#5C3D61] leading-relaxed font-normal">
-                                  {faq.a}
-                                </p>
-
-                                <div className="pt-3 border-t border-brand-primaryPink/10 flex flex-wrap items-center justify-between gap-3 text-xs text-[#805A82]">
-                                  <span className="text-[11px] font-medium flex items-center space-x-1">
-                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                    <span>Verified by ZEBA Medical Advisory</span>
-                                  </span>
-
-                                  <div className="flex items-center space-x-2">
-                                    <span className="text-[11px]">Was this helpful?</span>
-                                    {hasVoted ? (
-                                      <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
-                                        Thanks for your feedback!
-                                      </span>
-                                    ) : (
-                                      <div className="flex items-center space-x-1">
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setHelpfulVotes(prev => ({ ...prev, [faq.id || idx]: 'yes' }));
-                                          }}
-                                          className="p-1 rounded-md hover:bg-emerald-100 text-[#805A82] hover:text-emerald-700 transition-colors"
-                                          aria-label="Helpful"
-                                        >
-                                          <ThumbsUp className="w-3.5 h-3.5" />
-                                        </button>
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setHelpfulVotes(prev => ({ ...prev, [faq.id || idx]: 'no' }));
-                                          }}
-                                          className="p-1 rounded-md hover:bg-rose-100 text-[#805A82] hover:text-rose-700 transition-colors"
-                                          aria-label="Not helpful"
-                                        >
-                                          <ThumbsDown className="w-3.5 h-3.5" />
-                                        </button>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                </div>
-
+              {/* Search Bar */}
+              <div className="relative max-w-2xl mx-auto">
+                <Search className="w-4 h-4 text-brand-purple absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  value={faqSearchQuery}
+                  onChange={(e) => setFaqSearchQuery(e.target.value)}
+                  placeholder="Search questions (e.g. skin, travel, heat duration, teenagers)..."
+                  className="w-full pl-11 pr-16 py-3.5 rounded-2xl bg-white border border-brand-primaryPink/30 text-xs sm:text-sm text-brand-deepPurple placeholder:text-[#805A82]/60 focus:outline-none focus:ring-2 focus:ring-brand-brightPink/40 focus:border-brand-brightPink shadow-xs transition-all"
+                />
+                {faqSearchQuery && (
+                  <button
+                    onClick={() => setFaqSearchQuery('')}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-[#805A82] hover:text-brand-deepPurple bg-brand-softPink px-2 py-0.5 rounded-md font-bold"
+                  >
+                    Clear
+                  </button>
+                )}
               </div>
+
+              {/* Accordion Cards */}
+              {filteredFaqs.length === 0 ? (
+                <div className="bg-white rounded-3xl p-10 text-center border border-brand-primaryPink/25 space-y-3 max-w-2xl mx-auto">
+                  <HelpCircle className="w-8 h-8 text-brand-brightPink mx-auto" />
+                  <h4 className="font-display font-bold text-sm text-brand-deepPurple">No questions match your search</h4>
+                  <p className="text-xs text-[#805A82]">Try searching with a different keyword.</p>
+                  <button
+                    onClick={() => setFaqSearchQuery('')}
+                    className="px-4 py-2 rounded-xl bg-brand-softPink text-brand-brightPink text-xs font-bold hover:bg-brand-primaryPink/30 transition-colors"
+                  >
+                    Show All Questions
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3.5">
+                  {filteredFaqs.map((faq, idx) => {
+                    const isOpen = openFaqIdx === idx;
+                    const hasVoted = helpfulVotes[faq.id || idx];
+
+                    return (
+                      <div
+                        key={faq.id || idx}
+                        className={`rounded-3xl bg-white border transition-all duration-300 overflow-hidden ${
+                          isOpen
+                            ? 'border-brand-brightPink/50 shadow-md ring-1 ring-brand-brightPink/20'
+                            : 'border-brand-primaryPink/25 hover:border-brand-primaryPink/60 shadow-xs'
+                        }`}
+                      >
+                        <button
+                          onClick={() => setOpenFaqIdx(isOpen ? null : idx)}
+                          className="w-full p-5 sm:p-6 text-left flex items-start justify-between gap-4 group focus:outline-none"
+                        >
+                          <div className="space-y-1.5 flex-1 min-w-0">
+                            {faq.badge && (
+                              <span className="inline-block text-[10px] font-bold text-brand-brightPink bg-brand-softPink px-2.5 py-0.5 rounded-full border border-brand-primaryPink/20">
+                                {faq.badge}
+                              </span>
+                            )}
+                            <h3 className={`font-display font-bold text-sm sm:text-base leading-snug transition-colors ${
+                              isOpen ? 'text-brand-brightPink' : 'text-brand-deepPurple group-hover:text-brand-brightPink'
+                            }`}>
+                              {faq.q}
+                            </h3>
+                          </div>
+
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                            isOpen
+                              ? 'bg-brand-brightPink text-white rotate-180 shadow-xs'
+                              : 'bg-brand-softPink text-brand-deepPurple group-hover:bg-brand-brightPink group-hover:text-white'
+                          }`}>
+                            <ChevronDown className="w-4 h-4" />
+                          </div>
+                        </button>
+
+                        {isOpen && (
+                          <div className="px-5 sm:px-6 pb-6 pt-1 space-y-4 border-t border-brand-primaryPink/15 bg-gradient-to-b from-brand-softPink/20 to-transparent">
+                            <p className="text-xs sm:text-sm text-[#5C3D61] leading-relaxed font-normal">
+                              {faq.a}
+                            </p>
+
+                            <div className="pt-3 border-t border-brand-primaryPink/10 flex flex-wrap items-center justify-between gap-3 text-xs text-[#805A82]">
+                              <span className="text-[11px] font-medium flex items-center space-x-1">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                <span>Verified by ZEBA Medical Advisory</span>
+                              </span>
+
+                              <div className="flex items-center space-x-2">
+                                <span className="text-[11px]">Was this helpful?</span>
+                                {hasVoted ? (
+                                  <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+                                    Thanks for your feedback!
+                                  </span>
+                                ) : (
+                                  <div className="flex items-center space-x-1">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setHelpfulVotes(prev => ({ ...prev, [faq.id || idx]: 'yes' }));
+                                      }}
+                                      className="p-1 rounded-md hover:bg-emerald-100 text-[#805A82] hover:text-emerald-700 transition-colors"
+                                      aria-label="Helpful"
+                                    >
+                                      <ThumbsUp className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setHelpfulVotes(prev => ({ ...prev, [faq.id || idx]: 'no' }));
+                                      }}
+                                      className="p-1 rounded-md hover:bg-rose-100 text-[#805A82] hover:text-rose-700 transition-colors"
+                                      aria-label="Not helpful"
+                                    >
+                                      <ThumbsDown className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
             </div>
           </section>
