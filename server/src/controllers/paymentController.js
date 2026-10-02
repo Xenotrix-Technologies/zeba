@@ -7,11 +7,14 @@ import {
   verifyRazorpayWebhookSignature
 } from '../config/razorpay.js';
 import {
+  sendOrderConfirmationEmail,
+  sendPaymentConfirmationEmail,
+  sendPaymentFailedEmail,
+  sendAdminNewOrderAlert,
+  sendRefundEmail,
   sendOrderReceivedEmail,
   sendPaymentSuccessEmail,
-  sendPaymentFailedEmail,
-  sendAdminNewOrderEmail,
-  sendRefundEmail
+  sendAdminNewOrderEmail
 } from '../services/emailService.js';
 
 /**
@@ -330,14 +333,15 @@ export async function createPaymentOrder(req, res, next) {
       ]
     );
 
-    // 9. Dispatch Order Received Notification to Customer (Non-blocking safe dispatch)
+    // 9. Dispatch Order Confirmation to Customer & Alert to Admin (Non-blocking safe dispatch)
     try {
       const initialOrder = await fetchConsolidatedOrder(orderId);
       if (initialOrder) {
-        await sendOrderReceivedEmail({ order: initialOrder });
+        await sendOrderConfirmationEmail({ order: initialOrder });
+        await sendAdminNewOrderAlert({ order: initialOrder, razorpayOrderId: razorpayOrder.id });
       }
     } catch (notifErr) {
-      console.error('Order received email dispatch note:', notifErr.message);
+      console.error('Order creation email dispatch note:', notifErr.message);
     }
 
     res.status(201).json({
@@ -519,25 +523,16 @@ export async function verifyPayment(req, res, next) {
     // 8. Fetch Full Consolidated Order Details for Confirmation & Emails
     const fullOrder = await fetchConsolidatedOrder(order.id);
 
-    // 9. Dispatch Customer Payment Success & Admin Order Alert Emails (Non-blocking safe dispatch)
+    // 9. Dispatch Customer & Admin Payment Confirmation Emails (Non-blocking safe dispatch)
     try {
-      await sendPaymentSuccessEmail({
+      await sendPaymentConfirmationEmail({
         order: fullOrder,
+        transactionId: razorpay_payment_id,
         razorpayPaymentId: razorpay_payment_id,
         paymentMethod
       });
-    } catch (custNotifErr) {
-      console.error('Customer payment success email dispatch note:', custNotifErr.message);
-    }
-
-    try {
-      await sendAdminNewOrderEmail({
-        order: fullOrder,
-        razorpayPaymentId: razorpay_payment_id,
-        razorpayOrderId: razorpay_order_id
-      });
-    } catch (ownerNotifErr) {
-      console.error('Admin new order email notification dispatch note:', ownerNotifErr.message);
+    } catch (payNotifErr) {
+      console.error('Payment confirmation email dispatch note:', payNotifErr.message);
     }
 
     res.json({
@@ -746,20 +741,17 @@ export async function handleRazorpayWebhook(req, res, next) {
               );
             }
 
-            // Dispatch Notifications
+            // Dispatch Payment Confirmation
             const fullOrder = await fetchConsolidatedOrder(order.id);
             try {
-              await sendPaymentSuccessEmail({
+              await sendPaymentConfirmationEmail({
                 order: fullOrder,
-                razorpayPaymentId: rzpPaymentId
-              });
-              await sendAdminNewOrderEmail({
-                order: fullOrder,
+                transactionId: rzpPaymentId,
                 razorpayPaymentId: rzpPaymentId,
-                razorpayOrderId: rzpOrderId
+                paymentMethod: paymentEntity?.method ? `Razorpay (${paymentEntity.method.toUpperCase()})` : 'Razorpay Online'
               });
             } catch (notifErr) {
-              console.error('Webhook notification dispatch note:', notifErr.message);
+              console.error('Webhook payment confirmation email dispatch note:', notifErr.message);
             }
           }
         }

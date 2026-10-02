@@ -2,10 +2,11 @@ import nodemailer from 'nodemailer';
 import { query } from '../config/db.js';
 import { config } from '../config/env.js';
 import {
-  renderOrderReceivedEmail,
-  renderPaymentSuccessEmail,
+  renderOrderConfirmationEmail,
+  renderPaymentConfirmationEmail,
+  renderOrderStatusUpdateEmail,
+  renderOrderCancelledEmail,
   renderPaymentFailedEmail,
-  renderOrderStatusEmail,
   renderRefundEmail,
   renderAdminNewOrderEmail,
   renderWelcomeEmail,
@@ -28,7 +29,7 @@ export function isValidEmail(email) {
  */
 export function getSenderAddress() {
   const name = config.EMAIL_FROM_NAME || 'ZEBA';
-  let address = (config.EMAIL_FROM_ADDRESS || config.CONTACT_EMAIL || 'orders@zebaofficial.in').trim();
+  let address = (config.EMAIL_FROM || config.EMAIL_FROM_ADDRESS || config.ADMIN_EMAIL || config.EMAIL_USER || 'zebaofficial2013@gmail.com').trim();
 
   // Extract pure email address if wrapped in angle brackets
   const match = address.match(/<([^>]+)>/);
@@ -45,11 +46,17 @@ export function getSenderAddress() {
 export function getEmailTransporter() {
   if (cachedTransporter) return cachedTransporter;
 
-  const host = config.SMTP_HOST || process.env.SMTP_HOST || process.env.EMAIL_HOST;
-  const user = config.SMTP_USER || process.env.SMTP_USER || process.env.EMAIL_USER;
-  const pass = config.SMTP_PASSWORD || config.SMTP_PASS || process.env.SMTP_PASSWORD || process.env.SMTP_PASS || process.env.EMAIL_PASS;
-  const port = parseInt(config.SMTP_PORT || process.env.SMTP_PORT || '587', 10);
-  const secure = config.SMTP_SECURE || process.env.SMTP_SECURE === 'true' || port === 465;
+  const host = (config.EMAIL_HOST || config.SMTP_HOST || process.env.EMAIL_HOST || process.env.SMTP_HOST || '').trim();
+  const user = (config.EMAIL_USER || config.SMTP_USER || process.env.EMAIL_USER || process.env.SMTP_USER || '').trim();
+  let pass = (config.EMAIL_PASSWORD || config.SMTP_PASSWORD || config.SMTP_PASS || process.env.EMAIL_PASSWORD || process.env.EMAIL_PASS || process.env.SMTP_PASSWORD || process.env.SMTP_PASS || '').trim();
+  
+  // Normalize Google App Password format (strip any internal spaces)
+  if (host.includes('gmail') && pass.includes(' ')) {
+    pass = pass.replace(/\s+/g, '');
+  }
+
+  const port = parseInt(config.EMAIL_PORT || config.SMTP_PORT || process.env.EMAIL_PORT || process.env.SMTP_PORT || '465', 10);
+  const secure = port === 465 || config.SMTP_SECURE === true || process.env.SMTP_SECURE === 'true';
 
   if (host && user && pass) {
     cachedTransporter = nodemailer.createTransport({
@@ -60,9 +67,9 @@ export function getEmailTransporter() {
       pool: true,
       maxConnections: 5,
       maxMessages: 100,
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 15000,
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 20000,
       tls: {
         rejectUnauthorized: false
       }
@@ -75,15 +82,22 @@ export function getEmailTransporter() {
 }
 
 /**
- * Verify SMTP connection credentials
+ * Verify SMTP connection credentials & deliverability
  */
 export async function verifySmtpConnection() {
   const transporter = getEmailTransporter();
+  const host = config.EMAIL_HOST || config.SMTP_HOST || process.env.EMAIL_HOST || process.env.SMTP_HOST;
+  const port = config.EMAIL_PORT || config.SMTP_PORT || process.env.EMAIL_PORT || process.env.SMTP_PORT || 587;
+  const from = getSenderAddress();
+
   if (!transporter) {
     return {
       connected: false,
       configured: false,
-      message: 'SMTP credentials not configured in environment variables (SMTP_HOST, SMTP_USER, SMTP_PASSWORD).'
+      host: host || 'Not Configured',
+      port,
+      from,
+      message: 'SMTP credentials not configured in environment variables (EMAIL_HOST, EMAIL_USER, EMAIL_PASSWORD).'
     };
   }
 
@@ -92,16 +106,18 @@ export async function verifySmtpConnection() {
     return {
       connected: true,
       configured: true,
-      host: config.SMTP_HOST || process.env.SMTP_HOST,
-      port: config.SMTP_PORT || process.env.SMTP_PORT || 587,
-      from: getSenderAddress(),
+      host,
+      port,
+      from,
       message: 'SMTP server connection verified successfully.'
     };
   } catch (err) {
     return {
       connected: false,
       configured: true,
-      host: config.SMTP_HOST || process.env.SMTP_HOST,
+      host,
+      port,
+      from,
       error: err.message,
       message: `SMTP connection failed: ${err.message}`
     };
@@ -109,11 +125,14 @@ export async function verifySmtpConnection() {
 }
 
 /**
- * Central Idempotent & Resilient Email Dispatcher
- * - Validates recipient
- * - Checks email_events table to guarantee idempotency
- * - Dispatches live email via SMTP (or simulates when no SMTP is configured)
- * - Updates email_events audit status without throwing errors to protect order transactions
+ * Central Reusable & Idempotent Email Dispatcher
+ *
+ * Requirements:
+ * - Validate recipient email.
+ * - Generate/send HTML email with plain-text fallback.
+ * - Enforce strict idempotency via email_notifications / email_events table.
+ * - Handle provider errors gracefully and record failed status for safe retry.
+ * - Never throw or crash the caller (order creation / payment verification).
  */
 export async function sendEmail({
   to,
@@ -122,89 +141,100 @@ export async function sendEmail({
   text,
   orderId = null,
   eventType = null,
+  notificationType = null,
   payload = null
 }) {
+  const notifType = notificationType || eventType || 'general';
   const cleanRecipient = (to || '').trim().toLowerCase();
 
+  // 1. Email validation
   if (!isValidEmail(cleanRecipient)) {
     console.warn(`⚠️ Skipped email dispatch: Invalid recipient email address [${to}]`);
     return { success: false, error: 'Invalid recipient email address.' };
   }
 
-  let eventRecordId = null;
-
-  // 1. Idempotency Check & Event Registration
-  if (orderId && eventType) {
+  // 2. Idempotency Check & Pre-registration
+  if (orderId && notifType) {
     try {
-      const existingRes = await query(
-        'SELECT id, status, provider_message_id FROM email_events WHERE order_id = $1 AND event_type = $2 LIMIT 1',
-        [orderId, eventType]
+      // Check email_notifications table
+      const existingNotif = await query(
+        `SELECT id, status, provider_message_id FROM email_notifications
+         WHERE order_id = $1 AND notification_type = $2 AND recipient_email = $3
+         LIMIT 1`,
+        [orderId, notifType, cleanRecipient]
       );
 
-      if (existingRes.rows.length > 0) {
-        const existing = existingRes.rows[0];
+      if (existingNotif.rows.length > 0) {
+        const existing = existingNotif.rows[0];
         if (existing.status === 'sent') {
-          console.log(`⏩ Notification [${eventType}] already sent for Order #${orderId}. Skipping duplicate.`);
+          console.log(`Notification skipped because already sent: [${notifType}] for Order #${orderId} to [${cleanRecipient}].`);
           return {
             success: true,
             alreadySent: true,
             providerMessageId: existing.provider_message_id
           };
         }
-        eventRecordId = existing.id;
       } else {
-        const insertRes = await query(
-          `INSERT INTO email_events (order_id, event_type, recipient, status, payload)
-           VALUES ($1, $2, $3, 'pending', $4)
-           ON CONFLICT (order_id, event_type) DO NOTHING
-           RETURNING id`,
-          [orderId, eventType, cleanRecipient, payload ? JSON.stringify(payload) : null]
+        // Register pending notification record
+        await query(
+          `INSERT INTO email_notifications (order_id, notification_type, recipient_email, subject, status, payload)
+           VALUES ($1, $2, $3, $4, 'pending', $5)
+           ON CONFLICT (order_id, notification_type, recipient_email) DO NOTHING`,
+          [orderId, notifType, cleanRecipient, subject, payload ? JSON.stringify(payload) : null]
         );
-        if (insertRes.rows.length > 0) {
-          eventRecordId = insertRes.rows[0].id;
-        }
       }
+
+      // Sync legacy email_events table
+      await query(
+        `INSERT INTO email_events (order_id, event_type, recipient, status, payload)
+         VALUES ($1, $2, $3, 'pending', $4)
+         ON CONFLICT (order_id, event_type) DO NOTHING`,
+        [orderId, notifType, cleanRecipient, payload ? JSON.stringify(payload) : null]
+      );
     } catch (dbErr) {
-      console.warn('Email event idempotency record note:', dbErr.message);
+      console.warn('Email idempotency registration note:', dbErr.message);
     }
   }
 
   const from = getSenderAddress();
   const transporter = getEmailTransporter();
 
-  // 2. Dispatch live via Nodemailer or fallback to simulated log
+  // 3. Dispatch Live SMTP or Simulated Fallback
   if (transporter) {
     try {
       const info = await transporter.sendMail({
         from,
+        replyTo: from,
         to: cleanRecipient,
         subject,
         text: text || subject,
         html
       });
 
-      console.log(`📧 Live SMTP email dispatched to [${cleanRecipient}] (Event: ${eventType || 'direct'}): ${info.messageId}`);
+      console.log(`Email sent: [${cleanRecipient}] (Event: ${notifType}, Provider ID: ${info.messageId})`);
 
-      // Update email_events record to sent
-      if (orderId && eventType) {
+      // Update email_notifications to sent
+      if (orderId && notifType) {
         try {
+          await query(
+            `UPDATE email_notifications
+             SET status = 'sent', provider_message_id = $1, error_message = NULL, sent_at = CURRENT_TIMESTAMP
+             WHERE order_id = $2 AND notification_type = $3 AND recipient_email = $4`,
+            [info.messageId, orderId, notifType, cleanRecipient]
+          );
+
           await query(
             `UPDATE email_events
              SET status = 'sent', provider_message_id = $1, error_message = NULL, sent_at = CURRENT_TIMESTAMP
              WHERE order_id = $2 AND event_type = $3`,
-            [info.messageId, orderId, eventType]
+            [info.messageId, orderId, notifType]
           );
-        } catch (_) {}
-      }
 
-      // Legacy audit table sync
-      if (orderId) {
-        try {
           await query(
             `INSERT INTO order_notifications (order_id, notification_type, recipient, status_sent, message)
              VALUES ($1, $2, $3, 'sent', $4)
              ON CONFLICT (order_id, notification_type) DO NOTHING`,
-            [orderId, `email_${eventType}`, cleanRecipient, `${subject}\n\n${html}`]
+            [orderId, `email_${notifType}`, cleanRecipient, `${subject}\n\n${html}`]
           );
         } catch (_) {}
       }
@@ -217,21 +247,27 @@ export async function sendEmail({
         subject
       };
     } catch (sendErr) {
-      console.error(`⚠️ SMTP dispatch error to [${cleanRecipient}] (${eventType}):`, sendErr.message);
+      console.error(`Email failed to [${cleanRecipient}] (${notifType}):`, sendErr.message);
 
-      // Record failure in email_events for retry
-      if (orderId && eventType) {
+      // Record failure for safe retry
+      if (orderId && notifType) {
         try {
+          await query(
+            `UPDATE email_notifications
+             SET status = 'failed', error_message = $1, retry_count = retry_count + 1, failed_at = CURRENT_TIMESTAMP
+             WHERE order_id = $2 AND notification_type = $3 AND recipient_email = $4`,
+            [sendErr.message, orderId, notifType, cleanRecipient]
+          );
+
           await query(
             `UPDATE email_events
              SET status = 'failed', error_message = $1, retry_count = retry_count + 1
              WHERE order_id = $2 AND event_type = $3`,
-            [sendErr.message, orderId, eventType]
+            [sendErr.message, orderId, notifType]
           );
         } catch (_) {}
       }
 
-      // Resilient: never throw error
       return {
         success: false,
         sentLive: false,
@@ -240,31 +276,34 @@ export async function sendEmail({
       };
     }
   } else {
-    // Simulated dispatch (when SMTP credentials are not yet configured in local environment)
-    console.log(`ℹ️ [Email Dispatch - Development/Simulation Mode]`);
+    // Simulated dispatch for local development without live SMTP credentials
+    console.log(`ℹ️ [Email Service - Simulated Dispatch Mode]`);
     console.log(`   To: ${cleanRecipient}`);
     console.log(`   From: ${from}`);
     console.log(`   Subject: ${subject}`);
-    console.log(`   Event: ${eventType || 'general'}`);
+    console.log(`   Notification: ${notifType}`);
 
-    if (orderId && eventType) {
+    if (orderId && notifType) {
       try {
+        await query(
+          `UPDATE email_notifications
+           SET status = 'sent', provider_message_id = 'SIMULATED_SUCCESS', sent_at = CURRENT_TIMESTAMP
+           WHERE order_id = $1 AND notification_type = $2 AND recipient_email = $3`,
+          [orderId, notifType, cleanRecipient]
+        );
+
         await query(
           `UPDATE email_events
            SET status = 'sent', provider_message_id = 'SIMULATED_SUCCESS', sent_at = CURRENT_TIMESTAMP
            WHERE order_id = $1 AND event_type = $2`,
-          [orderId, eventType]
+          [orderId, notifType]
         );
-      } catch (_) {}
-    }
 
-    if (orderId) {
-      try {
         await query(
           `INSERT INTO order_notifications (order_id, notification_type, recipient, status_sent, message)
            VALUES ($1, $2, $3, 'simulated', $4)
            ON CONFLICT (order_id, notification_type) DO NOTHING`,
-          [orderId, `email_${eventType}`, cleanRecipient, `${subject}\n\n${html}`]
+          [orderId, `email_${notifType}`, cleanRecipient, `${subject}\n\n${html}`]
         );
       } catch (_) {}
     }
@@ -280,14 +319,20 @@ export async function sendEmail({
 }
 
 /**
- * 1. Event A: Order Received Email
+ * 2.A Customer Order Confirmation Email
+ * Trigger: Order successfully created.
+ * Send to: Customer
  */
-export async function sendOrderReceivedEmail({ order }) {
+export async function sendOrderConfirmationEmail({ order }) {
   try {
     const recipient = order.customer?.email || order.customer_email;
-    if (!recipient) return { success: false, error: 'Customer email missing.' };
+    if (!recipient) {
+      console.warn(`⚠️ Customer email missing for Order #${order.id || order.order_number}`);
+      return { success: false, error: 'Customer email address missing.' };
+    }
 
-    const { subject, html, text } = renderOrderReceivedEmail({ order });
+    const { subject, html, text } = renderOrderConfirmationEmail({ order });
+    const orderNumber = order.orderNumber || order.order_number;
 
     return await sendEmail({
       to: recipient,
@@ -295,46 +340,255 @@ export async function sendOrderReceivedEmail({ order }) {
       html,
       text,
       orderId: order.id,
-      eventType: 'order_received',
-      payload: { orderNumber: order.orderNumber || order.order_number }
+      eventType: 'order_confirmation',
+      notificationType: 'order_confirmation',
+      payload: { orderNumber }
     });
   } catch (err) {
-    console.error('Error in sendOrderReceivedEmail:', err.message);
+    console.error('Error in sendOrderConfirmationEmail:', err.message);
     return { success: false, error: err.message };
   }
 }
 
 /**
- * 2. Event B: Payment Successful Email
+ * 2.B Payment Confirmation Email
+ * Trigger: Payment is successfully verified on backend.
+ * Send to: Customer AND Admin
  */
-export async function sendPaymentSuccessEmail({ order, razorpayPaymentId, paymentMethod }) {
+export async function sendPaymentConfirmationEmail({ order, transactionId, razorpayPaymentId, paymentMethod }) {
+  const results = { customer: null, admin: null };
+  const payId = transactionId || razorpayPaymentId || order.razorpayPaymentId || order.razorpay_payment_id || 'VERIFIED';
+  const method = paymentMethod || order.paymentMethod || order.payment_method || 'Razorpay Online';
+
+  // 1. Send to Customer
+  try {
+    const customerRecipient = order.customer?.email || order.customer_email;
+    if (customerRecipient) {
+      const custRender = renderPaymentConfirmationEmail({
+        order,
+        transactionId: payId,
+        paymentMethod: method,
+        isAdmin: false
+      });
+
+      results.customer = await sendEmail({
+        to: customerRecipient,
+        subject: custRender.subject,
+        html: custRender.html,
+        text: custRender.text,
+        orderId: order.id,
+        eventType: 'payment_confirmation_customer',
+        notificationType: 'payment_confirmation_customer',
+        payload: { transactionId: payId, paymentMethod: method }
+      });
+    }
+  } catch (custErr) {
+    console.error('Error sending customer payment confirmation:', custErr.message);
+    results.customer = { success: false, error: custErr.message };
+  }
+
+  // 2. Send to Admin
+  try {
+    const adminEmail = config.ADMIN_EMAIL || process.env.ADMIN_EMAIL || 'admin@zebaofficial.in';
+    const adminRender = renderPaymentConfirmationEmail({
+      order,
+      transactionId: payId,
+      paymentMethod: method,
+      isAdmin: true
+    });
+
+    results.admin = await sendEmail({
+      to: adminEmail,
+      subject: adminRender.subject,
+      html: adminRender.html,
+      text: adminRender.text,
+      orderId: order.id,
+      eventType: 'payment_confirmation_admin',
+      notificationType: 'payment_confirmation_admin',
+      payload: { transactionId: payId, paymentMethod: method }
+    });
+  } catch (adminErr) {
+    console.error('Error sending admin payment confirmation:', adminErr.message);
+    results.admin = { success: false, error: adminErr.message };
+  }
+
+  return {
+    success: results.customer?.success || results.admin?.success || false,
+    ...results
+  };
+}
+
+/**
+ * 2.C Customer Order Status Update Email
+ * Trigger: Whenever admin changes order status.
+ * Send to: Customer
+ */
+export async function sendOrderStatusUpdateEmail({
+  order,
+  newStatus,
+  previousStatus,
+  notes,
+  courierPartner,
+  trackingNumber,
+  trackingUrl
+}) {
   try {
     const recipient = order.customer?.email || order.customer_email;
-    if (!recipient) return { success: false, error: 'Customer email missing.' };
+    if (!recipient) {
+      return { success: false, error: 'Customer email missing.' };
+    }
 
-    const { subject, html, text } = renderPaymentSuccessEmail({
+    const status = (newStatus || order.status || 'confirmed').toLowerCase().trim();
+    const eventType = `order_status_${status}`;
+
+    const { subject, html, text } = renderOrderStatusUpdateEmail({
+      order,
+      newStatus: status,
+      previousStatus,
+      notes,
+      courierPartner,
+      trackingNumber,
+      trackingUrl
+    });
+
+    return await sendEmail({
+      to: recipient,
+      subject,
+      html,
+      text,
+      orderId: order.id,
+      eventType,
+      notificationType: eventType,
+      payload: { status, trackingNumber, courierPartner }
+    });
+  } catch (err) {
+    console.error('Error in sendOrderStatusUpdateEmail:', err.message);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * 2.D Order Cancellation Email
+ * Trigger: Order is cancelled (by customer or admin).
+ * Send to: Customer AND Admin
+ */
+export async function sendOrderCancelledEmail({ order, reason, cancellationReason, refundStatus }) {
+  const results = { customer: null, admin: null };
+  const cancelReason = reason || cancellationReason || order.cancellation_reason || 'Order cancelled';
+
+  // 1. Send to Customer
+  try {
+    const customerRecipient = order.customer?.email || order.customer_email;
+    if (customerRecipient) {
+      const custRender = renderOrderCancelledEmail({
+        order,
+        reason: cancelReason,
+        refundStatus,
+        isAdmin: false
+      });
+
+      results.customer = await sendEmail({
+        to: customerRecipient,
+        subject: custRender.subject,
+        html: custRender.html,
+        text: custRender.text,
+        orderId: order.id,
+        eventType: 'order_cancelled_customer',
+        notificationType: 'order_cancelled_customer',
+        payload: { reason: cancelReason, refundStatus }
+      });
+    }
+  } catch (custErr) {
+    console.error('Error sending customer cancellation email:', custErr.message);
+    results.customer = { success: false, error: custErr.message };
+  }
+
+  // 2. Send to Admin
+  try {
+    const adminEmail = config.ADMIN_EMAIL || process.env.ADMIN_EMAIL || 'admin@zebaofficial.in';
+    const adminRender = renderOrderCancelledEmail({
+      order,
+      reason: cancelReason,
+      refundStatus,
+      isAdmin: true
+    });
+
+    results.admin = await sendEmail({
+      to: adminEmail,
+      subject: adminRender.subject,
+      html: adminRender.html,
+      text: adminRender.text,
+      orderId: order.id,
+      eventType: 'order_cancelled_admin',
+      notificationType: 'order_cancelled_admin',
+      payload: { reason: cancelReason, refundStatus }
+    });
+  } catch (adminErr) {
+    console.error('Error sending admin cancellation email:', adminErr.message);
+    results.admin = { success: false, error: adminErr.message };
+  }
+
+  return {
+    success: results.customer?.success || results.admin?.success || false,
+    ...results
+  };
+}
+
+/**
+ * 3. Admin New Order Alert Email
+ * Trigger: New order is successfully created.
+ * Send to: Admin
+ */
+export async function sendAdminNewOrderAlert({ order, razorpayPaymentId, razorpayOrderId }) {
+  try {
+    const adminEmail = config.ADMIN_EMAIL || process.env.ADMIN_EMAIL || config.ADMIN_DEFAULT_EMAIL || 'admin@zebaofficial.in';
+    const { subject, html, text } = renderAdminNewOrderEmail({
       order,
       razorpayPaymentId,
-      paymentMethod
+      razorpayOrderId
     });
 
     return await sendEmail({
-      to: recipient,
+      to: adminEmail,
       subject,
       html,
       text,
       orderId: order.id,
-      eventType: 'payment_success',
-      payload: { razorpayPaymentId, paymentMethod }
+      eventType: 'admin_new_order',
+      notificationType: 'admin_new_order',
+      payload: { razorpayPaymentId, razorpayOrderId }
     });
   } catch (err) {
-    console.error('Error in sendPaymentSuccessEmail:', err.message);
+    console.error('Error in sendAdminNewOrderAlert:', err.message);
     return { success: false, error: err.message };
   }
 }
 
 /**
- * 3. Event C: Payment Failed Email
+ * Backward compatibility functions
+ */
+export async function sendOrderReceivedEmail({ order }) {
+  return await sendOrderConfirmationEmail({ order });
+}
+
+export async function sendPaymentSuccessEmail({ order, razorpayPaymentId, paymentMethod }) {
+  return await sendPaymentConfirmationEmail({ order, razorpayPaymentId, paymentMethod });
+}
+
+export async function sendOrderStatusEmail(params) {
+  return await sendOrderStatusUpdateEmail(params);
+}
+
+export async function sendCancellationEmail(params) {
+  return await sendOrderCancelledEmail(params);
+}
+
+export async function sendAdminNewOrderEmail(params) {
+  return await sendAdminNewOrderAlert(params);
+}
+
+/**
+ * Payment Failed Notification
  */
 export async function sendPaymentFailedEmail({ order, errorMessage, retryUrl }) {
   try {
@@ -354,6 +608,7 @@ export async function sendPaymentFailedEmail({ order, errorMessage, retryUrl }) 
       text,
       orderId: order.id,
       eventType: 'payment_failed',
+      notificationType: 'payment_failed',
       payload: { errorMessage }
     });
   } catch (err) {
@@ -363,67 +618,7 @@ export async function sendPaymentFailedEmail({ order, errorMessage, retryUrl }) 
 }
 
 /**
- * 4. Events D - H & I: Order Status Transitions (Confirmed, Processing, Shipped, Out for Delivery, Delivered, Cancelled)
- */
-export async function sendOrderStatusEmail({
-  order,
-  newStatus,
-  previousStatus,
-  notes,
-  courierPartner,
-  trackingNumber,
-  trackingUrl,
-  cancellationReason,
-  refundStatus
-}) {
-  try {
-    const recipient = order.customer?.email || order.customer_email;
-    if (!recipient) return { success: false, error: 'Customer email missing.' };
-
-    const status = (newStatus || order.status || 'confirmed').toLowerCase().trim();
-    const eventType = `order_status_${status}`;
-
-    const { subject, html, text } = renderOrderStatusEmail({
-      order,
-      newStatus: status,
-      previousStatus,
-      notes,
-      courierPartner,
-      trackingNumber,
-      trackingUrl,
-      cancellationReason,
-      refundStatus
-    });
-
-    return await sendEmail({
-      to: recipient,
-      subject,
-      html,
-      text,
-      orderId: order.id,
-      eventType,
-      payload: { status, trackingNumber, courierPartner }
-    });
-  } catch (err) {
-    console.error('Error in sendOrderStatusEmail:', err.message);
-    return { success: false, error: err.message };
-  }
-}
-
-/**
- * 5. Event I: Order Cancellation Email
- */
-export async function sendCancellationEmail({ order, reason, refundStatus }) {
-  return await sendOrderStatusEmail({
-    order,
-    newStatus: 'cancelled',
-    cancellationReason: reason,
-    refundStatus
-  });
-}
-
-/**
- * 6. Event J: Refund Status Email (Initiated, Completed, Failed)
+ * Refund Status Email
  */
 export async function sendRefundEmail({
   order,
@@ -453,6 +648,7 @@ export async function sendRefundEmail({
       text,
       orderId: order.id,
       eventType,
+      notificationType: eventType,
       payload: { refundStatus, refundAmount, transactionId }
     });
   } catch (err) {
@@ -462,34 +658,7 @@ export async function sendRefundEmail({
 }
 
 /**
- * 7. Admin New Order Alert Email
- */
-export async function sendAdminNewOrderEmail({ order, razorpayPaymentId, razorpayOrderId }) {
-  try {
-    const adminEmail = config.ADMIN_EMAIL || process.env.ADMIN_EMAIL || config.ADMIN_DEFAULT_EMAIL || 'admin@zebaofficial.in';
-    const { subject, html, text } = renderAdminNewOrderEmail({
-      order,
-      razorpayPaymentId,
-      razorpayOrderId
-    });
-
-    return await sendEmail({
-      to: adminEmail,
-      subject,
-      html,
-      text,
-      orderId: order.id,
-      eventType: 'admin_new_order',
-      payload: { razorpayPaymentId, razorpayOrderId }
-    });
-  } catch (err) {
-    console.error('Error in sendAdminNewOrderEmail:', err.message);
-    return { success: false, error: err.message };
-  }
-}
-
-/**
- * 8. Customer Welcome Email
+ * Customer Welcome Email
  */
 export async function sendCustomerWelcomeEmail({ customerId, name, email, phone }) {
   try {
@@ -497,7 +666,6 @@ export async function sendCustomerWelcomeEmail({ customerId, name, email, phone 
 
     const { subject, html, text } = renderWelcomeEmail({ name, email });
 
-    // Save in customer_notifications
     try {
       await query(
         `INSERT INTO customer_notifications (customer_id, notification_type, recipient, subject, message)
@@ -512,6 +680,7 @@ export async function sendCustomerWelcomeEmail({ customerId, name, email, phone 
       html,
       text,
       eventType: 'customer_welcome',
+      notificationType: 'customer_welcome',
       payload: { customerId, name }
     });
   } catch (err) {
@@ -521,7 +690,7 @@ export async function sendCustomerWelcomeEmail({ customerId, name, email, phone 
 }
 
 /**
- * 9. Send Test Email from Admin Portal
+ * Send Test Email from Admin Portal
  */
 export async function sendTestEmail({ to }) {
   const recipient = to || config.ADMIN_EMAIL || 'admin@zebaofficial.in';
@@ -541,8 +710,8 @@ export async function sendTestEmail({ to }) {
     </p>
 
     <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 16px 20px; border-radius: 12px; margin: 20px 0; font-size: 13px;">
-      <div style="margin-bottom: 6px; color: #4A5568;"><strong>SMTP Host:</strong> ${config.SMTP_HOST || 'Standard Node SMTP'}</div>
-      <div style="margin-bottom: 6px; color: #4A5568;"><strong>Port:</strong> ${config.SMTP_PORT || 587}</div>
+      <div style="margin-bottom: 6px; color: #4A5568;"><strong>Host:</strong> ${config.EMAIL_HOST || config.SMTP_HOST || 'Standard SMTP'}</div>
+      <div style="margin-bottom: 6px; color: #4A5568;"><strong>Port:</strong> ${config.EMAIL_PORT || config.SMTP_PORT || 587}</div>
       <div style="margin-bottom: 6px; color: #4A5568;"><strong>Timestamp:</strong> ${new Date().toISOString()}</div>
       <div style="color: #4A5568;"><strong>Environment:</strong> ${process.env.NODE_ENV || 'production'}</div>
     </div>
@@ -566,26 +735,36 @@ export async function sendTestEmail({ to }) {
 }
 
 /**
- * 10. Retry Failed Emails (Safe Batch Processor)
+ * 11. Retry Handling: Safe Retry for Failed Emails
  */
-export async function retryFailedEmails({ maxRetries = 3, limit = 10 } = {}) {
+export async function retryFailedEmails({ maxRetries = 3, limit = 10, orderId = null } = {}) {
   try {
-    const failedEventsRes = await query(
-      `SELECT ee.*, o.order_number, o.total_amount, o.status AS current_order_status
-       FROM email_events ee
-       LEFT JOIN orders o ON ee.order_id = o.id
-       WHERE ee.status = 'failed' AND ee.retry_count < $1
-       ORDER BY ee.created_at ASC
-       LIMIT $2`,
-      [maxRetries, limit]
+    const conditions = [`en.status = 'failed'`, `en.retry_count < $1`];
+    const params = [maxRetries];
+    let pIdx = 2;
+
+    if (orderId) {
+      conditions.push(`en.order_id = $${pIdx++}`);
+      params.push(parseInt(orderId, 10));
+    }
+
+    params.push(limit);
+
+    const failedNotifsRes = await query(
+      `SELECT en.*, o.order_number, o.total_amount, o.status AS current_order_status
+       FROM email_notifications en
+       LEFT JOIN orders o ON en.order_id = o.id
+       WHERE ${conditions.join(' AND ')}
+       ORDER BY en.created_at ASC
+       LIMIT $${pIdx}`,
+      params
     );
 
     const results = [];
 
-    for (const evt of failedEventsRes.rows) {
-      console.log(`🔄 Retrying failed email event ID ${evt.id} (${evt.event_type}) for recipient [${evt.recipient}]...`);
+    for (const evt of failedNotifsRes.rows) {
+      console.log(`🔄 Retrying failed email notification ID ${evt.id} (${evt.notification_type}) for [${evt.recipient_email}]...`);
 
-      // Fetch order details
       const orderRes = await query(
         `SELECT o.*, c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone
          FROM orders o
@@ -599,26 +778,28 @@ export async function retryFailedEmails({ maxRetries = 3, limit = 10 } = {}) {
 
       let retryRes = null;
 
-      if (evt.event_type === 'order_received') {
-        retryRes = await sendOrderReceivedEmail({ order });
-      } else if (evt.event_type === 'payment_success') {
-        retryRes = await sendPaymentSuccessEmail({ order });
-      } else if (evt.event_type === 'payment_failed') {
+      if (evt.notification_type === 'order_confirmation' || evt.notification_type === 'order_received') {
+        retryRes = await sendOrderConfirmationEmail({ order });
+      } else if (evt.notification_type === 'payment_confirmation_customer' || evt.notification_type === 'payment_confirmation_admin' || evt.notification_type === 'payment_success') {
+        retryRes = await sendPaymentConfirmationEmail({ order });
+      } else if (evt.notification_type === 'payment_failed') {
         retryRes = await sendPaymentFailedEmail({ order });
-      } else if (evt.event_type.startsWith('order_status_')) {
-        const status = evt.event_type.replace('order_status_', '');
-        retryRes = await sendOrderStatusEmail({ order, newStatus: status });
-      } else if (evt.event_type.startsWith('refund_')) {
-        const refundStatus = evt.event_type.replace('refund_', '');
+      } else if (evt.notification_type === 'order_cancelled_customer' || evt.notification_type === 'order_cancelled_admin') {
+        retryRes = await sendOrderCancelledEmail({ order });
+      } else if (evt.notification_type.startsWith('order_status_')) {
+        const status = evt.notification_type.replace('order_status_', '');
+        retryRes = await sendOrderStatusUpdateEmail({ order, newStatus: status });
+      } else if (evt.notification_type.startsWith('refund_')) {
+        const refundStatus = evt.notification_type.replace('refund_', '');
         retryRes = await sendRefundEmail({ order, refundStatus });
-      } else if (evt.event_type === 'admin_new_order') {
-        retryRes = await sendAdminNewOrderEmail({ order });
+      } else if (evt.notification_type === 'admin_new_order') {
+        retryRes = await sendAdminNewOrderAlert({ order });
       }
 
       results.push({
         id: evt.id,
-        eventType: evt.event_type,
-        recipient: evt.recipient,
+        notificationType: evt.notification_type,
+        recipient: evt.recipient_email,
         success: retryRes?.success || false,
         error: retryRes?.error || null
       });
@@ -632,9 +813,9 @@ export async function retryFailedEmails({ maxRetries = 3, limit = 10 } = {}) {
 }
 
 /**
- * 11. Query Email Event Logs for Admin Dashboard
+ * 10. Query Email Notifications / Logs for Admin Dashboard
  */
-export async function getEmailEvents({ page = 1, limit = 20, orderId, status, search } = {}) {
+export async function getEmailNotifications({ page = 1, limit = 20, orderId, status, search } = {}) {
   try {
     const offset = (Math.max(1, parseInt(page, 10)) - 1) * Math.max(1, parseInt(limit, 10));
     const conditions = [];
@@ -642,17 +823,17 @@ export async function getEmailEvents({ page = 1, limit = 20, orderId, status, se
     let idx = 1;
 
     if (orderId) {
-      conditions.push(`ee.order_id = $${idx++}`);
+      conditions.push(`en.order_id = $${idx++}`);
       params.push(parseInt(orderId, 10));
     }
 
     if (status && status !== 'all') {
-      conditions.push(`ee.status = $${idx++}`);
+      conditions.push(`en.status = $${idx++}`);
       params.push(status.toLowerCase().trim());
     }
 
     if (search && search.trim() !== '') {
-      conditions.push(`(ee.recipient ILIKE $${idx} OR o.order_number ILIKE $${idx} OR ee.event_type ILIKE $${idx})`);
+      conditions.push(`(en.recipient_email ILIKE $${idx} OR o.order_number ILIKE $${idx} OR en.notification_type ILIKE $${idx})`);
       params.push(`%${search.trim()}%`);
       idx++;
     }
@@ -661,8 +842,8 @@ export async function getEmailEvents({ page = 1, limit = 20, orderId, status, se
 
     const countRes = await query(
       `SELECT COUNT(*) AS total
-       FROM email_events ee
-       LEFT JOIN orders o ON ee.order_id = o.id
+       FROM email_notifications en
+       LEFT JOIN orders o ON en.order_id = o.id
        ${whereClause}`,
       params
     );
@@ -671,11 +852,11 @@ export async function getEmailEvents({ page = 1, limit = 20, orderId, status, se
 
     const listParams = [...params, parseInt(limit, 10), offset];
     const eventsRes = await query(
-      `SELECT ee.*, o.order_number, o.total_amount
-       FROM email_events ee
-       LEFT JOIN orders o ON ee.order_id = o.id
+      `SELECT en.*, o.order_number, o.total_amount
+       FROM email_notifications en
+       LEFT JOIN orders o ON en.order_id = o.id
        ${whereClause}
-       ORDER BY ee.created_at DESC
+       ORDER BY en.created_at DESC
        LIMIT $${idx++} OFFSET $${idx++}`,
       listParams
     );
@@ -686,10 +867,13 @@ export async function getEmailEvents({ page = 1, limit = 20, orderId, status, se
       page: parseInt(page, 10),
       limit: parseInt(limit, 10),
       totalPages: Math.ceil(total / parseInt(limit, 10)),
+      notifications: eventsRes.rows,
       events: eventsRes.rows
     };
   } catch (err) {
-    console.error('Error fetching email events:', err);
-    return { success: false, error: err.message, events: [] };
+    console.error('Error fetching email notifications:', err);
+    return { success: false, error: err.message, notifications: [], events: [] };
   }
 }
+
+export const getEmailEvents = getEmailNotifications;

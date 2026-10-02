@@ -1,5 +1,10 @@
 import {
   sendEmail,
+  sendOrderConfirmationEmail,
+  sendPaymentConfirmationEmail,
+  sendOrderStatusUpdateEmail,
+  sendOrderCancelledEmail,
+  sendAdminNewOrderAlert,
   sendOrderReceivedEmail,
   sendPaymentSuccessEmail,
   sendPaymentFailedEmail,
@@ -10,6 +15,7 @@ import {
   sendCustomerWelcomeEmail,
   verifySmtpConnection,
   retryFailedEmails,
+  getEmailNotifications,
   getEmailEvents,
   getEmailTransporter,
   getSenderAddress,
@@ -20,6 +26,11 @@ import { config } from '../config/env.js';
 
 export {
   sendEmail,
+  sendOrderConfirmationEmail,
+  sendPaymentConfirmationEmail,
+  sendOrderStatusUpdateEmail,
+  sendOrderCancelledEmail,
+  sendAdminNewOrderAlert,
   sendOrderReceivedEmail,
   sendPaymentSuccessEmail,
   sendPaymentFailedEmail,
@@ -30,6 +41,7 @@ export {
   sendCustomerWelcomeEmail,
   verifySmtpConnection,
   retryFailedEmails,
+  getEmailNotifications,
   getEmailEvents,
   getEmailTransporter,
   getSenderAddress,

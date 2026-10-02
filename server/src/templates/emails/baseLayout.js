@@ -130,8 +130,8 @@ export function renderEmailLayout({
                   <a href="${appUrl}/contact" target="_blank" style="color: #CBD5E0; text-decoration: none;">Contact Support</a>
                 </p>
                 <p style="margin: 0; color: #718096;">
-                  &copy; ${year} ${brandName} (ZEBA Wellness Technologies Pvt. Ltd.). All rights reserved.<br>
-                  Discreet, Air-Activated Heating Pads for Menstrual Care. Delivered across India.
+                  &copy; ${year} ${brandName} (ZEBA). All rights reserved.<br>
+                  Discreet, Air-Activated Heating Pads for Menstrual Care. Delivered across India. Developed by <a href="https://www.xenotrix.in" target="_blank" style="color: #E5C06E; text-decoration: none; font-weight: 700;">Xenotrix Technologies</a>.
                 </p>
               </div>
             </td>

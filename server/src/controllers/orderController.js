@@ -1,5 +1,6 @@
 import { query } from '../config/db.js';
 import { sendCustomerStatusNotification } from '../services/notificationService.js';
+import { sendOrderCancelledEmail } from '../services/emailService.js';
 
 /**
  * GET /api/orders/:orderNumber
@@ -304,18 +305,37 @@ export async function cancelCustomerOrder(req, res, next) {
       [order.id, order.status, cancellationReason]
     );
 
-    // 4. Dispatch transactional notification
-    await sendCustomerStatusNotification({
-      orderId: order.id,
-      orderNumber: order.order_number,
-      customerName: order.customer_name,
-      customerEmail: order.customer_email,
-      customerPhone: order.customer_phone,
-      status: 'cancelled',
-      paymentStatus: updatedOrder.payment_status,
-      notes: cancellationReason,
-      totalAmount: updatedOrder.total_amount
-    });
+    // 4. Dispatch transactional notification (Customer & Admin)
+    try {
+      await sendOrderCancelledEmail({
+        order: {
+          ...updatedOrder,
+          customer: {
+            name: order.customer_name,
+            email: order.customer_email,
+            phone: order.customer_phone
+          }
+        },
+        reason: cancellationReason,
+        refundStatus: updatedOrder.refund_status
+      });
+    } catch (notifErr) {
+      console.error('Customer cancellation email dispatch note:', notifErr.message);
+    }
+
+    try {
+      await sendCustomerStatusNotification({
+        orderId: order.id,
+        orderNumber: order.order_number,
+        customerName: order.customer_name,
+        customerEmail: order.customer_email,
+        customerPhone: order.customer_phone,
+        status: 'cancelled',
+        paymentStatus: updatedOrder.payment_status,
+        notes: cancellationReason,
+        totalAmount: updatedOrder.total_amount
+      });
+    } catch (_) {}
 
     res.json({
       success: true,

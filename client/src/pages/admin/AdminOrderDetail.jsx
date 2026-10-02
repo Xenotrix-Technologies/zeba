@@ -102,6 +102,25 @@ export default function AdminOrderDetail() {
     }
   };
 
+  const [retrying, setRetrying] = useState(false);
+
+  const handleRetryEmails = async () => {
+    setRetrying(true);
+    try {
+      const res = await api.post('/admin/emails/retry', { limit: 5 });
+      if (res.success) {
+        addToast(`Email retry completed (${res.processedCount || 0} processed).`, 'success');
+        await fetchOrderDetail();
+      } else {
+        addToast(res.error || 'Email retry failed.', 'error');
+      }
+    } catch (err) {
+      addToast(err.message || 'Failed to retry emails.', 'error');
+    } finally {
+      setRetrying(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="py-20 text-center text-xs text-brand-plum/70">
@@ -347,6 +366,124 @@ export default function AdminOrderDetail() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+
+          {/* Email Notifications Status Matrix (Section 10) */}
+          <div className="bg-white rounded-3xl p-6 border border-brand-primaryPink/20 shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-display font-bold text-base text-brand-dark flex items-center space-x-2">
+                <Mail className="w-4 h-4 text-brand-brightPink" />
+                <span>Email Notifications</span>
+              </h3>
+              {order.emailNotifications?.some(e => e.status === 'failed') && (
+                <button
+                  onClick={handleRetryEmails}
+                  disabled={retrying}
+                  className="px-3 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-xs font-bold flex items-center space-x-1.5 transition-colors"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${retrying ? 'animate-spin' : ''}`} />
+                  <span>Retry Failed</span>
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Order Confirmation */}
+              <div className="p-3 rounded-xl bg-[#FAF8FA] border border-brand-primaryPink/15 flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold text-brand-dark block">Order Confirmation</span>
+                  <span className="text-[10px] text-brand-plum/60">Sent to customer</span>
+                </div>
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${
+                  order.emailStatusSummary?.orderConfirmation === 'sent' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
+                  order.emailStatusSummary?.orderConfirmation === 'failed' ? 'bg-rose-50 text-rose-800 border-rose-300' :
+                  'bg-brand-softPink text-brand-plum border-brand-primaryPink/30'
+                }`}>
+                  {order.emailStatusSummary?.orderConfirmation || 'Not Sent'}
+                </span>
+              </div>
+
+              {/* Payment Confirmation */}
+              <div className="p-3 rounded-xl bg-[#FAF8FA] border border-brand-primaryPink/15 flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold text-brand-dark block">Payment Confirmation</span>
+                  <span className="text-[10px] text-brand-plum/60">Sent to customer & admin</span>
+                </div>
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${
+                  order.emailStatusSummary?.paymentConfirmation === 'sent' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
+                  order.emailStatusSummary?.paymentConfirmation === 'failed' ? 'bg-rose-50 text-rose-800 border-rose-300' :
+                  'bg-brand-softPink text-brand-plum border-brand-primaryPink/30'
+                }`}>
+                  {order.emailStatusSummary?.paymentConfirmation || 'Not Sent'}
+                </span>
+              </div>
+
+              {/* Status Update */}
+              <div className="p-3 rounded-xl bg-[#FAF8FA] border border-brand-primaryPink/15 flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold text-brand-dark block">Status Update</span>
+                  <span className="text-[10px] text-brand-plum/60">Sent upon status change</span>
+                </div>
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${
+                  order.emailStatusSummary?.statusUpdate === 'sent' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
+                  order.emailStatusSummary?.statusUpdate === 'failed' ? 'bg-rose-50 text-rose-800 border-rose-300' :
+                  'bg-brand-softPink text-brand-plum border-brand-primaryPink/30'
+                }`}>
+                  {order.emailStatusSummary?.statusUpdate || 'Not Sent'}
+                </span>
+              </div>
+
+              {/* Cancellation */}
+              <div className="p-3 rounded-xl bg-[#FAF8FA] border border-brand-primaryPink/15 flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold text-brand-dark block">Order Cancellation</span>
+                  <span className="text-[10px] text-brand-plum/60">Sent if cancelled</span>
+                </div>
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${
+                  order.emailStatusSummary?.cancellation === 'sent' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
+                  order.emailStatusSummary?.cancellation === 'failed' ? 'bg-rose-50 text-rose-800 border-rose-300' :
+                  'bg-brand-softPink text-brand-plum border-brand-primaryPink/30'
+                }`}>
+                  {order.emailStatusSummary?.cancellation || 'Not Applicable'}
+                </span>
+              </div>
+            </div>
+
+            {/* Individual Email Event Logs */}
+            {order.emailNotifications && order.emailNotifications.length > 0 && (
+              <div className="pt-2 border-t border-brand-primaryPink/15 space-y-2">
+                <span className="text-[11px] font-bold text-brand-plum block uppercase tracking-wider">Email Dispatch Logs</span>
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  {order.emailNotifications.map(evt => (
+                    <div key={evt.id} className="p-2.5 rounded-xl bg-brand-softPink/30 border border-brand-primaryPink/15 text-xs flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center space-x-2">
+                          <strong className="text-brand-dark truncate">{evt.notification_type || evt.event_type}</strong>
+                          <span className="text-[10px] text-brand-plum/60">&bull; {evt.recipient_email}</span>
+                        </div>
+                        {evt.error_message && (
+                          <p className="text-[11px] text-rose-600 mt-0.5 break-words">
+                            ⚠️ {evt.error_message}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                          evt.status === 'sent' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                          evt.status === 'failed' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
+                          'bg-amber-50 text-amber-700 border border-amber-200'
+                        }`}>
+                          {evt.status}
+                        </span>
+                        <span className="text-[10px] text-brand-plum/50 block mt-0.5">
+                          {new Date(evt.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
