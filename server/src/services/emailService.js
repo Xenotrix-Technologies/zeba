@@ -325,41 +325,61 @@ export async function sendEmail({
 
 
 /**
- * 2.A Customer Order Confirmation Email
- * Trigger: Order successfully created.
- * Send to: Customer
+ * 2.A Order Confirmation Email
+ * Trigger: Order successfully placed.
+ * Send to: BOTH Customer AND Admin
  */
 export async function sendOrderConfirmationEmail({ order }) {
+  const results = { customer: null, admin: null };
+
+  // 1. Send Order Confirmation to Customer
   try {
-    const recipient = order.customer?.email || order.customer_email;
-    if (!recipient) {
+    const recipient = order.customer?.email || order.customer_email || order.email;
+    if (recipient) {
+      const { subject, html, text } = renderOrderConfirmationEmail({ order });
+      const orderNumber = order.orderNumber || order.order_number;
+
+      results.customer = await sendEmail({
+        to: recipient,
+        subject,
+        html,
+        text,
+        orderId: order.id,
+        eventType: 'order_confirmation',
+        notificationType: 'order_confirmation',
+        payload: { orderNumber }
+      });
+    } else {
       console.warn(`⚠️ Customer email missing for Order #${order.id || order.order_number}`);
-      return { success: false, error: 'Customer email address missing.' };
+      results.customer = { success: false, error: 'Customer email address missing.' };
     }
-
-    const { subject, html, text } = renderOrderConfirmationEmail({ order });
-    const orderNumber = order.orderNumber || order.order_number;
-
-    return await sendEmail({
-      to: recipient,
-      subject,
-      html,
-      text,
-      orderId: order.id,
-      eventType: 'order_confirmation',
-      notificationType: 'order_confirmation',
-      payload: { orderNumber }
-    });
-  } catch (err) {
-    console.error('Error in sendOrderConfirmationEmail:', err.message);
-    return { success: false, error: err.message };
+  } catch (custErr) {
+    console.error('Error sending customer order confirmation:', custErr.message);
+    results.customer = { success: false, error: custErr.message };
   }
+
+  // 2. Send New Order Alert to Admin
+  try {
+    results.admin = await sendAdminNewOrderAlert({
+      order,
+      razorpayOrderId: order.razorpayOrderId || order.razorpay_order_id,
+      razorpayPaymentId: order.razorpayPaymentId || order.razorpay_payment_id
+    });
+  } catch (adminErr) {
+    console.error('Error sending admin new order alert in confirmation:', adminErr.message);
+    results.admin = { success: false, error: adminErr.message };
+  }
+
+  return {
+    success: results.customer?.success || results.admin?.success || false,
+    ...results
+  };
 }
 
 /**
  * 2.B Payment Confirmation Email
  * Trigger: Payment is successfully verified on backend.
- * Send to: Customer AND Admin
+ * Send to: BOTH Customer AND Admin
  */
 export async function sendPaymentConfirmationEmail({ order, transactionId, razorpayPaymentId, paymentMethod }) {
   const results = { customer: null, admin: null };
@@ -368,7 +388,7 @@ export async function sendPaymentConfirmationEmail({ order, transactionId, razor
 
   // 1. Send to Customer
   try {
-    const customerRecipient = order.customer?.email || order.customer_email;
+    const customerRecipient = order.customer?.email || order.customer_email || order.email;
     if (customerRecipient) {
       const custRender = renderPaymentConfirmationEmail({
         order,
@@ -395,7 +415,7 @@ export async function sendPaymentConfirmationEmail({ order, transactionId, razor
 
   // 2. Send to Admin
   try {
-    const adminEmail = config.ADMIN_EMAIL || process.env.ADMIN_EMAIL || 'admin@zebaofficial.in';
+    const adminEmail = config.ADMIN_EMAIL || process.env.ADMIN_EMAIL || 'zebaofficial2013@gmail.com';
     const adminRender = renderPaymentConfirmationEmail({
       order,
       transactionId: payId,
@@ -425,9 +445,9 @@ export async function sendPaymentConfirmationEmail({ order, transactionId, razor
 }
 
 /**
- * 2.C Customer Order Status Update Email
- * Trigger: Whenever admin changes order status.
- * Send to: Customer
+ * 2.C Order Status Update Email
+ * Trigger: Whenever order status changes (processing, packed, shipped, out_for_delivery, delivered).
+ * Send to: BOTH Customer AND Admin
  */
 export async function sendOrderStatusUpdateEmail({
   order,
@@ -438,15 +458,44 @@ export async function sendOrderStatusUpdateEmail({
   trackingNumber,
   trackingUrl
 }) {
+  const results = { customer: null, admin: null };
+  const status = (newStatus || order.status || 'confirmed').toLowerCase().trim();
+  const eventType = `order_status_${status}`;
+
+  // 1. Send to Customer
   try {
-    const recipient = order.customer?.email || order.customer_email;
-    if (!recipient) {
-      return { success: false, error: 'Customer email missing.' };
+    const recipient = order.customer?.email || order.customer_email || order.email;
+    if (recipient) {
+      const { subject, html, text } = renderOrderStatusUpdateEmail({
+        order,
+        newStatus: status,
+        previousStatus,
+        notes,
+        courierPartner,
+        trackingNumber,
+        trackingUrl
+      });
+
+      results.customer = await sendEmail({
+        to: recipient,
+        subject,
+        html,
+        text,
+        orderId: order.id,
+        eventType,
+        notificationType: eventType,
+        payload: { status, trackingNumber, courierPartner }
+      });
     }
+  } catch (err) {
+    console.error('Error in sendOrderStatusUpdateEmail (Customer):', err.message);
+    results.customer = { success: false, error: err.message };
+  }
 
-    const status = (newStatus || order.status || 'confirmed').toLowerCase().trim();
-    const eventType = `order_status_${status}`;
-
+  // 2. Send Copy / Alert to Admin
+  try {
+    const adminEmail = config.ADMIN_EMAIL || process.env.ADMIN_EMAIL || 'zebaofficial2013@gmail.com';
+    const orderNum = order.orderNumber || order.order_number || order.id;
     const { subject, html, text } = renderOrderStatusUpdateEmail({
       order,
       newStatus: status,
@@ -457,26 +506,31 @@ export async function sendOrderStatusUpdateEmail({
       trackingUrl
     });
 
-    return await sendEmail({
-      to: recipient,
-      subject,
+    results.admin = await sendEmail({
+      to: adminEmail,
+      subject: `[Admin Alert] ${subject}`,
       html,
       text,
       orderId: order.id,
-      eventType,
-      notificationType: eventType,
-      payload: { status, trackingNumber, courierPartner }
+      eventType: `admin_${eventType}`,
+      notificationType: `admin_${eventType}`,
+      payload: { status, trackingNumber, courierPartner, orderNum }
     });
-  } catch (err) {
-    console.error('Error in sendOrderStatusUpdateEmail:', err.message);
-    return { success: false, error: err.message };
+  } catch (adminErr) {
+    console.error('Error in sendOrderStatusUpdateEmail (Admin):', adminErr.message);
+    results.admin = { success: false, error: adminErr.message };
   }
+
+  return {
+    success: results.customer?.success || results.admin?.success || false,
+    ...results
+  };
 }
 
 /**
  * 2.D Order Cancellation Email
  * Trigger: Order is cancelled (by customer or admin).
- * Send to: Customer AND Admin
+ * Send to: BOTH Customer AND Admin
  */
 export async function sendOrderCancelledEmail({ order, reason, cancellationReason, refundStatus }) {
   const results = { customer: null, admin: null };
@@ -484,7 +538,7 @@ export async function sendOrderCancelledEmail({ order, reason, cancellationReaso
 
   // 1. Send to Customer
   try {
-    const customerRecipient = order.customer?.email || order.customer_email;
+    const customerRecipient = order.customer?.email || order.customer_email || order.email;
     if (customerRecipient) {
       const custRender = renderOrderCancelledEmail({
         order,
@@ -511,7 +565,7 @@ export async function sendOrderCancelledEmail({ order, reason, cancellationReaso
 
   // 2. Send to Admin
   try {
-    const adminEmail = config.ADMIN_EMAIL || process.env.ADMIN_EMAIL || 'admin@zebaofficial.in';
+    const adminEmail = config.ADMIN_EMAIL || process.env.ADMIN_EMAIL || 'zebaofficial2013@gmail.com';
     const adminRender = renderOrderCancelledEmail({
       order,
       reason: cancelReason,
@@ -547,7 +601,7 @@ export async function sendOrderCancelledEmail({ order, reason, cancellationReaso
  */
 export async function sendAdminNewOrderAlert({ order, razorpayPaymentId, razorpayOrderId }) {
   try {
-    const adminEmail = config.ADMIN_EMAIL || process.env.ADMIN_EMAIL || config.ADMIN_DEFAULT_EMAIL || 'admin@zebaofficial.in';
+    const adminEmail = config.ADMIN_EMAIL || process.env.ADMIN_EMAIL || config.ADMIN_DEFAULT_EMAIL || 'zebaofficial2013@gmail.com';
     const { subject, html, text } = renderAdminNewOrderEmail({
       order,
       razorpayPaymentId,
@@ -595,36 +649,63 @@ export async function sendAdminNewOrderEmail(params) {
 
 /**
  * Payment Failed Notification
+ * Send to: BOTH Customer AND Admin
  */
 export async function sendPaymentFailedEmail({ order, errorMessage, retryUrl }) {
+  const results = { customer: null, admin: null };
+  const errDesc = errorMessage || 'Payment capture failed';
+
   try {
-    const recipient = order.customer?.email || order.customer_email;
-    if (!recipient) return { success: false, error: 'Customer email missing.' };
+    const recipient = order.customer?.email || order.customer_email || order.email;
+    if (recipient) {
+      const { subject, html, text } = renderPaymentFailedEmail({
+        order,
+        errorMessage: errDesc,
+        retryUrl
+      });
 
-    const { subject, html, text } = renderPaymentFailedEmail({
-      order,
-      errorMessage,
-      retryUrl
-    });
-
-    return await sendEmail({
-      to: recipient,
-      subject,
-      html,
-      text,
-      orderId: order.id,
-      eventType: 'payment_failed',
-      notificationType: 'payment_failed',
-      payload: { errorMessage }
-    });
+      results.customer = await sendEmail({
+        to: recipient,
+        subject,
+        html,
+        text,
+        orderId: order.id,
+        eventType: 'payment_failed',
+        notificationType: 'payment_failed',
+        payload: { errorMessage: errDesc }
+      });
+    }
   } catch (err) {
-    console.error('Error in sendPaymentFailedEmail:', err.message);
-    return { success: false, error: err.message };
+    console.error('Error in sendPaymentFailedEmail (Customer):', err.message);
+    results.customer = { success: false, error: err.message };
   }
+
+  try {
+    const adminEmail = config.ADMIN_EMAIL || process.env.ADMIN_EMAIL || 'zebaofficial2013@gmail.com';
+    const orderNum = order.orderNumber || order.order_number || order.id;
+    results.admin = await sendEmail({
+      to: adminEmail,
+      subject: `⚠️ [Admin Alert] Payment Failed for Order #${orderNum}`,
+      html: `<p>Payment failed for Order <strong>#${orderNum}</strong> from ${order.customer?.name || order.customer_name || 'Customer'}.</p><p><strong>Reason:</strong> ${errDesc}</p>`,
+      text: `Payment failed for Order #${orderNum}: ${errDesc}`,
+      orderId: order.id,
+      eventType: 'admin_payment_failed',
+      notificationType: 'admin_payment_failed',
+      payload: { errorMessage: errDesc }
+    });
+  } catch (adminErr) {
+    results.admin = { success: false, error: adminErr.message };
+  }
+
+  return {
+    success: results.customer?.success || results.admin?.success || false,
+    ...results
+  };
 }
 
 /**
  * Refund Status Email
+ * Send to: BOTH Customer AND Admin
  */
 export async function sendRefundEmail({
   order,
@@ -633,10 +714,39 @@ export async function sendRefundEmail({
   reason,
   transactionId
 }) {
-  try {
-    const recipient = order.customer?.email || order.customer_email;
-    if (!recipient) return { success: false, error: 'Customer email missing.' };
+  const results = { customer: null, admin: null };
+  const eventType = `refund_${refundStatus.toLowerCase().trim()}`;
 
+  try {
+    const recipient = order.customer?.email || order.customer_email || order.email;
+    if (recipient) {
+      const { subject, html, text } = renderRefundEmail({
+        order,
+        refundStatus,
+        refundAmount,
+        reason,
+        transactionId
+      });
+
+      results.customer = await sendEmail({
+        to: recipient,
+        subject,
+        html,
+        text,
+        orderId: order.id,
+        eventType,
+        notificationType: eventType,
+        payload: { refundStatus, refundAmount, transactionId }
+      });
+    }
+  } catch (err) {
+    console.error('Error in sendRefundEmail (Customer):', err.message);
+    results.customer = { success: false, error: err.message };
+  }
+
+  try {
+    const adminEmail = config.ADMIN_EMAIL || process.env.ADMIN_EMAIL || 'zebaofficial2013@gmail.com';
+    const orderNum = order.orderNumber || order.order_number || order.id;
     const { subject, html, text } = renderRefundEmail({
       order,
       refundStatus,
@@ -645,26 +755,29 @@ export async function sendRefundEmail({
       transactionId
     });
 
-    const eventType = `refund_${refundStatus.toLowerCase().trim()}`;
-
-    return await sendEmail({
-      to: recipient,
-      subject,
+    results.admin = await sendEmail({
+      to: adminEmail,
+      subject: `[Admin Alert] Refund ${refundStatus.toUpperCase()} — #${orderNum}`,
       html,
       text,
       orderId: order.id,
-      eventType,
-      notificationType: eventType,
+      eventType: `admin_${eventType}`,
+      notificationType: `admin_${eventType}`,
       payload: { refundStatus, refundAmount, transactionId }
     });
-  } catch (err) {
-    console.error('Error in sendRefundEmail:', err.message);
-    return { success: false, error: err.message };
+  } catch (adminErr) {
+    results.admin = { success: false, error: adminErr.message };
   }
+
+  return {
+    success: results.customer?.success || results.admin?.success || false,
+    ...results
+  };
 }
 
 /**
  * Customer Welcome Email
+
  */
 export async function sendCustomerWelcomeEmail({ customerId, name, email, phone }) {
   try {
