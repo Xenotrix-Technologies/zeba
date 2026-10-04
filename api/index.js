@@ -96,7 +96,7 @@ initDbBackground();
 
 // URL Normalization middleware to handle Vercel rewrites & proxies seamlessly
 app.use((req, res, next) => {
-  // 1. If __path is passed from Vercel rewrite (?__path=auth/login or ?__path=api/auth/login)
+  // 1. If __path is passed from query string
   if (req.query && req.query.__path) {
     let rawPath = String(req.query.__path).trim();
     if (!rawPath.startsWith('/')) rawPath = `/${rawPath}`;
@@ -112,8 +112,13 @@ app.use((req, res, next) => {
       
     req.url = rawPath + queryString;
   } else {
-    const matched = req.headers['x-matched-path'] || req.headers['x-vercel-matched-path'] || req.headers['x-now-route-matches'] || req.headers['x-invoke-path'] || req.headers['x-forwarded-url'];
-    if (matched && (req.url === '/api/index.js' || req.url === '/index.js' || req.url.startsWith('/api/index.js') || req.url.startsWith('/index.js') || req.url === '/api' || req.url === '/')) {
+    const matched = req.headers['x-matched-path'] || 
+                    req.headers['x-vercel-matched-path'] || 
+                    req.headers['x-now-route-matches'] || 
+                    req.headers['x-invoke-path'] || 
+                    req.headers['x-forwarded-url'];
+                    
+    if (matched && (req.url === '/' || req.url === '/api' || req.url.startsWith('/api/index') || req.url.startsWith('/index.js'))) {
       try {
         const urlObj = new URL(matched, 'http://localhost');
         req.url = urlObj.pathname + (urlObj.search || '');
@@ -126,6 +131,8 @@ app.use((req, res, next) => {
   // Strip redundant filename paths if still present
   if (req.url.startsWith('/api/index.js')) {
     req.url = req.url.replace('/api/index.js', '') || '/';
+  } else if (req.url.startsWith('/api/index')) {
+    req.url = req.url.replace('/api/index', '') || '/';
   } else if (req.url.startsWith('/index.js')) {
     req.url = req.url.replace('/index.js', '') || '/';
   }
