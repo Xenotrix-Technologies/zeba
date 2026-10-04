@@ -1023,20 +1023,22 @@ export async function resendAdminOrderEmail(req, res, next) {
     let result = null;
 
     if (emailType === 'order_confirmation') {
-      result = await sendOrderConfirmationEmail({ order: fullOrder });
+      result = await sendOrderConfirmationEmail({ order: fullOrder, forceResend: true });
     } else if (emailType === 'payment_confirmation') {
-      result = await sendPaymentConfirmationEmail({ order: fullOrder });
+      result = await sendPaymentConfirmationEmail({ order: fullOrder, forceResend: true });
     } else if (emailType === 'status_update') {
       result = await sendOrderStatusUpdateEmail({
         order: fullOrder,
         newStatus: fullOrder.status,
         courierPartner: fullOrder.courier_partner,
-        trackingNumber: fullOrder.tracking_number
+        trackingNumber: fullOrder.tracking_number,
+        forceResend: true
       });
     } else if (emailType === 'cancellation') {
       result = await sendOrderCancelledEmail({
         order: fullOrder,
-        reason: fullOrder.cancellation_reason || 'Order cancelled upon request'
+        reason: fullOrder.cancellation_reason || 'Order cancelled upon request',
+        forceResend: true
       });
     } else {
       return res.status(400).json({ success: false, message: 'Invalid emailType specified.' });

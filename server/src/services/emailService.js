@@ -161,7 +161,8 @@ export async function sendEmail({
   orderId = null,
   eventType = null,
   notificationType = null,
-  payload = null
+  payload = null,
+  forceResend = false
 }) {
   const notifType = notificationType || eventType || 'general';
   const cleanRecipient = (to || '').trim().toLowerCase();
@@ -174,8 +175,8 @@ export async function sendEmail({
 
   const safeOrderId = orderId && /^\d+$/.test(String(orderId)) ? parseInt(orderId, 10) : null;
 
-  // 2. Idempotency Check & Pre-registration
-  if (safeOrderId && notifType) {
+  // 2. Idempotency Check & Pre-registration (Bypassed if manual forceResend is requested)
+  if (safeOrderId && notifType && !forceResend) {
     try {
       // Check email_notifications table
       const existingNotif = await query(
@@ -348,7 +349,7 @@ export async function sendEmail({
  * Trigger: Order successfully placed.
  * Send to: BOTH Customer AND Admin
  */
-export async function sendOrderConfirmationEmail({ order }) {
+export async function sendOrderConfirmationEmail({ order, forceResend = false }) {
   const results = { customer: null, admin: null };
 
   // 1. Send Order Confirmation to Customer
@@ -366,7 +367,8 @@ export async function sendOrderConfirmationEmail({ order }) {
         orderId: order.id,
         eventType: 'order_confirmation',
         notificationType: 'order_confirmation',
-        payload: { orderNumber }
+        payload: { orderNumber },
+        forceResend
       });
     } else {
       console.warn(`⚠️ Customer email missing for Order #${order.id || order.order_number}`);
@@ -400,7 +402,7 @@ export async function sendOrderConfirmationEmail({ order }) {
  * Trigger: Payment is successfully verified on backend.
  * Send to: BOTH Customer AND Admin
  */
-export async function sendPaymentConfirmationEmail({ order, transactionId, razorpayPaymentId, paymentMethod }) {
+export async function sendPaymentConfirmationEmail({ order, transactionId, razorpayPaymentId, paymentMethod, forceResend = false }) {
   const results = { customer: null, admin: null };
   const payId = transactionId || razorpayPaymentId || order.razorpayPaymentId || order.razorpay_payment_id || 'VERIFIED';
   const method = paymentMethod || order.paymentMethod || order.payment_method || 'Razorpay Online';
@@ -424,7 +426,8 @@ export async function sendPaymentConfirmationEmail({ order, transactionId, razor
         orderId: order.id,
         eventType: 'payment_confirmation_customer',
         notificationType: 'payment_confirmation_customer',
-        payload: { transactionId: payId, paymentMethod: method }
+        payload: { transactionId: payId, paymentMethod: method },
+        forceResend
       });
     }
   } catch (custErr) {
@@ -450,7 +453,8 @@ export async function sendPaymentConfirmationEmail({ order, transactionId, razor
       orderId: order.id,
       eventType: 'payment_confirmation_admin',
       notificationType: 'payment_confirmation_admin',
-      payload: { transactionId: payId, paymentMethod: method }
+      payload: { transactionId: payId, paymentMethod: method },
+      forceResend
     });
   } catch (adminErr) {
     console.error('Error sending admin payment confirmation:', adminErr.message);
