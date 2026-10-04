@@ -120,8 +120,10 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Global API rate limiting
 app.use('/api', apiLimiter);
 
-// Static images
-app.use('/images', express.static(path.resolve(__dirname, '../public/images')));
+// Static images & videos served from single source of truth (client/public)
+const clientPublicPath = path.resolve(__dirname, '../../client/public');
+app.use('/images', express.static(path.join(clientPublicPath, 'images')));
+app.use('/videos', express.static(path.join(clientPublicPath, 'videos')));
 
 // Mount routes on both /api and root prefixes with specialized rate limiters
 const mountRouters = (prefix = '') => {
