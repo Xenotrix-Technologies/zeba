@@ -391,14 +391,14 @@ export default function Home() {
                 {/* Main Authentic Packaging Card */}
                 <div className="rounded-3xl bg-white p-3.5 shadow-2xl border-2 border-brand-primaryPink/30 relative group overflow-hidden">
                   <img
-                    src="/images/zeba-1pack.webp"
+                    src="/images/zeba-1pack.webp?v=2"
                     alt="ZEBA Periods Pain Relief Heating Pad Official Packaging"
                     width="500"
                     height="500"
                     fetchPriority="high"
                     onError={(e) => {
                       e.currentTarget.onerror = null;
-                      e.currentTarget.src = '/images/zeba-1pack.webp';
+                      e.currentTarget.src = '/images/zeba-1pack.webp?v=2';
                     }}
                     className="w-full h-auto rounded-2xl object-cover transform group-hover:scale-[1.02] transition-transform duration-500 shadow-sm"
                   />
