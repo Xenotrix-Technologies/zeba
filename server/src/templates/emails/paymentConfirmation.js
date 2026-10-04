@@ -117,16 +117,43 @@ export function renderPaymentConfirmationEmail({ order, transactionId, razorpayP
     </div>
 
     ${isAdmin ? `
-      <!-- Admin Customer Summary -->
-      <div style="background-color: #FFF0F6; border: 1px solid #FED7E2; padding: 14px 18px; border-radius: 12px; margin-bottom: 20px; font-size: 13px;">
-        <h4 style="color: #D00A52; margin: 0 0 6px 0; font-size: 12px; text-transform: uppercase;">Customer Information</h4>
-        <p style="margin: 0; color: #4A5568; line-height: 1.5;">
+      <!-- Admin Customer Summary & Delivery Address -->
+      <div style="background-color: #FFF0F6; border: 1px solid #FED7E2; padding: 16px 20px; border-radius: 12px; margin-bottom: 22px; font-size: 13px;">
+        <h4 style="color: #D00A52; margin: 0 0 10px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 800;">
+          Customer &amp; Shipping Information
+        </h4>
+        <div style="margin-bottom: 12px; color: #4A5568; line-height: 1.6;">
           <strong>Name:</strong> ${customerName}<br>
-          <strong>Email:</strong> ${customerEmail}<br>
-          <strong>Phone:</strong> ${customerPhone}
+          <strong>Email:</strong> <a href="mailto:${customerEmail}" style="color: #2B6CB0; text-decoration: none;">${customerEmail}</a><br>
+          <strong>Phone:</strong> <a href="tel:${customerPhone}" style="color: #D00A52; font-weight: 700; text-decoration: none;">${customerPhone}</a>
+        </div>
+        ${hasAddress ? `
+        <div style="border-top: 1px dashed #FEB2B2; padding-top: 10px; margin-top: 10px; color: #2D3748; line-height: 1.5;">
+          <strong style="color: #D00A52; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">📍 Delivery Address:</strong>
+          ${addressLine1 ? `<span>${addressLine1}</span><br>` : ''}
+          ${addressLine2 ? `<span>${addressLine2}</span><br>` : ''}
+          <strong>${addressLine3}</strong><br>
+          <span>${addressCountry}</span>
+        </div>
+        ` : ''}
+      </div>
+    ` : `
+      ${hasAddress ? `
+      <!-- Customer Delivery Address Card -->
+      <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 14px 18px; border-radius: 12px; margin-bottom: 20px; font-size: 13px;">
+        <h4 style="color: #2D3748; margin: 0 0 6px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">
+          📍 Delivery Address
+        </h4>
+        <p style="margin: 0; color: #4A5568; line-height: 1.5;">
+          <strong style="color: #0E1B4D;">${customerName}</strong> &bull; ${customerPhone}<br>
+          ${addressLine1 ? `${addressLine1}<br>` : ''}
+          ${addressLine2 ? `${addressLine2}<br>` : ''}
+          ${addressLine3}<br>
+          ${addressCountry}
         </p>
       </div>
-    ` : ''}
+      ` : ''}
+    `}
 
     <!-- Order Items Summary Table -->
     <div style="margin-bottom: 20px;">
@@ -159,7 +186,14 @@ Payment Amount: Rs. ${totalAmount}
 Payment Method: ${method}
 Payment Date: ${paymentDate}
 Payment Status: ${paymentStatus}
-Customer: ${order.customer?.name || order.customer_name || 'Customer'} (${order.customer?.email || order.customer_email || ''})
+Customer: ${order.customer?.name || order.customer_name || 'Customer'} (${order.customer?.email || order.customer_email || ''}, ${order.customer?.phone || order.customer_phone || ''})
+
+Shipping Address:
+${order.customer?.name || order.customer_name || ''}
+${address.houseBuilding || address.house_building || ''}
+${[address.street, address.area].filter(Boolean).join(', ')}
+${address.city || ''}, ${address.state || ''} - ${address.pincode || ''}
+${address.country || 'India'}
 
 Items:
 ${itemsText}
