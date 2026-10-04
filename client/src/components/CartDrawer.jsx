@@ -129,7 +129,7 @@ export default function CartDrawer() {
                     alt={item.name}
                     onError={(e) => {
                       e.currentTarget.onerror = null;
-                      e.currentTarget.src = '/images/zeba-1pack.jpg';
+                      e.currentTarget.src = '/images/zeba-1pack.webp';
                     }}
                     className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl border border-brand-pink/15 flex-shrink-0"
                   />

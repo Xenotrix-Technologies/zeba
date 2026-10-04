@@ -98,7 +98,7 @@ export default function CartPage() {
                     alt={item.name}
                     onError={(e) => {
                       e.currentTarget.onerror = null;
-                      e.currentTarget.src = '/images/zeba-1pack.jpg';
+                      e.currentTarget.src = '/images/zeba-1pack.webp';
                     }}
                     className="w-20 h-20 object-cover rounded-2xl border border-brand-primaryPink/15 flex-shrink-0"
                   />

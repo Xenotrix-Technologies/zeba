@@ -398,7 +398,7 @@ export default function Home() {
                     fetchPriority="high"
                     onError={(e) => {
                       e.currentTarget.onerror = null;
-                      e.currentTarget.src = '/images/zeba-1pack.jpg';
+                      e.currentTarget.src = '/images/zeba-1pack.webp';
                     }}
                     className="w-full h-auto rounded-2xl object-cover transform group-hover:scale-[1.02] transition-transform duration-500 shadow-sm"
                   />

@@ -72,10 +72,10 @@ export async function seedDatabase() {
         'Porous Activated Carbon'
       ]),
       images: JSON.stringify([
-        '/images/zeba-1pack.jpg',
-        '/images/zeba-real-packaging-1.jpg',
-        '/images/zeba-real-packaging-2.jpg',
-        '/images/zeba-hero-lifestyle.jpg'
+        '/images/zeba-1pack.webp',
+        '/images/zeba-real-packaging-1.webp',
+        '/images/zeba-real-packaging-2.webp',
+        '/images/zeba-hero-lifestyle.webp'
       ]),
       is_active: true,
       is_featured: true
@@ -119,10 +119,10 @@ export async function seedDatabase() {
         'Porous Activated Carbon'
       ]),
       images: JSON.stringify([
-        '/images/zeba-real-packaging-2.jpg',
-        '/images/zeba-real-packaging-1.jpg',
-        '/images/zeba-1pack.jpg',
-        '/images/zeba-hero-lifestyle.jpg'
+        '/images/zeba-1pack.webp',
+        '/images/zeba-real-packaging-2.webp',
+        '/images/zeba-real-packaging-1.webp',
+        '/images/zeba-hero-lifestyle.webp'
       ]),
       is_active: true,
       is_featured: true
@@ -164,7 +164,11 @@ export async function seedDatabase() {
       );
       console.log(`✅ Seeded Product: ${prod.name}`);
     } else {
-      console.log(`ℹ️ Preserving existing database record for product: ${prod.slug}`);
+      await query(
+        `UPDATE products SET images = $1 WHERE slug = $2`,
+        [prod.images, prod.slug]
+      );
+      console.log(`ℹ️ Updated images for product: ${prod.slug}`);
     }
   }
 

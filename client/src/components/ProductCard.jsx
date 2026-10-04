@@ -62,7 +62,7 @@ export default function ProductCard({ product, isFeatured = false }) {
           decoding="async"
           onError={(e) => {
             e.currentTarget.onerror = null;
-            e.currentTarget.src = '/images/zeba-1pack.jpg';
+            e.currentTarget.src = '/images/zeba-1pack.webp';
           }}
           className="w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-500"
         />

@@ -19,6 +19,7 @@ import api from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useStoreSettings } from '../context/StoreSettingsContext';
 import { useToast } from '../context/ToastContext';
+import { parseProductImages, DEFAULT_PRODUCT_IMAGE } from '../utils/imageUtils';
 
 export default function ProductDetail() {
   const { slug } = useParams();
@@ -153,17 +154,15 @@ export default function ProductDetail() {
     );
   }
 
-  const baseImages = Array.isArray(selectedProduct.images)
-    ? selectedProduct.images
-    : (typeof selectedProduct.images === 'string' ? JSON.parse(selectedProduct.images || '[]') : ['/images/zeba-1pack.jpg']);
+  const baseImages = parseProductImages(selectedProduct.images);
 
   // Combine authentic product packaging + official educational infographics
   const allImages = [
     ...baseImages,
     '/images/zeba-how-to-use-guide.png',
-    '/images/zeba-how-it-works-timeline.jpg',
-    '/images/zeba-whats-inside-ingredients.jpg',
-    '/images/zeba-got-questions-faq.jpg'
+    '/images/zeba-how-it-works-timeline.webp',
+    '/images/zeba-whats-inside-ingredients.webp',
+    '/images/zeba-got-questions-faq.webp'
   ];
 
   const currentPrice = parseFloat(selectedProduct.price) || 0;
@@ -199,7 +198,7 @@ export default function ProductDetail() {
                 fetchPriority="high"
                 onError={(e) => {
                   e.currentTarget.onerror = null;
-                  e.currentTarget.src = '/images/zeba-1pack.jpg';
+                  e.currentTarget.src = DEFAULT_PRODUCT_IMAGE;
                 }}
                 className="w-full h-full object-contain transition-all duration-300 transform hover:scale-105"
               />
@@ -226,7 +225,7 @@ export default function ProductDetail() {
                     decoding="async"
                     onError={(e) => {
                       e.currentTarget.onerror = null;
-                      e.currentTarget.src = '/images/zeba-1pack.jpg';
+                      e.currentTarget.src = DEFAULT_PRODUCT_IMAGE;
                     }}
                     className="w-full h-full object-cover rounded-xl"
                   />

@@ -222,7 +222,7 @@ export default function AdminOrderDetail() {
 
             <div className="divide-y divide-brand-primaryPink/15">
               {order.items?.map((item) => {
-                let itemImage = '/images/zeba-1pack.jpg';
+                let itemImage = '/images/zeba-1pack.webp';
                 if (Array.isArray(item.images) && item.images.length > 0) {
                   itemImage = item.images[0];
                 } else if (typeof item.images === 'string') {
@@ -242,11 +242,11 @@ export default function AdminOrderDetail() {
                   <div key={item.id} className="py-3.5 flex items-center justify-between gap-4">
                     <div className="flex items-center space-x-3">
                       <img
-                        src={itemImage || '/images/zeba-1pack.jpg'}
+                        src={itemImage || '/images/zeba-1pack.webp'}
                         alt={item.product_name}
                         onError={(e) => {
                           e.currentTarget.onerror = null;
-                          e.currentTarget.src = '/images/zeba-1pack.jpg';
+                          e.currentTarget.src = '/images/zeba-1pack.webp';
                         }}
                         className="w-14 h-14 object-cover rounded-xl border border-brand-primaryPink/20 flex-shrink-0 bg-brand-softPink"
                       />

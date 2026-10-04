@@ -447,7 +447,7 @@ export default function Checkout() {
                         alt={item.name}
                         onError={(e) => {
                           e.currentTarget.onerror = null;
-                          e.currentTarget.src = '/images/zeba-1pack.jpg';
+                          e.currentTarget.src = '/images/zeba-1pack.webp';
                         }}
                         className="w-12 h-12 rounded-xl object-cover border border-brand-primaryPink/15 flex-shrink-0"
                       />

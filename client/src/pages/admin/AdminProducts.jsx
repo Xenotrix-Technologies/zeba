@@ -208,11 +208,11 @@ export default function AdminProducts() {
                     <div className="pt-4 space-y-4">
                       <div className="flex items-center space-x-4">
                         <img
-                          src={images[0] || '/images/zeba-1pack.jpg'}
+                          src={images[0] || '/images/zeba-1pack.webp'}
                           alt={product.name}
                           onError={(e) => {
                             e.currentTarget.onerror = null;
-                            e.currentTarget.src = '/images/zeba-1pack.jpg';
+                            e.currentTarget.src = '/images/zeba-1pack.webp';
                           }}
                           className="w-24 h-24 object-cover rounded-2xl border border-brand-primaryPink/25 bg-[#FFF5FA] p-2"
                         />
