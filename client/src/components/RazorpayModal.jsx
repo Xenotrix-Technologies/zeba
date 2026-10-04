@@ -46,9 +46,6 @@ export default function RazorpayModal({
           <h3 className="font-display font-extrabold text-xl text-white tracking-wide">
             Razorpay Secure Payment
           </h3>
-          <p className="text-xs text-pink-200/80 mt-1">
-            ZEBA Wellness • 256-bit Encrypted Transaction
-          </p>
           
           <div className="mt-4 inline-block bg-white/10 px-4 py-1.5 rounded-full border border-white/20">
             <span className="text-xs text-pink-100">Amount to Pay: </span>
@@ -82,7 +79,7 @@ export default function RazorpayModal({
               className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2 transition-all disabled:opacity-50 btn-tactile"
             >
               <CheckCircle2 className="w-4 h-4" />
-              <span>{isProcessing ? 'Verifying payment...' : 'Complete Payment (Success)'}</span>
+              <span>{isProcessing ? 'Verifying payment...' : 'Complete Payment'}</span>
             </button>
 
             <button
@@ -91,13 +88,8 @@ export default function RazorpayModal({
               className="w-full py-3 px-4 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 font-semibold text-xs flex items-center justify-center space-x-2 transition-all disabled:opacity-50"
             >
               <XCircle className="w-4 h-4" />
-              <span>Cancel / Simulate Failure</span>
+              <span>Cancel Payment</span>
             </button>
-          </div>
-
-          <div className="flex items-center justify-center space-x-2 text-[11px] text-[#805A82]">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Authenticated via Razorpay Node.js Signature Verification</span>
           </div>
         </div>
 
