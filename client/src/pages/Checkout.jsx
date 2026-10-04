@@ -7,6 +7,7 @@ import { useCustomerAuth } from '../context/CustomerAuthContext';
 import { useStoreSettings } from '../context/StoreSettingsContext';
 import api from '../services/api';
 import RazorpayModal from '../components/RazorpayModal';
+import CustomerAuthModal from '../components/CustomerAuthModal';
 
 export default function Checkout() {
   const { cart, subtotal, freeShippingThreshold, clearCart } = useCart();
@@ -51,6 +52,7 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [razorpayOrder, setRazorpayOrder] = useState(null);
   const [showSimulatedModal, setShowSimulatedModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const standardShippingFee = Number(settings.commerce?.standardShippingFee || 49.00);
   const shippingFee = subtotal >= freeShippingThreshold ? 0.00 : (cart.length > 0 ? standardShippingFee : 0.00);
@@ -61,47 +63,66 @@ export default function Checkout() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleProceedToPayment = async (e) => {
-    e.preventDefault();
-
+  const validateForm = () => {
     if (cart.length === 0) {
       addToast('Your cart is empty. Please add items to checkout.', 'error');
       navigate('/products');
-      return;
+      return false;
     }
 
     if (!formData.name || !formData.name.trim()) {
       addToast('Please enter your full name.', 'error');
-      return;
+      return false;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email || !formData.email.trim() || !emailRegex.test(formData.email.trim())) {
       addToast('Please enter a valid email address.', 'error');
-      return;
+      return false;
     }
 
     const cleanPhone = (formData.phone || '').replace(/[^0-9]/g, '');
     if (!cleanPhone || cleanPhone.length < 10) {
       addToast('Please enter a valid phone number.', 'error');
-      return;
+      return false;
     }
 
     if (!formData.houseBuilding || !formData.houseBuilding.trim()) {
       addToast('Please enter your delivery address.', 'error');
-      return;
+      return false;
     }
 
     if (!formData.city || !formData.city.trim() || !formData.state || !formData.state.trim()) {
       addToast('Please enter your city and state.', 'error');
-      return;
+      return false;
     }
 
     if (!/^\d{6}$/.test((formData.pincode || '').trim())) {
       addToast('Please enter a valid 6-digit Indian PIN code.', 'error');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleProceedToPayment = async (e) => {
+    if (e) e.preventDefault();
+
+    if (!validateForm()) {
       return;
     }
 
+    // If customer is not authenticated, show popup to create account or login to track order
+    if (!isCustomerAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
+
+    // Customer is already authenticated, proceed to create order & open Razorpay
+    await executePaymentOrder();
+  };
+
+  const executePaymentOrder = async () => {
     setLoading(true);
 
     try {
@@ -271,10 +292,21 @@ export default function Checkout() {
               
               {/* Contact Information */}
               <div className="bg-white rounded-3xl p-6 sm:p-8 border border-brand-primaryPink/25 shadow-sm space-y-4">
-                <h2 className="font-display font-bold text-lg text-brand-deepPurple flex items-center space-x-2">
-                  <span className="w-6 h-6 rounded-full bg-brand-brightPink text-white text-xs font-bold flex items-center justify-center">1</span>
-                  <span>Contact Information</span>
-                </h2>
+                <div className="flex items-center justify-between">
+                  <h2 className="font-display font-bold text-lg text-brand-deepPurple flex items-center space-x-2">
+                    <span className="w-6 h-6 rounded-full bg-brand-brightPink text-white text-xs font-bold flex items-center justify-center">1</span>
+                    <span>Contact Information</span>
+                  </h2>
+                  {!isCustomerAuthenticated && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAuthModal(true)}
+                      className="text-xs font-bold text-brand-brightPink hover:text-brand-deepPink underline transition-colors"
+                    >
+                      Already have an account? Sign In
+                    </button>
+                  )}
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
@@ -527,6 +559,22 @@ export default function Checkout() {
         onError={(err) => {
           addToast(err.message || 'Payment was cancelled.', 'error');
           setShowSimulatedModal(false);
+        }}
+      />
+
+      {/* Customer Account / Sign In Modal for Order Tracking */}
+      <CustomerAuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        initialData={{
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone
+        }}
+        totalAmount={totalAmount}
+        onAuthenticatedAndProceed={() => {
+          setShowAuthModal(false);
+          executePaymentOrder();
         }}
       />
 
