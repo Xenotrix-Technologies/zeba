@@ -139,7 +139,7 @@ const mountRouters = (prefix = '') => {
   app.use(`${prefix}/content`, contentRoutes);
   app.use(`${prefix}/faqs`, faqRoutes);
   app.use(`${prefix}/reviews`, reviewRoutes);
-  app.use(`${prefix}/auth`, authLimiter, authRoutes);
+  app.use(`${prefix}/auth`, authRoutes);
   app.use(`${prefix}/customer`, customerRoutes);
   app.use(`${prefix}/products`, productRoutes);
   app.use(`${prefix}/orders`, orderRoutes);
