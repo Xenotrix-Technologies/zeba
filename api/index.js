@@ -96,15 +96,23 @@ initDbBackground();
 
 // URL Normalization middleware to handle Vercel rewrites & proxies seamlessly
 app.use((req, res, next) => {
-  // If __path is passed from Vercel rewrite (?__path=auth/login)
+  // 1. If __path is passed from Vercel rewrite (?__path=auth/login or ?__path=api/auth/login)
   if (req.query && req.query.__path) {
-    const rawPath = req.query.__path;
-    const base = rawPath.startsWith('/') ? rawPath : `/${rawPath}`;
-    const searchIdx = req.url.indexOf('?');
-    const queryString = searchIdx !== -1 ? req.url.slice(searchIdx) : '';
-    req.url = base + queryString;
+    let rawPath = String(req.query.__path).trim();
+    if (!rawPath.startsWith('/')) rawPath = `/${rawPath}`;
+    
+    // Remove __path from query params so it doesn't pollute downstream handlers
+    delete req.query.__path;
+    
+    // Reconstruct clean query string
+    const queryKeys = Object.keys(req.query);
+    const queryString = queryKeys.length > 0 
+      ? '?' + new URLSearchParams(req.query).toString()
+      : '';
+      
+    req.url = rawPath + queryString;
   } else {
-    const matched = req.headers['x-matched-path'] || req.headers['x-now-route-matches'] || req.headers['x-invoke-path'] || req.headers['x-forwarded-url'];
+    const matched = req.headers['x-matched-path'] || req.headers['x-vercel-matched-path'] || req.headers['x-now-route-matches'] || req.headers['x-invoke-path'] || req.headers['x-forwarded-url'];
     if (matched && (req.url === '/api/index.js' || req.url === '/index.js' || req.url.startsWith('/api/index.js') || req.url.startsWith('/index.js') || req.url === '/api' || req.url === '/')) {
       try {
         const urlObj = new URL(matched, 'http://localhost');
@@ -115,7 +123,7 @@ app.use((req, res, next) => {
     }
   }
 
-  // Strip redundant filename paths if present
+  // Strip redundant filename paths if still present
   if (req.url.startsWith('/api/index.js')) {
     req.url = req.url.replace('/api/index.js', '') || '/';
   } else if (req.url.startsWith('/index.js')) {
@@ -125,7 +133,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Mount routes on all variations: /api/*, /*
+// Mount routes on both /api/* and root /* prefixes
 const mountRouters = (prefix = '') => {
   app.use(`${prefix}/settings`, settingsRoutes);
   app.use(`${prefix}/content`, contentRoutes);
