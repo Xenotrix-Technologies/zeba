@@ -81,9 +81,9 @@ app.use('/api', apiLimiter);
 // Static images
 app.use('/images', express.static(path.resolve(__dirname, '../client/public/images')));
 
-// Non-blocking background database initialization for serverless cold start
+// Lazy non-blocking database initialization for serverless cold start
 let dbInitDone = false;
-function initDbBackground() {
+app.use((req, res, next) => {
   if (!dbInitDone) {
     dbInitDone = true;
     seedDatabase().catch((err) => {
@@ -91,8 +91,8 @@ function initDbBackground() {
       dbInitDone = false;
     });
   }
-}
-initDbBackground();
+  next();
+});
 
 // URL Normalization middleware to handle Vercel rewrites & proxies seamlessly
 app.use((req, res, next) => {

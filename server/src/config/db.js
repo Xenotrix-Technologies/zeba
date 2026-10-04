@@ -1,5 +1,4 @@
 import pg from 'pg';
-import { PGlite } from '@electric-sql/pglite';
 import path from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
@@ -62,6 +61,7 @@ export async function getDb() {
     fs.mkdirSync(dataDir, { recursive: true });
   }
 
+  const { PGlite } = await import('@electric-sql/pglite');
   pgliteInstance = new PGlite(dataDir);
   isPGlite = true;
   console.log(`✅ Embedded PostgreSQL engine initialized at ${dataDir}`);
