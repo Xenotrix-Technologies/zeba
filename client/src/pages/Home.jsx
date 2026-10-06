@@ -692,7 +692,7 @@ export default function Home() {
           {/* Official Ingredients Infographic */}
           <div className="rounded-3xl bg-white p-4 sm:p-6 border-2 border-brand-primaryPink/30 shadow-lg max-w-5xl mx-auto overflow-hidden">
             <img
-              src="/images/zeba-whats-inside-ingredients.webp"
+              src="/images/zeba-whats-inside-ingredients.webp?v=3"
               alt="ZEBA What's Inside Pure Natural Goodness Ingredients"
               width="1000"
               height="600"
@@ -700,7 +700,7 @@ export default function Home() {
               decoding="async"
               onError={(e) => {
                 e.currentTarget.onerror = null;
-                e.currentTarget.src = '/images/zeba-whats-inside-ingredients.jpg';
+                e.currentTarget.src = '/images/zeba-whats-inside-ingredients.jpg?v=3';
               }}
               className="w-full h-auto rounded-2xl object-cover shadow-sm"
             />

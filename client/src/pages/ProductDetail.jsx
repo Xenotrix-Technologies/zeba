@@ -711,11 +711,11 @@ export default function ProductDetail() {
                 <div className="flex flex-col lg:flex-row items-center gap-8">
                   <div className="w-full lg:w-1/2 rounded-2xl overflow-hidden border border-brand-primaryPink/25 shadow-sm">
                     <img
-                      src="/images/zeba-whats-inside-ingredients.webp"
+                      src="/images/zeba-whats-inside-ingredients.webp?v=3"
                       alt="ZEBA What's Inside Pure Natural Goodness"
                       onError={(e) => {
                         e.currentTarget.onerror = null;
-                        e.currentTarget.src = '/images/zeba-whats-inside-ingredients.jpg';
+                        e.currentTarget.src = '/images/zeba-whats-inside-ingredients.jpg?v=3';
                       }}
                       className="w-full h-auto object-cover"
                     />
