@@ -391,14 +391,14 @@ export default function Home() {
                 {/* Main Authentic Packaging Card */}
                 <div className="rounded-3xl bg-white p-3.5 shadow-2xl border-2 border-brand-primaryPink/30 relative group overflow-hidden">
                   <img
-                    src="/images/zeba-1pack.webp?v=2"
+                    src="/images/zeba-1pack.webp?v=3"
                     alt="ZEBA Periods Pain Relief Heating Pad Official Packaging"
                     width="500"
                     height="500"
                     fetchPriority="high"
                     onError={(e) => {
                       e.currentTarget.onerror = null;
-                      e.currentTarget.src = '/images/zeba-1pack.webp?v=2';
+                      e.currentTarget.src = '/images/zeba-1pack.webp?v=3';
                     }}
                     className="w-full h-auto rounded-2xl object-cover transform group-hover:scale-[1.02] transition-transform duration-500 shadow-sm"
                   />
@@ -495,6 +495,23 @@ export default function Home() {
             <p className="text-sm text-[#805A82]">
               Experience the natural thermal reaction melting away muscular spasms from first application to all-day comfort.
             </p>
+          </div>
+
+          {/* Official Timeline Infographic */}
+          <div className="rounded-3xl bg-white p-4 sm:p-6 border-2 border-brand-primaryPink/30 shadow-lg max-w-5xl mx-auto overflow-hidden">
+            <img
+              src="/images/zeba-how-it-works-timeline.webp"
+              alt="Timeline of Thermal Heat Relief for Period Cramps"
+              width="1000"
+              height="560"
+              loading="lazy"
+              decoding="async"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = '/images/zeba-how-it-works-timeline.jpg';
+              }}
+              className="w-full h-auto rounded-2xl object-cover shadow-sm"
+            />
           </div>
 
           {/* Interactive Stepper Navigation */}
@@ -819,6 +836,23 @@ export default function Home() {
                 <p className="text-sm sm:text-base text-[#805A82] max-w-xl mx-auto leading-relaxed">
                   Everything you need to know about wearability, mineral safety, all-day heat therapy, and satisfaction guarantee.
                 </p>
+              </div>
+
+              {/* Official Trust & Guarantee Infographic */}
+              <div className="rounded-3xl bg-white p-3 sm:p-4 border-2 border-brand-primaryPink/30 shadow-lg max-w-3xl mx-auto overflow-hidden">
+                <img
+                  src="/images/zeba-got-questions-faq.webp"
+                  alt="ZEBA 100% Satisfaction & Safety Badges"
+                  width="900"
+                  height="500"
+                  loading="lazy"
+                  decoding="async"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = '/images/zeba-got-questions-faq.jpg';
+                  }}
+                  className="w-full h-auto rounded-2xl object-cover"
+                />
               </div>
 
               {/* Search Bar */}

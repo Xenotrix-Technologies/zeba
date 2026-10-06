@@ -4,15 +4,15 @@
  * (Arrays, JSON strings, single URL strings, null/undefined) with modern WebP optimization.
  */
 
-export const DEFAULT_PRODUCT_IMAGE = '/images/zeba-1pack.webp?v=2';
+export const DEFAULT_PRODUCT_IMAGE = '/images/zeba-1pack.webp?v=3';
 
 export function getWebpImageUrl(url) {
   if (!url || typeof url !== 'string') return DEFAULT_PRODUCT_IMAGE;
   if (url.startsWith('/images/') && (url.endsWith('.jpg') || url.endsWith('.jpeg') || url.endsWith('.png'))) {
-    return url.replace(/\.(jpg|jpeg|png)$/i, '.webp?v=2');
+    return url.replace(/\.(jpg|jpeg|png)$/i, '.webp?v=3');
   }
-  if (url.startsWith('/images/zeba-1pack.webp') && !url.includes('?')) {
-    return `${url}?v=2`;
+  if (url.startsWith('/images/zeba-1pack.webp')) {
+    return '/images/zeba-1pack.webp?v=3';
   }
   return url;
 }

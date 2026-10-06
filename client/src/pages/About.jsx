@@ -131,6 +131,46 @@ export default function About() {
           </div>
         </div>
 
+        {/* Authentic Packaging & Quality Transparency */}
+        <div className="rounded-3xl bg-white p-6 sm:p-10 border-2 border-brand-primaryPink/30 shadow-lg max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          <div className="lg:col-span-6 rounded-2xl overflow-hidden shadow-md border border-brand-primaryPink/25">
+            <img
+              src="/images/zeba-real-packaging-1.webp"
+              alt="ZEBA Authentic Retail Packaging & Usage Details"
+              width="600"
+              height="400"
+              loading="lazy"
+              decoding="async"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = '/images/zeba-1pack.webp';
+              }}
+              className="w-full h-auto object-cover"
+            />
+          </div>
+          <div className="lg:col-span-6 space-y-4">
+            <span className="text-xs font-extrabold uppercase tracking-widest text-brand-brightPink bg-brand-softPink px-3 py-1 rounded-full border border-brand-primaryPink/30">
+              Honest Quality
+            </span>
+            <h3 className="font-display font-extrabold text-2xl text-brand-deepPurple">
+              Authentic Standards, Complete Transparency
+            </h3>
+            <p className="text-xs sm:text-sm text-[#805A82] leading-relaxed">
+              Every ZEBA box is manufactured under strict quality controls and clearly displays full usage directions, batch details, and ingredient breakdowns right on the box.
+            </p>
+            <div className="pt-2 grid grid-cols-2 gap-3 text-xs font-bold text-brand-deepPurple">
+              <div className="p-3 rounded-xl bg-brand-softPink/60 border border-brand-primaryPink/20 flex items-center space-x-2">
+                <span className="text-brand-brightPink">✓</span>
+                <span>Air-Activated</span>
+              </div>
+              <div className="p-3 rounded-xl bg-brand-softPink/60 border border-brand-primaryPink/20 flex items-center space-x-2">
+                <span className="text-brand-gold">★</span>
+                <span>100% Drug-Free</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Bottom CTA */}
         <div className="text-center py-8 space-y-4">
           <h3 className="font-display font-bold text-2xl text-brand-deepPurple">Ready to experience soothing comfort?</h3>
