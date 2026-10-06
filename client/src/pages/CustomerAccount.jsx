@@ -63,7 +63,9 @@ export default function CustomerAccount() {
     setCancellingOrderId(cancelModalOrder.id);
     try {
       const res = await api.post(`/orders/${cancelModalOrder.order_number}/cancel`, {
-        reason: cancelReason || 'Customer cancelled via account dashboard'
+        reason: cancelReason || 'Customer cancelled via account dashboard',
+        phone: customer?.phone || cancelModalOrder?.customer_phone,
+        email: customer?.email || cancelModalOrder?.customer_email
       });
       if (res.success) {
         addToast(`Order #${cancelModalOrder.order_number} has been cancelled.`, 'success');

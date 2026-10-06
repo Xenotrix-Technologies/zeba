@@ -238,22 +238,22 @@ export async function cancelCustomerOrder(req, res, next) {
 
     const order = orderRes.rows[0];
 
-    // Security Verification: If unauthenticated request, require phone or email match
-    if (!req.customer) {
-      const matchPhone = phone && phone.trim() === order.customer_phone.trim();
-      const matchEmail = email && email.toLowerCase().trim() === order.customer_email.toLowerCase().trim();
+    // Security Verification: Allow if admin, authenticated customer (by id or matching email/phone), or guest verification (by body email/phone)
+    const isOwner = req.customer && (
+      order.customer_id === req.customer.id ||
+      (order.customer_email && req.customer.email && order.customer_email.toLowerCase().trim() === req.customer.email.toLowerCase().trim()) ||
+      (order.customer_phone && req.customer.phone && order.customer_phone.trim() === req.customer.phone.trim())
+    );
+
+    const isAdmin = Boolean(req.admin);
+
+    if (!isAdmin && !isOwner) {
+      const matchPhone = phone && order.customer_phone && phone.trim() === order.customer_phone.trim();
+      const matchEmail = email && order.customer_email && email.toLowerCase().trim() === order.customer_email.toLowerCase().trim();
       if (!matchPhone && !matchEmail) {
         return res.status(403).json({
           success: false,
           message: 'Verification failed. Please provide the customer phone or email associated with this order.'
-        });
-      }
-    } else {
-      // Authenticated customer: Must own the order
-      if (order.customer_id !== req.customer.id) {
-        return res.status(403).json({
-          success: false,
-          message: 'You are not authorized to cancel this order.'
         });
       }
     }

@@ -19,20 +19,25 @@ api.interceptors.request.use((config) => {
       return config;
     }
 
-    if (url.includes('/customer')) {
+    if (url.includes('/admin')) {
+      if (adminToken) {
+        config.headers.Authorization = `Bearer ${adminToken}`;
+      } else if (customerToken) {
+        config.headers.Authorization = `Bearer ${customerToken}`;
+      }
+    } else if (url.includes('/customer')) {
       if (customerToken) {
         config.headers.Authorization = `Bearer ${customerToken}`;
       } else if (adminToken) {
         config.headers.Authorization = `Bearer ${adminToken}`;
       }
-    } else if (url.includes('/admin') || url.includes('/auth')) {
-      if (adminToken) {
+    } else {
+      // General routes (/orders, /payments, /reviews, etc.)
+      if (customerToken) {
+        config.headers.Authorization = `Bearer ${customerToken}`;
+      } else if (adminToken) {
         config.headers.Authorization = `Bearer ${adminToken}`;
       }
-    } else if (adminToken) {
-      config.headers.Authorization = `Bearer ${adminToken}`;
-    } else if (customerToken) {
-      config.headers.Authorization = `Bearer ${customerToken}`;
     }
   }
   return config;
