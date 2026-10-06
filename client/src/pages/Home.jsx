@@ -497,21 +497,84 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Official Timeline Infographic */}
-          <div className="rounded-3xl bg-white p-4 sm:p-6 border-2 border-brand-primaryPink/30 shadow-lg max-w-5xl mx-auto overflow-hidden">
-            <img
-              src="/images/zeba-how-it-works-timeline.webp"
-              alt="Timeline of Thermal Heat Relief for Period Cramps"
-              width="1000"
-              height="560"
-              loading="lazy"
-              decoding="async"
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = '/images/zeba-how-it-works-timeline.jpg';
-              }}
-              className="w-full h-auto rounded-2xl object-cover shadow-sm"
-            />
+          {/* Timeline of Thermal Heat Relief Cards (Text-Based) */}
+          <div className="rounded-3xl bg-gradient-to-b from-white to-brand-softPink/40 p-6 sm:p-8 border-2 border-brand-primaryPink/30 shadow-lg max-w-5xl mx-auto space-y-6">
+            <div className="text-center space-y-1">
+              <h3 className="font-display font-black text-xl sm:text-2xl text-brand-deepPurple tracking-tight uppercase">
+                Timeline of Thermal Heat Relief
+              </h3>
+              <p className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-brand-brightPink">
+                For Period Cramps
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 relative">
+              {/* Step 1 */}
+              <div className="relative p-6 rounded-2xl bg-white border border-brand-primaryPink/30 shadow-xs hover:shadow-md hover:border-brand-brightPink transition-all flex flex-col justify-between space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-softPink text-brand-brightPink font-bold text-xs">
+                      <Flame className="w-3.5 h-3.5" /> Phase 1
+                    </span>
+                    <span className="text-xs font-mono font-bold text-[#805A82]">0–15 Mins</span>
+                  </div>
+                  <h4 className="font-display font-extrabold text-base text-brand-deepPurple tracking-tight uppercase">
+                    Early Activation
+                  </h4>
+                  <p className="text-xs sm:text-sm text-[#805A82] leading-relaxed">
+                    Rapid warmth begins to penetrate, initiating circulation boost and initial muscle relaxation.
+                  </p>
+                </div>
+                <div className="pt-3 border-t border-brand-primaryPink/20 flex items-center gap-2 text-[11px] font-semibold text-brand-purple">
+                  <span className="w-2 h-2 rounded-full bg-brand-brightPink animate-pulse"></span>
+                  Thermal onset begins
+                </div>
+              </div>
+
+              {/* Step 2 */}
+              <div className="relative p-6 rounded-2xl bg-white border-2 border-brand-primaryPink/50 shadow-sm hover:shadow-md hover:border-brand-brightPink transition-all flex flex-col justify-between space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-primaryPink/30 text-brand-deepPurple font-bold text-xs">
+                      <Sparkles className="w-3.5 h-3.5 text-brand-brightPink" /> Phase 2
+                    </span>
+                    <span className="text-xs font-mono font-bold text-[#805A82]">1 Hour</span>
+                  </div>
+                  <h4 className="font-display font-extrabold text-base text-brand-deepPurple tracking-tight uppercase">
+                    Peak Soothing Comfort
+                  </h4>
+                  <p className="text-xs sm:text-sm text-[#805A82] leading-relaxed">
+                    Maximum heat intensity reached for deep muscle relief. Significant reduction in cramp discomfort and a feeling of calm.
+                  </p>
+                </div>
+                <div className="pt-3 border-t border-brand-primaryPink/20 flex items-center gap-2 text-[11px] font-semibold text-brand-brightPink">
+                  <span className="w-2 h-2 rounded-full bg-brand-brightPink"></span>
+                  Max therapeutic relief
+                </div>
+              </div>
+
+              {/* Step 3 */}
+              <div className="relative p-6 rounded-2xl bg-white border border-brand-primaryPink/30 shadow-xs hover:shadow-md hover:border-brand-brightPink transition-all flex flex-col justify-between space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FDF5D6] text-amber-800 font-bold text-xs">
+                      <Clock className="w-3.5 h-3.5 text-brand-gold" /> Phase 3
+                    </span>
+                    <span className="text-xs font-mono font-bold text-[#805A82]">Up to 8 Hours</span>
+                  </div>
+                  <h4 className="font-display font-extrabold text-base text-brand-deepPurple tracking-tight uppercase">
+                    Long-Lasting Continuous Warmth
+                  </h4>
+                  <p className="text-xs sm:text-sm text-[#805A82] leading-relaxed">
+                    Consistent, gentle warmth maintained for up to 8 hours. Prolonged comfort and continuous relief from period cramps.
+                  </p>
+                </div>
+                <div className="pt-3 border-t border-brand-primaryPink/20 flex items-center gap-2 text-[11px] font-semibold text-emerald-700">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  All-day soothing coverage
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Interactive Stepper Navigation */}
@@ -692,7 +755,7 @@ export default function Home() {
           {/* Official Ingredients Infographic */}
           <div className="rounded-3xl bg-white p-4 sm:p-6 border-2 border-brand-primaryPink/30 shadow-lg max-w-5xl mx-auto overflow-hidden">
             <img
-              src="/images/zeba-whats-inside-ingredients.webp?v=3"
+              src="/images/zeba-whats-inside-ingredients.jpg?v=4"
               alt="ZEBA What's Inside Pure Natural Goodness Ingredients"
               width="1000"
               height="600"
@@ -700,7 +763,7 @@ export default function Home() {
               decoding="async"
               onError={(e) => {
                 e.currentTarget.onerror = null;
-                e.currentTarget.src = '/images/zeba-whats-inside-ingredients.jpg?v=3';
+                e.currentTarget.src = '/images/zeba-whats-inside-ingredients.png?v=4';
               }}
               className="w-full h-auto rounded-2xl object-cover shadow-sm"
             />
@@ -838,22 +901,7 @@ export default function Home() {
                 </p>
               </div>
 
-              {/* Official Trust & Guarantee Infographic */}
-              <div className="rounded-3xl bg-white p-3 sm:p-4 border-2 border-brand-primaryPink/30 shadow-lg max-w-3xl mx-auto overflow-hidden">
-                <img
-                  src="/images/zeba-got-questions-faq.webp"
-                  alt="ZEBA 100% Satisfaction & Safety Badges"
-                  width="900"
-                  height="500"
-                  loading="lazy"
-                  decoding="async"
-                  onError={(e) => {
-                    e.currentTarget.onerror = null;
-                    e.currentTarget.src = '/images/zeba-got-questions-faq.jpg';
-                  }}
-                  className="w-full h-auto rounded-2xl object-cover"
-                />
-              </div>
+
 
               {/* Search Bar */}
               <div className="relative max-w-2xl mx-auto">

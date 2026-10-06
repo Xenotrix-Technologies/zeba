@@ -160,9 +160,7 @@ export default function ProductDetail() {
   const allImages = [
     ...baseImages,
     '/images/zeba-how-to-use-guide.png',
-    '/images/zeba-how-it-works-timeline.webp',
-    '/images/zeba-whats-inside-ingredients.webp',
-    '/images/zeba-got-questions-faq.webp'
+    '/images/zeba-whats-inside-ingredients.jpg'
   ];
 
   const currentPrice = parseFloat(selectedProduct.price) || 0;
@@ -666,40 +664,59 @@ export default function ProductDetail() {
             {/* TAB 2: TIMELINE */}
             {activeTab === 'timeline' && (
               <div className="space-y-6 animate-fade-in">
-                <div className="flex flex-col lg:flex-row items-center gap-8">
-                  <div className="w-full lg:w-1/2 rounded-2xl overflow-hidden border border-brand-primaryPink/25 shadow-sm">
-                    <img
-                      src="/images/zeba-how-it-works-timeline.webp"
-                      alt="ZEBA How It Works Over Time"
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = '/images/zeba-how-it-works-timeline.jpg';
-                      }}
-                      className="w-full h-auto object-cover"
-                    />
-                  </div>
-                  <div className="w-full lg:w-1/2 space-y-4">
-                    <h3 className="font-display font-extrabold text-xl text-brand-deepPurple">
-                      Relief Progression Over Time
-                    </h3>
-                    <div className="grid grid-cols-2 gap-3 text-xs">
-                      <div className="p-3.5 rounded-xl bg-white border border-brand-primaryPink/30 text-center">
-                        <strong className="text-brand-deepPurple font-mono font-bold block mb-1">Minute 0</strong>
-                        <span className="text-[#805A82]">Apply patch to underwear</span>
-                      </div>
-                      <div className="p-3.5 rounded-xl bg-[#FDF5D6] border border-brand-gold/40 text-center">
-                        <strong className="text-brand-deepPurple font-mono font-bold block mb-1">Minute 15</strong>
-                        <span className="text-[#805A82]">Warmth kicks in & relief begins</span>
-                      </div>
-                      <div className="p-3.5 rounded-xl bg-brand-softPink border border-brand-primaryPink/30 text-center">
-                        <strong className="text-brand-brightPink font-mono font-bold block mb-1">Hour 1</strong>
-                        <span className="text-[#805A82]">Pain drops from a 10 down to a 2</span>
-                      </div>
-                      <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-center">
-                        <strong className="text-emerald-800 font-mono font-bold block mb-1">Hour 8</strong>
-                        <span className="text-slate-600">Lasts for a full day</span>
-                      </div>
+                <div className="space-y-1 text-center max-w-xl mx-auto">
+                  <h3 className="font-display font-extrabold text-xl sm:text-2xl text-brand-deepPurple">
+                    Timeline of Thermal Heat Relief
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[#805A82]">
+                    Continuous natural warmth designed to soothe cramp discomfort over 8 hours
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-5 rounded-2xl bg-white border border-brand-primaryPink/30 shadow-xs space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand-softPink text-brand-brightPink font-bold text-xs">
+                        <Flame className="w-3.5 h-3.5" /> Phase 1
+                      </span>
+                      <span className="text-xs font-mono font-bold text-[#805A82]">0–15 Mins</span>
                     </div>
+                    <h4 className="font-display font-bold text-sm text-brand-deepPurple uppercase">
+                      Early Activation
+                    </h4>
+                    <p className="text-xs text-[#805A82] leading-relaxed">
+                      Rapid warmth begins to penetrate, initiating circulation boost and initial muscle relaxation.
+                    </p>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-white border-2 border-brand-primaryPink/50 shadow-sm space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand-primaryPink/30 text-brand-deepPurple font-bold text-xs">
+                        <Zap className="w-3.5 h-3.5 text-brand-brightPink" /> Phase 2
+                      </span>
+                      <span className="text-xs font-mono font-bold text-[#805A82]">1 Hour</span>
+                    </div>
+                    <h4 className="font-display font-bold text-sm text-brand-deepPurple uppercase">
+                      Peak Soothing Comfort
+                    </h4>
+                    <p className="text-xs text-[#805A82] leading-relaxed">
+                      Maximum heat intensity reached for deep muscle relief. Significant reduction in cramp discomfort and a feeling of calm.
+                    </p>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-white border border-brand-primaryPink/30 shadow-xs space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FDF5D6] text-amber-800 font-bold text-xs">
+                        <Clock className="w-3.5 h-3.5 text-brand-gold" /> Phase 3
+                      </span>
+                      <span className="text-xs font-mono font-bold text-[#805A82]">Up to 8 Hours</span>
+                    </div>
+                    <h4 className="font-display font-bold text-sm text-brand-deepPurple uppercase">
+                      Continuous Warmth
+                    </h4>
+                    <p className="text-xs text-[#805A82] leading-relaxed">
+                      Consistent, gentle warmth maintained for up to 8 hours. Prolonged comfort and continuous relief from period cramps.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -711,11 +728,11 @@ export default function ProductDetail() {
                 <div className="flex flex-col lg:flex-row items-center gap-8">
                   <div className="w-full lg:w-1/2 rounded-2xl overflow-hidden border border-brand-primaryPink/25 shadow-sm">
                     <img
-                      src="/images/zeba-whats-inside-ingredients.webp?v=3"
+                      src="/images/zeba-whats-inside-ingredients.jpg?v=4"
                       alt="ZEBA What's Inside Pure Natural Goodness"
                       onError={(e) => {
                         e.currentTarget.onerror = null;
-                        e.currentTarget.src = '/images/zeba-whats-inside-ingredients.jpg?v=3';
+                        e.currentTarget.src = '/images/zeba-whats-inside-ingredients.png?v=4';
                       }}
                       className="w-full h-auto object-cover"
                     />
