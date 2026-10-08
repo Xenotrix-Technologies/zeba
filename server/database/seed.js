@@ -73,8 +73,6 @@ export async function seedDatabase() {
       ]),
       images: JSON.stringify([
         '/images/zeba-1pack.webp',
-        '/images/zeba-real-packaging-1.webp',
-        '/images/zeba-real-packaging-2.webp',
         '/images/zeba-hero-lifestyle.webp'
       ]),
       is_active: true,
@@ -120,8 +118,6 @@ export async function seedDatabase() {
       ]),
       images: JSON.stringify([
         '/images/zeba-1pack.webp',
-        '/images/zeba-real-packaging-2.webp',
-        '/images/zeba-real-packaging-1.webp',
         '/images/zeba-hero-lifestyle.webp'
       ]),
       is_active: true,

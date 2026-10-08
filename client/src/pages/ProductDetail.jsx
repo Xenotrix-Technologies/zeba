@@ -154,14 +154,22 @@ export default function ProductDetail() {
     );
   }
 
-  const baseImages = parseProductImages(selectedProduct.images);
+  // Exclude unwanted packaging renders and ingredients graphic from the product gallery
+  const unwantedImages = [
+    'zeba-real-packaging-1',
+    'zeba-real-packaging-2',
+    'zeba-whats-inside-ingredients'
+  ];
 
-  // Combine authentic product packaging + official educational infographics
+  const baseImages = parseProductImages(selectedProduct.images).filter(
+    (img) => !unwantedImages.some((unwanted) => img.includes(unwanted))
+  );
+
+  // Curate clean product gallery with primary product shots, lifestyle photo, and how-to-use guide
   const allImages = [
     ...baseImages,
-    '/images/zeba-how-to-use-guide.png',
-    '/images/zeba-whats-inside-ingredients.jpg'
-  ];
+    '/images/zeba-how-to-use-guide.png'
+  ].filter((img, idx, arr) => arr.indexOf(img) === idx && !unwantedImages.some((u) => img.includes(u)));
 
   const currentPrice = parseFloat(selectedProduct.price) || 0;
   const originalPrice = parseFloat(selectedProduct.original_price) || 0;
