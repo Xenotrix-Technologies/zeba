@@ -188,27 +188,38 @@ export default function ProductDetail() {
           <div className="lg:col-span-6 space-y-4">
             
             {/* Main Image View */}
-            <div className="rounded-3xl bg-white border-2 border-brand-primaryPink/30 shadow-lg relative overflow-hidden aspect-square flex items-center justify-center">
-              {selectedProduct.badge_text && (
-                <div className="absolute top-4 left-4 z-10">
-                  <span className="px-3.5 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider pack-pink-gradient text-white shadow-md">
-                    {selectedProduct.badge_text}
-                  </span>
+            {(() => {
+              const currentImg = allImages[activeImageIndex] || allImages[0];
+              const isInfographic = currentImg.includes('guide') || currentImg.includes('how-to') || currentImg.includes('infographic') || currentImg.includes('ingredient');
+
+              return (
+                <div className={`rounded-3xl bg-white border-2 border-brand-primaryPink/30 shadow-lg relative overflow-hidden aspect-square flex items-center justify-center ${
+                  isInfographic ? 'p-2 sm:p-3' : ''
+                }`}>
+                  {!isInfographic && selectedProduct.badge_text && (
+                    <div className="absolute top-4 left-4 z-10">
+                      <span className="px-3.5 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider pack-pink-gradient text-white shadow-md">
+                        {selectedProduct.badge_text}
+                      </span>
+                    </div>
+                  )}
+                  <img
+                    src={currentImg}
+                    alt={selectedProduct.name}
+                    width="600"
+                    height="600"
+                    fetchPriority="high"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = DEFAULT_PRODUCT_IMAGE;
+                    }}
+                    className={`w-full h-full transition-all duration-300 transform hover:scale-105 ${
+                      isInfographic ? 'object-contain' : 'object-cover'
+                    }`}
+                  />
                 </div>
-              )}
-              <img
-                src={allImages[activeImageIndex] || allImages[0]}
-                alt={selectedProduct.name}
-                width="600"
-                height="600"
-                fetchPriority="high"
-                onError={(e) => {
-                  e.currentTarget.onerror = null;
-                  e.currentTarget.src = DEFAULT_PRODUCT_IMAGE;
-                }}
-                className="w-full h-full object-cover transition-all duration-300 transform hover:scale-105"
-              />
-            </div>
+              );
+            })()}
 
             {/* Thumbnail selector */}
             <div className="grid grid-cols-4 sm:grid-cols-6 gap-2.5">
