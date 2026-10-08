@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, ShieldCheck } from 'lucide-react';
+import { Lock, ShieldCheck, CreditCard, Banknote, CheckCircle2, Sparkles } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
 import { useCustomerAuth } from '../context/CustomerAuthContext';
@@ -30,6 +30,12 @@ export default function Checkout() {
     notes: ''
   });
 
+  const [paymentMethod, setPaymentMethod] = useState('razorpay'); // 'razorpay' | 'cod'
+  const [loading, setLoading] = useState(false);
+  const [razorpayOrder, setRazorpayOrder] = useState(null);
+  const [showSimulatedModal, setShowSimulatedModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
   useEffect(() => {
     if (isCustomerAuthenticated && customer) {
       setFormData(prev => ({
@@ -49,14 +55,11 @@ export default function Checkout() {
     }
   }, [customer, isCustomerAuthenticated]);
 
-  const [loading, setLoading] = useState(false);
-  const [razorpayOrder, setRazorpayOrder] = useState(null);
-  const [showSimulatedModal, setShowSimulatedModal] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-
   const standardShippingFee = Number(settings.commerce?.standardShippingFee || 49.00);
   const shippingFee = subtotal >= freeShippingThreshold ? 0.00 : (cart.length > 0 ? standardShippingFee : 0.00);
-  const totalAmount = subtotal + shippingFee;
+  const isCod = paymentMethod === 'cod';
+  const codFee = isCod ? Number(settings.commerce?.codFee || 0) : 0;
+  const totalAmount = subtotal + shippingFee + codFee;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -118,7 +121,7 @@ export default function Checkout() {
       return;
     }
 
-    // Customer is already authenticated, proceed to create order & open Razorpay
+    // Customer is already authenticated, proceed to create order
     await executePaymentOrder();
   };
 
@@ -126,8 +129,9 @@ export default function Checkout() {
     setLoading(true);
 
     try {
-      // 1. Request backend to validate stock, calculate database verified price & create Razorpay order
+      // 1. Request backend to validate stock, calculate verified price & create order
       const orderPayload = {
+        paymentMethod,
         items: cart.map(i => ({ productId: i.id, quantity: i.quantity })),
         customer: {
           name: formData.name.trim(),
@@ -148,8 +152,20 @@ export default function Checkout() {
 
       const res = await api.post('/payments/create-order', orderPayload);
 
-      if (!res.success || !res.razorpayOrderId) {
-        throw new Error(res.message || 'Failed to initialize payment order.');
+      if (!res.success) {
+        throw new Error(res.message || 'Failed to initialize order.');
+      }
+
+      // Handle Cash on Delivery order completion
+      if (res.isCod) {
+        clearCart();
+        addToast('Order placed successfully! Pay cash upon delivery.', 'success');
+        navigate(`/order-success?order=${res.orderNumber || res.order?.orderNumber}`);
+        return;
+      }
+
+      if (!res.razorpayOrderId) {
+        throw new Error(res.message || 'Failed to initialize Razorpay payment order.');
       }
 
       setRazorpayOrder(res);
@@ -460,9 +476,105 @@ export default function Checkout() {
                 </div>
               </div>
 
+              {/* Payment Method Selection */}
+              <div className="bg-white rounded-3xl p-6 sm:p-8 border border-brand-primaryPink/25 shadow-sm space-y-5">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-display font-bold text-lg text-brand-deepPurple flex items-center space-x-2">
+                    <span className="w-6 h-6 rounded-full bg-brand-brightPink text-white text-xs font-bold flex items-center justify-center">3</span>
+                    <span>Payment Method</span>
+                  </h2>
+                  <span className="text-[11px] font-semibold text-brand-brightPink bg-brand-softPink/60 px-2.5 py-1 rounded-full border border-brand-primaryPink/20">
+                    100% Safe & Secure
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Option 1: Razorpay Online */}
+                  <div
+                    onClick={() => setPaymentMethod('razorpay')}
+                    className={`cursor-pointer rounded-2xl p-4 sm:p-5 border-2 transition-all relative ${
+                      paymentMethod === 'razorpay'
+                        ? 'border-brand-brightPink bg-[#FFF0F7] shadow-md ring-2 ring-brand-pink/20'
+                        : 'border-brand-primaryPink/20 bg-white hover:border-brand-primaryPink/50 hover:bg-brand-softPink/30'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                          paymentMethod === 'razorpay' ? 'bg-brand-brightPink text-white' : 'bg-brand-softPink text-brand-deepPurple'
+                        }`}>
+                          <CreditCard className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h3 className="text-xs font-bold text-brand-deepPurple">Online Payment (Razorpay)</h3>
+                          <span className="text-[11px] text-emerald-700 font-semibold flex items-center space-x-1 mt-0.5">
+                            <Sparkles className="w-3 h-3 text-emerald-600" />
+                            <span>Instant Confirmation</span>
+                          </span>
+                        </div>
+                      </div>
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-1 ${
+                        paymentMethod === 'razorpay' ? 'border-brand-brightPink bg-brand-brightPink text-white' : 'border-gray-300'
+                      }`}>
+                        {paymentMethod === 'razorpay' && <div className="w-2 h-2 rounded-full bg-white" />}
+                      </div>
+                    </div>
+
+                    <p className="text-[11px] text-[#805A82] mt-3 leading-relaxed">
+                      Pay instantly with UPI (Google Pay, PhonePe, Paytm, BHIM), Cards (Visa, Mastercard, RuPay), or NetBanking.
+                    </p>
+
+                    <div className="mt-3 flex items-center space-x-2 pt-2 border-t border-brand-primaryPink/15 text-[10px] text-[#805A82] font-semibold">
+                      <Lock className="w-3 h-3 text-emerald-600" />
+                      <span>Razorpay 256-Bit SSL Encrypted</span>
+                    </div>
+                  </div>
+
+                  {/* Option 2: Cash on Delivery */}
+                  <div
+                    onClick={() => setPaymentMethod('cod')}
+                    className={`cursor-pointer rounded-2xl p-4 sm:p-5 border-2 transition-all relative ${
+                      paymentMethod === 'cod'
+                        ? 'border-brand-brightPink bg-[#FFF0F7] shadow-md ring-2 ring-brand-pink/20'
+                        : 'border-brand-primaryPink/20 bg-white hover:border-brand-primaryPink/50 hover:bg-brand-softPink/30'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                          paymentMethod === 'cod' ? 'bg-brand-brightPink text-white' : 'bg-brand-softPink text-brand-deepPurple'
+                        }`}>
+                          <Banknote className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h3 className="text-xs font-bold text-brand-deepPurple">Cash on Delivery (COD)</h3>
+                          <span className="text-[11px] text-brand-brightPink font-semibold block mt-0.5">
+                            Pay Cash at Doorstep
+                          </span>
+                        </div>
+                      </div>
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-1 ${
+                        paymentMethod === 'cod' ? 'border-brand-brightPink bg-brand-brightPink text-white' : 'border-gray-300'
+                      }`}>
+                        {paymentMethod === 'cod' && <div className="w-2 h-2 rounded-full bg-white" />}
+                      </div>
+                    </div>
+
+                    <p className="text-[11px] text-[#805A82] mt-3 leading-relaxed">
+                      Pay with cash when our courier delivers the discreet, plain parcel directly to your address.
+                    </p>
+
+                    <div className="mt-3 flex items-center space-x-2 pt-2 border-t border-brand-primaryPink/15 text-[10px] text-[#805A82] font-semibold">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                      <span>Zero Advance Payment Required</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
             </div>
 
-            {/* Right Column: Order Summary & Razorpay Trigger */}
+            {/* Right Column: Order Summary & Trigger */}
             <div className="lg:col-span-5 space-y-6">
               
               <div className="bg-white rounded-3xl p-6 sm:p-8 border border-brand-primaryPink/30 shadow-xl space-y-6">
@@ -512,30 +624,61 @@ export default function Checkout() {
                     </span>
                   </div>
 
+                  <div className="flex items-center justify-between">
+                    <span>Payment Mode</span>
+                    <span className="font-semibold text-brand-deepPurple">
+                      {paymentMethod === 'cod' ? 'Cash on Delivery' : 'Razorpay Online'}
+                    </span>
+                  </div>
+
+                  {isCod && codFee > 0 && (
+                    <div className="flex items-center justify-between text-brand-deepPurple font-medium">
+                      <span>COD Handling Fee</span>
+                      <span>₹{codFee.toFixed(2)}</span>
+                    </div>
+                  )}
+
                   <div className="border-t border-brand-primaryPink/20 pt-3 flex items-center justify-between text-base">
-                    <span className="font-bold text-brand-deepPurple">Total Payable</span>
+                    <span className="font-bold text-brand-deepPurple">
+                      {isCod ? 'Total Payable on Delivery' : 'Total Payable'}
+                    </span>
                     <span className="font-display font-black text-2xl text-brand-brightPink">
                       ₹{totalAmount.toFixed(2)}
                     </span>
                   </div>
                 </div>
 
-                {/* Razorpay Payment Button */}
+                {/* Action Submit Button */}
                 <button
                   type="submit"
                   disabled={loading}
                   className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-brand-brightPink to-brand-deepPink hover:from-brand-deepPink hover:to-brand-brightPink text-white font-bold text-sm shadow-xl shadow-brand-pink/30 flex items-center justify-center space-x-2 transition-all transform hover:-translate-y-0.5 disabled:opacity-50 btn-tactile"
                 >
-                  <Lock className="w-4 h-4" />
-                  <span>{loading ? 'Processing payment...' : `Pay ₹${totalAmount.toFixed(0)} with Razorpay`}</span>
+                  {isCod ? <Banknote className="w-5 h-5" /> : <Lock className="w-4 h-4" />}
+                  <span>
+                    {loading
+                      ? (isCod ? 'Placing your order...' : 'Processing payment...')
+                      : (isCod
+                          ? `Place Order (Cash on Delivery • ₹${totalAmount.toFixed(0)})`
+                          : `Pay ₹${totalAmount.toFixed(0)} with Razorpay`
+                        )
+                    }
+                  </span>
                 </button>
 
                 <div className="p-3.5 rounded-2xl bg-[#FFF5FA] border border-brand-primaryPink/20 text-center space-y-1 text-[11px] text-[#805A82]">
                   <div className="flex items-center justify-center space-x-1.5 font-semibold text-brand-deepPurple">
                     <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                    <span>Real-Time Razorpay Payment Gateway</span>
+                    <span>
+                      {isCod ? 'Verified Cash on Delivery Fulfillment' : 'Real-Time Razorpay Payment Gateway'}
+                    </span>
                   </div>
-                  <p>Supports UPI (Google Pay, PhonePe, Paytm), Credit/Debit Cards, and NetBanking.</p>
+                  <p>
+                    {isCod
+                      ? 'Keep exact cash ready. Delivered in 100% plain, discreet packaging.'
+                      : 'Supports UPI (Google Pay, PhonePe, Paytm), Credit/Debit Cards, and NetBanking.'
+                    }
+                  </p>
                 </div>
 
               </div>

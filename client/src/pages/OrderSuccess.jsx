@@ -95,13 +95,17 @@ export default function OrderSuccess() {
 
           <div className="space-y-2">
             <span className="text-xs font-extrabold uppercase tracking-widest text-emerald-800 bg-emerald-50 px-3.5 py-1 rounded-full border border-emerald-200">
-              Payment Verified • Order Confirmed
+              {order?.payment?.method?.toLowerCase().includes('cash') || order?.paymentMethod?.toLowerCase().includes('cash')
+                ? 'Order Placed • Cash on Delivery'
+                : 'Payment Verified • Order Confirmed'}
             </span>
             <h1 className="font-display font-black text-3xl sm:text-4xl text-brand-deepPurple">
               Thank You for Your Order!
             </h1>
             <p className="text-xs sm:text-sm text-[#805A82] max-w-md mx-auto">
-              Your ZEBA Period Pain Relief Heating Pads are being prepared for discreet dispatch.
+              {order?.payment?.method?.toLowerCase().includes('cash') || order?.paymentMethod?.toLowerCase().includes('cash')
+                ? 'Your order is confirmed! Please keep exact cash ready upon delivery.'
+                : 'Your ZEBA Period Pain Relief Heating Pads are being prepared for discreet dispatch.'}
             </p>
           </div>
 
@@ -156,9 +160,13 @@ export default function OrderSuccess() {
                   <span className="font-display font-extrabold text-brand-deepPurple text-base">{order.orderNumber}</span>
                 </div>
                 <div>
-                  <span className="text-[#805A82] font-semibold block">Payment Status:</span>
-                  <span className="inline-block font-extrabold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full uppercase text-[10px]">
-                    {order.paymentStatus} (Razorpay)
+                  <span className="text-[#805A82] font-semibold block">Payment Method & Status:</span>
+                  <span className={`inline-block font-extrabold px-2.5 py-0.5 rounded-full uppercase text-[10px] ${
+                    order.paymentStatus === 'paid'
+                      ? 'text-emerald-800 bg-emerald-100'
+                      : 'text-amber-800 bg-amber-100'
+                  }`}>
+                    {order.payment?.method || order.paymentMethod || 'Cash on Delivery'} • {order.paymentStatus || 'Pending'}
                   </span>
                 </div>
               </div>
@@ -194,7 +202,11 @@ export default function OrderSuccess() {
               </div>
 
               <div className="pt-3 border-t border-brand-primaryPink/20 flex items-center justify-between text-sm">
-                <span className="font-bold text-brand-deepPurple">Total Paid</span>
+                <span className="font-bold text-brand-deepPurple">
+                  {(order.payment?.method || order.paymentMethod || '').toLowerCase().includes('cash')
+                    ? 'Total Payable on Delivery (COD)'
+                    : 'Total Paid'}
+                </span>
                 <span className="font-display font-black text-lg text-brand-brightPink">
                   ₹{parseFloat(order.totalAmount || 0).toFixed(2)}
                 </span>

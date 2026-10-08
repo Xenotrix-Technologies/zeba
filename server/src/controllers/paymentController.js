@@ -229,24 +229,35 @@ export async function createPaymentOrder(req, res, next) {
     );
     const addressId = newAddr.rows[0].id;
 
-    // 4. Create Internal Pending Order in PostgreSQL
+    const isCod = String(req.body.paymentMethod || '').toLowerCase() === 'cod' ||
+                  String(req.body.paymentMethod || '').toLowerCase() === 'cash' ||
+                  String(req.body.paymentMethod || '').toLowerCase() === 'cash on delivery';
+
+    // 4. Create Internal Order in PostgreSQL
     const orderNumber = generateOrderNumber();
+    const initialStatus = isCod ? 'confirmed' : 'pending';
+    const initialPaymentStatus = 'pending';
+    const paymentMethodLabel = isCod ? 'Cash on Delivery' : 'Razorpay Online';
+    const rzpOrderIdForOrder = isCod ? `COD_${orderNumber}` : null;
+
     const newOrder = await query(
       `INSERT INTO orders (
         order_number, customer_id, address_id, status, payment_status,
-        subtotal, shipping_fee, total_amount, currency, notes
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
+        subtotal, shipping_fee, total_amount, currency, notes, payment_method, razorpay_order_id
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
       [
         orderNumber,
         customerId,
         addressId,
-        'pending',
-        'pending',
+        initialStatus,
+        initialPaymentStatus,
         subtotal,
         shippingFee,
         totalAmount,
         currency,
-        notes?.trim() || null
+        notes?.trim() || null,
+        paymentMethodLabel,
+        rzpOrderIdForOrder
       ]
     );
     const orderId = newOrder.rows[0].id;
@@ -264,13 +275,67 @@ export async function createPaymentOrder(req, res, next) {
     try {
       await query(
         `INSERT INTO order_status_history (order_id, previous_status, new_status, changed_by, notes)
-         VALUES ($1, NULL, 'pending', 'customer', 'Order created at checkout')`,
-        [orderId]
+         VALUES ($1, NULL, $2, 'customer', $3)`,
+        [orderId, initialStatus, isCod ? 'Order placed with Cash on Delivery' : 'Order created at checkout (Pending Payment)']
       );
     } catch (e) {
       // Non-blocking
     }
 
+    // --- CASH ON DELIVERY WORKFLOW ---
+    if (isCod) {
+      // 6a. Deduct Inventory Stock immediately for confirmed COD order
+      for (const itm of verifiedItems) {
+        await query(
+          'UPDATE products SET stock_quantity = GREATEST(0, stock_quantity - $1), updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+          [itm.quantity, itm.productId]
+        );
+      }
+
+      // 6b. Insert Payment Record for Cash on Delivery
+      await query(
+        `INSERT INTO payments (
+          order_id, razorpay_order_id, amount, currency, status, payment_method
+        ) VALUES ($1, $2, $3, $4, $5, $6)`,
+        [
+          orderId,
+          rzpOrderIdForOrder,
+          totalAmount,
+          currency,
+          'pending',
+          'Cash on Delivery'
+        ]
+      );
+
+      // 6c. Dispatch Confirmation & Alert Emails
+      let fullOrder = null;
+      try {
+        fullOrder = await fetchConsolidatedOrder(orderId);
+        if (fullOrder) {
+          await sendOrderConfirmationEmail({ order: fullOrder });
+          await sendAdminNewOrderAlert({ order: fullOrder, razorpayOrderId: 'COD' });
+        }
+      } catch (notifErr) {
+        console.error('COD Order confirmation email dispatch note:', notifErr.message);
+      }
+
+      return res.status(201).json({
+        success: true,
+        isCod: true,
+        orderId,
+        orderNumber,
+        order: fullOrder || { id: orderId, orderNumber, totalAmount, currency, paymentMethod: 'Cash on Delivery' },
+        breakdown: {
+          subtotal,
+          shippingFee,
+          totalAmount,
+          currency,
+          items: verifiedItems
+        }
+      });
+    }
+
+    // --- RAZORPAY ONLINE GATEWAY WORKFLOW ---
     // 6. Initialize Razorpay Order with authoritative amount in paise
     const amountInPaise = Math.round(totalAmount * 100);
     const receipt = orderNumber;
@@ -329,23 +394,23 @@ export async function createPaymentOrder(req, res, next) {
         totalAmount,
         currency,
         'created',
-        'Razorpay'
+        'Razorpay Online'
       ]
     );
 
-    // 9. Dispatch Order Confirmation to Customer & Alert to Admin (Non-blocking safe dispatch)
+    // 9. Dispatch Initial Notice to Admin (Non-blocking safe dispatch)
     try {
       const initialOrder = await fetchConsolidatedOrder(orderId);
       if (initialOrder) {
-        await sendOrderConfirmationEmail({ order: initialOrder });
         await sendAdminNewOrderAlert({ order: initialOrder, razorpayOrderId: razorpayOrder.id });
       }
     } catch (notifErr) {
-      console.error('Order creation email dispatch note:', notifErr.message);
+      console.error('Order creation alert dispatch note:', notifErr.message);
     }
 
     res.status(201).json({
       success: true,
+      isCod: false,
       orderId,
       orderNumber,
       razorpayOrderId: razorpayOrder.id,
@@ -828,7 +893,7 @@ async function fetchConsolidatedOrder(orderId) {
             o.razorpay_order_id, o.razorpay_payment_id,
             c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone,
             a.house_building, a.street, a.area, a.city, a.state, a.pincode, a.country,
-            p.payment_method
+            COALESCE(o.payment_method, p.payment_method, 'Razorpay Online') AS payment_method
      FROM orders o
      JOIN customers c ON o.customer_id = c.id
      LEFT JOIN addresses a ON o.address_id = a.id
