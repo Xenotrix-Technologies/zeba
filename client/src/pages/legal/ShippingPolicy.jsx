@@ -33,10 +33,16 @@ export default function ShippingPolicy() {
 
         <section className="space-y-2">
           <h2 className="font-bold text-base text-brand-deepPurple">3. Shipping Rates</h2>
-          <p>
-            • Orders of <strong>₹{freeThreshold} and above</strong> qualify for <strong>FREE Standard Shipping</strong>.
-            <br />• Orders below ₹{freeThreshold} incur a nominal shipping fee of ₹{standardFee}.
-          </p>
+          {standardFee === 0 ? (
+            <p>
+              • <strong>FREE Standard Shipping</strong> is currently offered on <strong>all orders</strong> nationwide.
+            </p>
+          ) : (
+            <p>
+              • Orders of <strong>₹{freeThreshold} and above</strong> qualify for <strong>FREE Standard Shipping</strong>.
+              <br />• Orders below ₹{freeThreshold} incur a nominal shipping fee of ₹{standardFee}.
+            </p>
+          )}
         </section>
 
         <section className="space-y-2">

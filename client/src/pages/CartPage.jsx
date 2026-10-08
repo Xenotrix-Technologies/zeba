@@ -12,11 +12,15 @@ export default function CartPage() {
     subtotal,
     totalSavings,
     freeShippingThreshold,
-    freeShippingProgress
+    freeShippingProgress,
+    standardShippingFee,
+    shippingFee: cartShippingFee
   } = useCart();
 
   const navigate = useNavigate();
-  const shippingFee = subtotal >= freeShippingThreshold ? 0.00 : (cart.length > 0 ? 49.00 : 0.00);
+  const shippingFee = cartShippingFee !== undefined
+    ? cartShippingFee
+    : (standardShippingFee === 0 || subtotal >= freeShippingThreshold ? 0.00 : (cart.length > 0 ? (standardShippingFee || 49.00) : 0.00));
   const grandTotal = subtotal + shippingFee;
   const remainingForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
 

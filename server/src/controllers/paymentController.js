@@ -87,8 +87,8 @@ export async function calculateOrderTotals(items) {
   }
 
   // Shipping calculation dynamically from store_settings table in database
-  let freeShippingThreshold = Number(config.FREE_SHIPPING_THRESHOLD || 499);
-  let standardShippingFee = Number(config.STANDARD_SHIPPING_FEE || 49);
+  let freeShippingThreshold = config.FREE_SHIPPING_THRESHOLD !== undefined ? Number(config.FREE_SHIPPING_THRESHOLD) : 1000;
+  let standardShippingFee = config.STANDARD_SHIPPING_FEE !== undefined ? Number(config.STANDARD_SHIPPING_FEE) : 49;
 
   try {
     const settingsRes = await query("SELECT setting_value FROM store_settings WHERE setting_key = 'shipping_commerce' LIMIT 1");
@@ -96,15 +96,19 @@ export async function calculateOrderTotals(items) {
       const val = typeof settingsRes.rows[0].setting_value === 'string'
         ? JSON.parse(settingsRes.rows[0].setting_value)
         : settingsRes.rows[0].setting_value;
-      if (val?.freeShippingThreshold !== undefined) freeShippingThreshold = parseFloat(val.freeShippingThreshold);
-      if (val?.standardShippingFee !== undefined) standardShippingFee = parseFloat(val.standardShippingFee);
+      if (val?.freeShippingThreshold !== undefined && val?.freeShippingThreshold !== null && val?.freeShippingThreshold !== '') {
+        freeShippingThreshold = parseFloat(val.freeShippingThreshold);
+      }
+      if (val?.standardShippingFee !== undefined && val?.standardShippingFee !== null && val?.standardShippingFee !== '') {
+        standardShippingFee = parseFloat(val.standardShippingFee);
+      }
     }
   } catch (e) {
     // Fallback to default business config
   }
 
   const roundedSubtotal = Math.round(subtotal * 100) / 100;
-  const shippingFee = roundedSubtotal >= freeShippingThreshold ? 0.00 : standardShippingFee;
+  const shippingFee = (standardShippingFee === 0 || roundedSubtotal >= freeShippingThreshold) ? 0.00 : standardShippingFee;
   const totalAmount = Math.round((roundedSubtotal + shippingFee) * 100) / 100;
 
   return {

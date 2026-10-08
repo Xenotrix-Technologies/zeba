@@ -55,8 +55,15 @@ export default function Checkout() {
     }
   }, [customer, isCustomerAuthenticated]);
 
-  const standardShippingFee = Number(settings.commerce?.standardShippingFee || 49.00);
-  const shippingFee = subtotal >= freeShippingThreshold ? 0.00 : (cart.length > 0 ? standardShippingFee : 0.00);
+  const standardShippingFee = settings.commerce?.standardShippingFee !== undefined && settings.commerce?.standardShippingFee !== null
+    ? Number(settings.commerce.standardShippingFee)
+    : 49.00;
+  const freeThreshold = settings.commerce?.freeShippingThreshold !== undefined && settings.commerce?.freeShippingThreshold !== null
+    ? Number(settings.commerce.freeShippingThreshold)
+    : freeShippingThreshold;
+  const shippingFee = (standardShippingFee === 0 || subtotal >= freeThreshold)
+    ? 0.00
+    : (cart.length > 0 ? standardShippingFee : 0.00);
   const isCod = paymentMethod === 'cod';
   const codFee = isCod ? Number(settings.commerce?.codFee || 0) : 0;
   const totalAmount = subtotal + shippingFee + codFee;
