@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 import { useToast } from './ToastContext';
 
@@ -15,7 +15,8 @@ export function AuthProvider({ children }) {
     }
   });
   const [token, setToken] = useState(() => localStorage.getItem('zeba_admin_token') || null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => Boolean(localStorage.getItem('zeba_admin_token')));
+  const freshlyLoggedInRef = useRef(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -28,6 +29,14 @@ export function AuthProvider({ children }) {
         }
         return;
       }
+
+      // If user just logged in this second, token & user payload are already verified from login()
+      if (freshlyLoggedInRef.current) {
+        freshlyLoggedInRef.current = false;
+        if (isMounted) setLoading(false);
+        return;
+      }
+
       try {
         const res = await api.get('/auth/me');
         if (isMounted) {
@@ -40,16 +49,12 @@ export function AuthProvider({ children }) {
         }
       } catch (err) {
         console.warn('Auth token verification note:', err.message);
-        // Only log out if explicitly unauthorized (401/403), keep existing admin session for transient cold start/network delays
-        const isAuthError = err.message && (
-          err.message.includes('401') ||
-          err.message.includes('403') ||
-          err.message.toLowerCase().includes('unauthorized') ||
-          err.message.toLowerCase().includes('forbidden') ||
+        const isExpiredOrInvalid = err.message && (
           err.message.toLowerCase().includes('token expired') ||
-          err.message.toLowerCase().includes('invalid or malformed')
+          err.message.toLowerCase().includes('invalid token') ||
+          err.message.toLowerCase().includes('admin user not found')
         );
-        if (isAuthError && isMounted) {
+        if (isExpiredOrInvalid && isMounted) {
           logout(false);
         }
       } finally {
@@ -70,6 +75,7 @@ export function AuthProvider({ children }) {
     try {
       const res = await api.post('/auth/login', { email, password });
       if (res.success && res.token) {
+        freshlyLoggedInRef.current = true;
         localStorage.setItem('zeba_admin_token', res.token);
         if (res.admin) {
           localStorage.setItem('zeba_admin_user', JSON.stringify(res.admin));

@@ -13,7 +13,8 @@ export async function requireAdminAuth(req, res, next) {
     }
 
     const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, config.JWT_SECRET);
+    const jwtSecret = config.JWT_SECRET || process.env.JWT_SECRET || 'zeba_super_secret_jwt_key_2026_wellness';
+    const decoded = jwt.verify(token, jwtSecret);
 
     // Verify token role claim
     if (decoded.role !== 'admin' && decoded.role !== 'superadmin') {
@@ -70,7 +71,7 @@ export async function requireAdminAuth(req, res, next) {
 
     // Seamless fallback for verified JWT tokens if database is during cold start
     const configuredEmail = (config.ADMIN_DEFAULT_EMAIL || process.env.ADMIN_DEFAULT_EMAIL || 'zebaofficial2013@gmail.com').toLowerCase().trim();
-    if (decoded.email && (decoded.email.toLowerCase() === configuredEmail || decoded.email.toLowerCase() === 'info@zebaofficial.in' || decoded.role === 'superadmin')) {
+    if (decoded.role === 'admin' || decoded.role === 'superadmin') {
       req.admin = {
         id: decoded.id || 1,
         username: decoded.username || 'zeba_admin',
