@@ -180,7 +180,7 @@ export default function ProductDetail() {
           <div className="lg:col-span-6 space-y-4">
             
             {/* Main Image View */}
-            <div className="rounded-3xl bg-white p-4 border-2 border-brand-primaryPink/30 shadow-lg relative overflow-hidden aspect-square flex items-center justify-center">
+            <div className="rounded-3xl bg-white border-2 border-brand-primaryPink/30 shadow-lg relative overflow-hidden aspect-square flex items-center justify-center">
               {selectedProduct.badge_text && (
                 <div className="absolute top-4 left-4 z-10">
                   <span className="px-3.5 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider pack-pink-gradient text-white shadow-md">
@@ -198,7 +198,7 @@ export default function ProductDetail() {
                   e.currentTarget.onerror = null;
                   e.currentTarget.src = DEFAULT_PRODUCT_IMAGE;
                 }}
-                className="w-full h-full object-contain transition-all duration-300 transform hover:scale-105"
+                className="w-full h-full object-cover transition-all duration-300 transform hover:scale-105"
               />
             </div>
 
