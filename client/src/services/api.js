@@ -14,25 +14,52 @@ api.interceptors.request.use((config) => {
     const customerToken = localStorage.getItem('zeba_customer_token') || localStorage.getItem('customerToken');
     const url = config.url || '';
 
-    // Do not attach tokens to public auth login/register endpoints
-    if (url.includes('/login') || url.includes('/register')) {
+    // Do not attach tokens to public login/register endpoints
+    if (
+      url.endsWith('/login') ||
+      url.endsWith('/register') ||
+      url.includes('/auth/login') ||
+      url.includes('/customer/login') ||
+      url.includes('/customer/register')
+    ) {
       return config;
     }
 
-    if (url.includes('/admin')) {
+    const isAdminPath = typeof window !== 'undefined' && window.location && window.location.pathname.startsWith('/admin');
+    const isAdminEndpoint = (
+      url.startsWith('/admin') ||
+      url.includes('/admin/') ||
+      url.startsWith('/auth') ||
+      url.includes('/auth/') ||
+      url === '/auth/me' ||
+      url === '/auth/change-password' ||
+      url.includes('/clear-test-data') ||
+      (isAdminPath && (url.includes('/settings') || url.startsWith('/settings')))
+    );
+    const isCustomerEndpoint = (
+      url.startsWith('/customer') ||
+      url.includes('/customer/') ||
+      url === '/customer/me' ||
+      url === '/customer/orders'
+    );
+
+    if (isAdminEndpoint) {
+      if (adminToken) {
+        config.headers.Authorization = `Bearer ${adminToken}`;
+      }
+    } else if (isCustomerEndpoint) {
+      if (customerToken) {
+        config.headers.Authorization = `Bearer ${customerToken}`;
+      }
+    } else if (isAdminPath) {
+      // Any request initiated while on admin panel pages
       if (adminToken) {
         config.headers.Authorization = `Bearer ${adminToken}`;
       } else if (customerToken) {
         config.headers.Authorization = `Bearer ${customerToken}`;
       }
-    } else if (url.includes('/customer')) {
-      if (customerToken) {
-        config.headers.Authorization = `Bearer ${customerToken}`;
-      } else if (adminToken) {
-        config.headers.Authorization = `Bearer ${adminToken}`;
-      }
     } else {
-      // General routes (/orders, /payments, /reviews, etc.)
+      // General storefront routes (/orders, /payments, /reviews, etc.)
       if (customerToken) {
         config.headers.Authorization = `Bearer ${customerToken}`;
       } else if (adminToken) {
