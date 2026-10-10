@@ -42,7 +42,7 @@ export default function Navbar() {
   return (
     <>
       {/* Top Notification Announcement Bar */}
-      <div className="bg-[#5F3F68] text-white py-2 px-4 text-xs md:text-sm font-medium text-center border-b border-white/10 flex items-center justify-center space-x-2 shadow-sm">
+      <div className="bg-[#5F3F68] text-white py-2 px-4 text-xs md:text-sm font-brand font-medium tracking-wide text-center border-b border-white/10 flex items-center justify-center space-x-2 shadow-sm">
         <Sparkles className="w-3.5 h-3.5 text-brand-gold animate-pulse flex-shrink-0" />
         <span>
           Special Offer: <strong>Free Fast Shipping</strong> {settings.commerce?.standardShippingFee === 0 ? 'on all orders!' : `on orders above ₹${settings.commerce?.freeShippingThreshold || 1000}!`}
@@ -87,11 +87,11 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-8 text-sm font-semibold text-brand-darkPurple">
+          <nav className="hidden md:flex items-center space-x-8 font-brand text-xs font-bold uppercase tracking-wider text-brand-darkPurple">
             <Link
               to="/"
               className={`hover:text-brand-brightPink transition-colors relative py-1 ${
-                location.pathname === '/' ? 'text-brand-brightPink font-bold' : ''
+                location.pathname === '/' ? 'text-brand-brightPink font-black' : ''
               }`}
             >
               Home
@@ -99,18 +99,18 @@ export default function Navbar() {
             <Link
               to="/products"
               className={`hover:text-brand-brightPink transition-colors relative py-1 ${
-                location.pathname.startsWith('/products') ? 'text-brand-brightPink font-bold' : ''
+                location.pathname.startsWith('/products') ? 'text-brand-brightPink font-black' : ''
               }`}
             >
               Heating Pads
-              <span className="ml-1.5 px-2 py-0.5 text-[10px] font-extrabold bg-brand-brightPink text-white rounded-full shadow-sm">
+              <span className="ml-1.5 px-2 py-0.5 text-[9px] font-black bg-brand-brightPink text-white rounded-full shadow-sm tracking-normal">
                 1 & 3 Packs
               </span>
             </Link>
             <Link
               to="/about"
               className={`hover:text-brand-brightPink transition-colors relative py-1 ${
-                location.pathname === '/about' ? 'text-brand-brightPink font-bold' : ''
+                location.pathname === '/about' ? 'text-brand-brightPink font-black' : ''
               }`}
             >
               About ZEBA
@@ -118,7 +118,7 @@ export default function Navbar() {
             <Link
               to="/contact"
               className={`hover:text-brand-brightPink transition-colors relative py-1 ${
-                location.pathname === '/contact' ? 'text-brand-brightPink font-bold' : ''
+                location.pathname === '/contact' ? 'text-brand-brightPink font-black' : ''
               }`}
             >
               Contact Us
@@ -133,29 +133,29 @@ export default function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-brand-softPink text-brand-deepPurple border border-brand-pink/20 transition-colors shadow-sm"
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-brand-softPink text-brand-deepPurple border border-brand-pink/20 transition-colors shadow-sm font-brand"
                 >
                   <div className="w-7 h-7 rounded-lg pack-purple-gradient text-brand-gold flex items-center justify-center font-bold text-xs border border-brand-gold/30">
                     {customer?.name?.charAt(0).toUpperCase()}
                   </div>
-                  <span className="hidden sm:inline text-xs font-bold text-brand-darkPurple">{customer?.name?.split(' ')[0]}</span>
+                  <span className="hidden sm:inline text-xs font-bold text-brand-darkPurple tracking-wide">{customer?.name?.split(' ')[0]}</span>
                 </button>
 
                 {userDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-brand-pink/20 py-2 z-50 animate-fade-in text-xs space-y-1">
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-brand-pink/20 py-2 z-50 animate-fade-in text-xs space-y-1 font-brand">
                     <div className="px-4 py-2 border-b border-brand-pink/10">
-                      <p className="font-bold text-brand-deepPurple truncate">{customer?.name}</p>
-                      <p className="text-[10px] text-brand-purple truncate">{customer?.email}</p>
+                      <p className="font-bold text-brand-deepPurple truncate tracking-wide">{customer?.name}</p>
+                      <p className="text-[10px] text-brand-purple truncate font-sans">{customer?.email}</p>
                     </div>
                     <Link
                       to="/account"
-                      className="block px-4 py-2 hover:bg-brand-softPink text-brand-darkPurple font-semibold"
+                      className="block px-4 py-2 hover:bg-brand-softPink text-brand-darkPurple font-bold tracking-wide"
                     >
                       My Orders & Account
                     </Link>
                     <button
                       onClick={logout}
-                      className="w-full text-left px-4 py-2 hover:bg-rose-50 text-rose-600 font-semibold flex items-center space-x-2"
+                      className="w-full text-left px-4 py-2 hover:bg-rose-50 text-rose-600 font-bold tracking-wide flex items-center space-x-2"
                     >
                       <LogOut className="w-3.5 h-3.5" />
                       <span>Sign Out</span>
@@ -166,7 +166,7 @@ export default function Navbar() {
             ) : (
               <Link
                 to="/login"
-                className="flex items-center space-x-1.5 p-2.5 rounded-xl bg-white hover:bg-brand-softPink text-brand-deepPurple hover:text-brand-brightPink border border-brand-pink/20 transition-colors text-xs font-bold shadow-sm"
+                className="flex items-center space-x-1.5 p-2.5 rounded-xl bg-white hover:bg-brand-softPink text-brand-deepPurple hover:text-brand-brightPink border border-brand-pink/20 transition-colors text-xs font-brand font-bold tracking-wide shadow-sm"
                 title="Customer Login"
               >
                 <User className="w-4 h-4 text-brand-deepPurple" />
@@ -177,7 +177,7 @@ export default function Navbar() {
             {/* Shop 3-Pack CTA */}
             <Link
               to="/products"
-              className="hidden lg:inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider text-white bg-gradient-to-r from-brand-brightPink to-brand-deepPink hover:from-brand-deepPink hover:to-brand-brightPink transition-all duration-200 shadow-md shadow-brand-pink/25 btn-tactile"
+              className="hidden lg:inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-brand font-bold uppercase tracking-wider text-white bg-gradient-to-r from-brand-brightPink to-brand-deepPink hover:from-brand-deepPink hover:to-brand-brightPink transition-all duration-200 shadow-md shadow-brand-pink/25 btn-tactile"
             >
               Shop 3-Pack
             </Link>
@@ -200,41 +200,41 @@ export default function Navbar() {
 
         {/* Mobile Navigation Dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-brand-pink/20 bg-white/98 backdrop-blur-lg px-4 pt-3 pb-6 space-y-3 animate-fade-in shadow-xl">
+          <div className="md:hidden border-t border-brand-pink/20 bg-white/98 backdrop-blur-lg px-4 pt-3 pb-6 space-y-3 animate-fade-in shadow-xl font-brand">
             <Link
               to="/"
-              className="block px-3 py-2 rounded-lg text-base font-semibold text-brand-darkPurple hover:bg-brand-softPink hover:text-brand-brightPink"
+              className="block px-3 py-2 rounded-lg text-sm font-bold tracking-wider text-brand-darkPurple hover:bg-brand-softPink hover:text-brand-brightPink"
             >
               Home
             </Link>
             <Link
               to="/products"
-              className="block px-3 py-2 rounded-lg text-base font-semibold text-brand-darkPurple hover:bg-brand-softPink hover:text-brand-brightPink"
+              className="block px-3 py-2 rounded-lg text-sm font-bold tracking-wider text-brand-darkPurple hover:bg-brand-softPink hover:text-brand-brightPink"
             >
               Heating Pads (1 Pack & 3 Pack)
             </Link>
             <Link
               to="/about"
-              className="block px-3 py-2 rounded-lg text-base font-semibold text-brand-darkPurple hover:bg-brand-softPink hover:text-brand-brightPink"
+              className="block px-3 py-2 rounded-lg text-sm font-bold tracking-wider text-brand-darkPurple hover:bg-brand-softPink hover:text-brand-brightPink"
             >
               About ZEBA
             </Link>
             <Link
               to="/contact"
-              className="block px-3 py-2 rounded-lg text-base font-semibold text-brand-darkPurple hover:bg-brand-softPink hover:text-brand-brightPink"
+              className="block px-3 py-2 rounded-lg text-sm font-bold tracking-wider text-brand-darkPurple hover:bg-brand-softPink hover:text-brand-brightPink"
             >
               Contact Us & Support
             </Link>
             <Link
               to={isCustomerAuthenticated ? "/account" : "/login"}
-              className="block px-3 py-2 rounded-lg text-base font-medium text-brand-brightPink bg-brand-softPink font-bold"
+              className="block px-3 py-2 rounded-lg text-sm font-bold tracking-wider text-brand-brightPink bg-brand-softPink"
             >
               {isCustomerAuthenticated ? `My Account (${customer?.name?.split(' ')[0]})` : "Customer Sign In / Register"}
             </Link>
             <div className="pt-2 border-t border-brand-pink/15 flex flex-col gap-2">
               <Link
                 to="/products"
-                className="w-full text-center py-2.5 rounded-xl bg-gradient-to-r from-brand-brightPink to-brand-deepPink text-white font-bold text-sm shadow-md"
+                className="w-full text-center py-2.5 rounded-xl bg-gradient-to-r from-brand-brightPink to-brand-deepPink text-white font-brand font-bold text-sm tracking-wider uppercase shadow-md"
               >
                 Shop Heating Pads
               </Link>

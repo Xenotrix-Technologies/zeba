@@ -87,10 +87,15 @@ export function CartProvider({ children }) {
   const standardShippingFee = settings.commerce?.standardShippingFee !== undefined && settings.commerce?.standardShippingFee !== null
     ? Number(settings.commerce.standardShippingFee)
     : 49;
-  const shippingFee = (standardShippingFee === 0 || subtotal >= freeShippingThreshold)
+  const isAlwaysFreeShipping = standardShippingFee === 0 || freeShippingThreshold === 0;
+  const isFreeShippingUnlocked = isAlwaysFreeShipping || subtotal >= freeShippingThreshold;
+  const shippingFee = isFreeShippingUnlocked
     ? 0.00
     : (cart.length > 0 ? standardShippingFee : 0.00);
-  const freeShippingProgress = standardShippingFee === 0
+  const remainingForFreeShipping = isAlwaysFreeShipping
+    ? 0
+    : Math.max(0, freeShippingThreshold - subtotal);
+  const freeShippingProgress = isAlwaysFreeShipping
     ? 100
     : (freeShippingThreshold > 0 ? Math.min(100, (subtotal / freeShippingThreshold) * 100) : 100);
 
@@ -109,7 +114,10 @@ export function CartProvider({ children }) {
       freeShippingThreshold,
       standardShippingFee,
       shippingFee,
-      freeShippingProgress
+      freeShippingProgress,
+      isAlwaysFreeShipping,
+      isFreeShippingUnlocked,
+      remainingForFreeShipping
     }}>
       {children}
     </CartContext.Provider>

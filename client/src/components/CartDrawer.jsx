@@ -13,7 +13,10 @@ export default function CartDrawer() {
     subtotal,
     totalSavings,
     freeShippingThreshold,
-    freeShippingProgress
+    freeShippingProgress,
+    isAlwaysFreeShipping,
+    isFreeShippingUnlocked,
+    remainingForFreeShipping
   } = useCart();
 
   const navigate = useNavigate();
@@ -41,8 +44,6 @@ export default function CartDrawer() {
     setIsCartOpen(false);
     navigate('/checkout');
   };
-
-  const remainingForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
@@ -77,7 +78,11 @@ export default function CartDrawer() {
           <div className="bg-[#FFF5FA] px-4 py-3 border-b border-brand-pink/15">
             <div className="flex items-center justify-between text-xs font-semibold text-brand-darkPurple mb-1.5">
               <span>
-                {remainingForFreeShipping === 0 ? (
+                {isAlwaysFreeShipping ? (
+                  <span className="text-emerald-700 flex items-center gap-1 font-bold">
+                    <Sparkles className="w-3.5 h-3.5 text-brand-gold" /> Special Offer: Free Fast Shipping on all orders!
+                  </span>
+                ) : isFreeShippingUnlocked ? (
                   <span className="text-emerald-700 flex items-center gap-1 font-bold">
                     <Sparkles className="w-3.5 h-3.5 text-brand-gold" /> Congratulations! You unlocked Free Shipping!
                   </span>

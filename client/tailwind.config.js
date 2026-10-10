@@ -77,10 +77,12 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['"Outfit"', '"Plus Jakarta Sans"', 'sans-serif'],
-        display: ['"Outfit"', 'sans-serif'],
-        body: ['"Outfit"', '"Plus Jakarta Sans"', 'sans-serif'],
-        brand: ['"Cinzel"', 'serif']
+        sans: ['"Lora"', 'Georgia', 'serif'],
+        display: ['"Cinzel"', 'serif'],
+        body: ['"Lora"', 'Georgia', 'serif'],
+        brand: ['"Cinzel"', 'serif'],
+        serif: ['"Lora"', 'Georgia', 'serif'],
+        heading: ['"Cinzel"', 'serif']
       },
       boxShadow: {
         'brand': '0 10px 30px -10px rgba(232, 79, 165, 0.25)',

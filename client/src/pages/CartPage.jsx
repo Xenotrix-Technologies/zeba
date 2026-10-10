@@ -14,15 +14,17 @@ export default function CartPage() {
     freeShippingThreshold,
     freeShippingProgress,
     standardShippingFee,
+    isAlwaysFreeShipping,
+    isFreeShippingUnlocked,
+    remainingForFreeShipping,
     shippingFee: cartShippingFee
   } = useCart();
 
   const navigate = useNavigate();
   const shippingFee = cartShippingFee !== undefined
     ? cartShippingFee
-    : (standardShippingFee === 0 || subtotal >= freeShippingThreshold ? 0.00 : (cart.length > 0 ? (standardShippingFee || 49.00) : 0.00));
+    : (isFreeShippingUnlocked ? 0.00 : (cart.length > 0 ? (standardShippingFee || 49.00) : 0.00));
   const grandTotal = subtotal + shippingFee;
-  const remainingForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
 
   if (cart.length === 0) {
     return (
@@ -68,7 +70,11 @@ export default function CartPage() {
         <div className="mb-8 p-4 rounded-2xl bg-white border border-brand-primaryPink/30 max-w-4xl shadow-sm">
           <div className="flex items-center justify-between text-xs font-bold text-brand-deepPurple mb-2">
             <span>
-              {remainingForFreeShipping === 0 ? (
+              {isAlwaysFreeShipping ? (
+                <span className="text-emerald-700 flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-brand-gold" /> Special Offer: Free Fast Shipping on all orders!
+                </span>
+              ) : isFreeShippingUnlocked ? (
                 <span className="text-emerald-700 flex items-center gap-1.5">
                   <Sparkles className="w-4 h-4 text-brand-gold" /> You've unlocked FREE Shipping!
                 </span>

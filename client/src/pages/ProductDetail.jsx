@@ -154,22 +154,14 @@ export default function ProductDetail() {
     );
   }
 
-  // Exclude unwanted packaging renders and ingredients graphic from the product gallery
-  const unwantedImages = [
-    'zeba-real-packaging-1',
-    'zeba-real-packaging-2',
-    'zeba-whats-inside-ingredients'
-  ];
-
-  const baseImages = parseProductImages(selectedProduct.images).filter(
-    (img) => !unwantedImages.some((unwanted) => img.includes(unwanted))
-  );
-
-  // Curate clean product gallery with primary product shots, lifestyle photo, and how-to-use guide
+  // Curate product gallery with primary product shots, lifestyle photo, how-to-use guide, ingredients, and thermal heat relief timeline
   const allImages = [
-    ...baseImages,
-    '/images/zeba-how-to-use-guide.png'
-  ].filter((img, idx, arr) => arr.indexOf(img) === idx && !unwantedImages.some((u) => img.includes(u)));
+    '/images/zeba-1pack.webp',
+    '/images/zeba-hero-lifestyle.webp',
+    '/images/zeba-how-to-use-guide.png',
+    '/images/zeba-whats-inside-ingredients.jpg',
+    '/images/Thermal-Heat-Relief-Timeline.webp'
+  ].filter((img, idx, arr) => arr.indexOf(img) === idx);
 
   const currentPrice = parseFloat(selectedProduct.price) || 0;
   const originalPrice = parseFloat(selectedProduct.original_price) || 0;
@@ -190,7 +182,7 @@ export default function ProductDetail() {
             {/* Main Image View */}
             {(() => {
               const currentImg = allImages[activeImageIndex] || allImages[0];
-              const isInfographic = currentImg.includes('guide') || currentImg.includes('how-to') || currentImg.includes('infographic') || currentImg.includes('ingredient');
+              const isInfographic = currentImg.includes('guide') || currentImg.includes('how-to') || currentImg.includes('infographic') || currentImg.includes('ingredient') || currentImg.includes('whats-inside') || currentImg.includes('Timeline') || currentImg.includes('Thermal');
 
               return (
                 <div className={`rounded-3xl bg-white border-2 border-brand-primaryPink/30 shadow-lg relative overflow-hidden aspect-square flex items-center justify-center ${

@@ -300,128 +300,87 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#FFF5FA] text-[#38283D]">
+    <div className="min-h-screen bg-[#FFF5FA] text-[#38283D] relative selection:bg-brand-pink selection:text-white">
+      {/* Full Landing Page Lifestyle Background Photo */}
+      <div 
+        className="fixed inset-0 pointer-events-none -z-10 bg-cover bg-center bg-no-repeat opacity-[0.22] transition-opacity duration-700"
+        style={{ backgroundImage: "url('/images/zeba-1pack.webp?v=3')" }}
+        aria-hidden="true"
+      />
+      <div 
+        className="fixed inset-0 pointer-events-none -z-10 bg-gradient-to-b from-[#FFF5FA]/75 via-[#FFF5FA]/80 to-[#FFF5FA]/90 backdrop-blur-[0.5px]" 
+        aria-hidden="true"
+      />
       
-      {/* 1. HERO SECTION (Product-Focused, Soft Pink Gradient, Packaging Details) */}
-      <section className="relative overflow-hidden pt-8 pb-16 md:pt-14 md:pb-20 bg-gradient-to-b from-[#FFF5FA] via-[#FFEAF4]/60 to-[#FFF5FA]">
+      {/* 1. HERO SECTION (Product-Focused with Clear Lifestyle Background) */}
+      <section className="relative isolate overflow-hidden pt-12 pb-16 md:pt-16 md:pb-24 min-h-[500px] flex items-center">
+        {/* Clear Lifestyle Background Image for Hero Banner */}
+        <img 
+          src="/images/zeba-1pack.webp"
+          alt="ZEBA Periods Pain Relief Heating Pad Banner"
+          className="absolute inset-0 w-full h-full object-cover object-center md:object-right -z-10 pointer-events-none"
+        />
+        {/* Gradient Mask: Solid on left for text legibility, clear on right to showcase packaging */}
+        <div 
+          className="absolute inset-0 bg-gradient-to-r from-[#FFF5FA] via-[#FFF5FA]/80 to-transparent -z-10 pointer-events-none"
+          aria-hidden="true"
+        />
         {/* Subtle Decorative Pink/Purple Ambient Shapes */}
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-brand-primaryPink/15 rounded-full blur-3xl -z-10 pointer-events-none" />
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-brand-primaryPink/10 rounded-full blur-3xl -z-10 pointer-events-none" />
         <div className="absolute bottom-10 left-10 w-80 h-80 bg-brand-deepPurple/10 rounded-full blur-3xl -z-10 pointer-events-none" />
-        <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-brand-gold/10 rounded-full blur-3xl -z-10 pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl space-y-6 text-center lg:text-left mx-auto lg:mx-0">
             
-            {/* Hero Text & Value Proposition */}
-            <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-              
-              {/* Modern Trust & Innovation Eyebrow */}
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 sm:gap-3.5 text-xs">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-brightPink/10 border border-brand-brightPink/25 text-brand-brightPink font-black text-[11px] tracking-wide shadow-xs">
-                  <Sparkles className="w-3 h-3 text-brand-gold animate-pulse" />
-                  India’s 1st
-                </span>
-                <span className="inline-flex items-center gap-1.5 text-brand-darkPurple font-bold text-xs">
-                  <Award className="w-3.5 h-3.5 text-brand-gold flex-shrink-0" />
-                  Premium Imported Quality
-                </span>
-                <span className="hidden sm:inline text-brand-primaryPink/40">•</span>
-                <span className="inline-flex items-center gap-1.5 text-[#805A82] font-semibold text-xs">
-                  <Flame className="w-3.5 h-3.5 text-brand-brightPink flex-shrink-0" />
-                  Air-Activated 8H Heat
-                </span>
-              </div>
-
-              {/* Large Dark-Purple Heading */}
-              <h1 className="font-display font-black text-4xl sm:text-5xl lg:text-6xl text-[#38283D] tracking-tight leading-[1.1]">
-                Menstrual Cramps Shouldn’t Stop You.{' '}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-brightPink via-brand-deepPink to-[#805A82]">
-                  Feel Soothed in Minutes.
-                </span>
-              </h1>
-
-              {/* Supporting text in muted plum tone */}
-              <p className="text-sm sm:text-base text-[#805A82] max-w-xl mx-auto lg:mx-0 leading-relaxed font-medium">
-                Wearable, air-activated natural heat therapy delivering up to 8 hours of soothing period relief wherever you go.
-              </p>
-
-              {/* Primary & Secondary CTAs */}
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-1">
-                <Link
-                  to="/products"
-                  className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-brand-brightPink to-brand-deepPink hover:opacity-95 text-white font-bold text-sm shadow-xl shadow-brand-pink/25 flex items-center justify-center space-x-2 btn-tactile animate-shimmer"
-                >
-                  <span>Shop Heating Pads</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-
-                <a
-                  href="#how-to-use"
-                  className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-white border-2 border-brand-purple/30 hover:border-brand-gold text-brand-deepPurple hover:text-brand-brightPink font-bold text-sm shadow-sm hover:shadow transition-all text-center btn-tactile"
-                >
-                  How It Works
-                </a>
-              </div>
-
-              {/* Micro Trust Strip */}
-              <div className="pt-3 grid grid-cols-3 gap-3 max-w-md mx-auto lg:mx-0 text-center">
-                <div className="p-3 rounded-2xl bg-white/90 border border-brand-primaryPink/20 shadow-sm backdrop-blur-sm">
-                  <Flame className="w-4 h-4 text-brand-brightPink mx-auto mb-1" />
-                  <span className="text-[11px] font-bold text-brand-deepPurple block">50–55°C Warmth</span>
-                  <span className="text-[9px] text-[#805A82]">Heats in 5 mins</span>
-                </div>
-                <div className="p-3 rounded-2xl bg-white/90 border border-brand-primaryPink/20 shadow-sm backdrop-blur-sm">
-                  <Clock className="w-4 h-4 text-brand-gold mx-auto mb-1" />
-                  <span className="text-[11px] font-bold text-brand-deepPurple block">8+ Hours Relief</span>
-                  <span className="text-[9px] text-[#805A82]">Continuous heat</span>
-                </div>
-                <div className="p-3 rounded-2xl bg-white/90 border border-brand-primaryPink/20 shadow-sm backdrop-blur-sm">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600 mx-auto mb-1" />
-                  <span className="text-[11px] font-bold text-brand-deepPurple block">100% Drug-Free</span>
-                  <span className="text-[9px] text-[#805A82]">Natural minerals</span>
-                </div>
-              </div>
-
+            {/* Modern Trust & Innovation Eyebrow */}
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 sm:gap-3.5 text-xs">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-brightPink/15 border border-brand-brightPink/30 text-brand-brightPink font-black text-[11px] tracking-wide shadow-xs backdrop-blur-sm">
+                <Sparkles className="w-3 h-3 text-brand-gold animate-pulse" />
+                India’s 1st
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-brand-darkPurple font-bold text-xs bg-white/80 px-3 py-1 rounded-full border border-brand-pink/20 shadow-xs backdrop-blur-sm">
+                <Award className="w-3.5 h-3.5 text-brand-gold flex-shrink-0" />
+                Premium Imported Quality
+              </span>
+              <span className="hidden sm:inline text-brand-primaryPink/40">•</span>
+              <span className="inline-flex items-center gap-1.5 text-[#805A82] font-semibold text-xs bg-white/80 px-3 py-1 rounded-full border border-brand-pink/20 shadow-xs backdrop-blur-sm">
+                <Flame className="w-3.5 h-3.5 text-brand-brightPink flex-shrink-0" />
+                Air-Activated 8H Heat
+              </span>
             </div>
 
-            {/* Hero Image Showcase (Prominent Authentic Packaging) */}
-            <div className="lg:col-span-5 relative">
-              <div className="relative mx-auto max-w-md">
-                
-                {/* Main Authentic Packaging Card */}
-                <div className="rounded-3xl bg-white p-3.5 shadow-2xl border-2 border-brand-primaryPink/30 relative group overflow-hidden">
-                  <img
-                    src="/images/zeba-1pack.webp?v=3"
-                    alt="ZEBA Periods Pain Relief Heating Pad Official Packaging"
-                    width="500"
-                    height="500"
-                    fetchPriority="high"
-                    onError={(e) => {
-                      e.currentTarget.onerror = null;
-                      e.currentTarget.src = '/images/zeba-1pack.webp?v=3';
-                    }}
-                    className="w-full h-auto rounded-2xl object-cover transform group-hover:scale-[1.02] transition-transform duration-500 shadow-sm"
-                  />
+            {/* Large Dark-Purple Heading */}
+            <h1 className="font-brand font-extrabold text-3xl sm:text-5xl lg:text-6xl text-[#38283D] tracking-tight leading-[1.18]">
+              Menstrual Cramps Shouldn’t Stop You.{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-brightPink via-brand-deepPink to-[#805A82]">
+                Feel Soothed in Minutes.
+              </span>
+            </h1>
 
-                  {/* Stamp Badge */}
-                  <div className="absolute top-6 left-6 z-10 w-12 h-12 rounded-full pack-safe-stamp text-white flex flex-col items-center justify-center text-center p-0.5 shadow-lg ring-2 ring-white">
-                    <span className="text-[7px] font-black uppercase tracking-wider">SAFE</span>
-                    <span className="text-[9px] font-extrabold leading-tight">100%</span>
-                    <span className="text-[6px] uppercase font-bold">Natural</span>
-                  </div>
+            {/* Supporting text in muted plum tone */}
+            <p className="text-base sm:text-lg text-[#664069] max-w-2xl leading-relaxed font-medium">
+              Wearable, air-activated natural heat therapy delivering up to 8 hours of soothing period relief wherever you go.
+            </p>
 
-                  {/* Floating Rating & Pack Pill */}
-                  <div className="absolute bottom-5 right-5 bg-[#38283D]/95 backdrop-blur-md px-3.5 py-2 rounded-2xl shadow-xl border border-brand-gold/50 flex items-center space-x-2">
-                    <Star className="w-4 h-4 fill-brand-gold text-brand-gold" />
-                    <div>
-                      <span className="text-[11px] font-bold text-white block leading-tight">Authentic ZEBA Box</span>
-                      <span className="text-[9px] text-brand-lightGold font-semibold">1-Pack & 3-Pack Value Box</span>
-                    </div>
-                  </div>
-                </div>
+            {/* Primary & Secondary CTAs */}
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-1">
+              <Link
+                to="/products"
+                className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-brand-brightPink to-brand-deepPink hover:opacity-95 text-white font-brand font-bold text-sm tracking-wider uppercase shadow-xl shadow-brand-pink/25 flex items-center justify-center space-x-2 btn-tactile animate-shimmer"
+              >
+                <span>Shop Heating Pads</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
 
-              </div>
+              <a
+                href="#how-to-use"
+                className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-white/95 border-2 border-brand-purple/30 hover:border-brand-gold text-brand-deepPurple hover:text-brand-brightPink font-brand font-bold text-sm tracking-wider uppercase shadow-sm hover:shadow transition-all text-center btn-tactile backdrop-blur-sm"
+              >
+                How It Works
+              </a>
             </div>
+
+
 
           </div>
         </div>
@@ -497,84 +456,20 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Timeline of Thermal Heat Relief Cards (Text-Based) */}
-          <div className="rounded-3xl bg-gradient-to-b from-white to-brand-softPink/40 p-6 sm:p-8 border-2 border-brand-primaryPink/30 shadow-lg max-w-5xl mx-auto space-y-6">
-            <div className="text-center space-y-1">
-              <h3 className="font-display font-black text-xl sm:text-2xl text-brand-deepPurple tracking-tight uppercase">
-                Timeline of Thermal Heat Relief
-              </h3>
-              <p className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-brand-brightPink">
-                For Period Cramps
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 relative">
-              {/* Step 1 */}
-              <div className="relative p-6 rounded-2xl bg-white border border-brand-primaryPink/30 shadow-xs hover:shadow-md hover:border-brand-brightPink transition-all flex flex-col justify-between space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-softPink text-brand-brightPink font-bold text-xs">
-                      <Flame className="w-3.5 h-3.5" /> Phase 1
-                    </span>
-                    <span className="text-xs font-mono font-bold text-[#805A82]">0–15 Mins</span>
-                  </div>
-                  <h4 className="font-display font-extrabold text-base text-brand-deepPurple tracking-tight uppercase">
-                    Early Activation
-                  </h4>
-                  <p className="text-xs sm:text-sm text-[#805A82] leading-relaxed">
-                    Rapid warmth begins to penetrate, initiating circulation boost and initial muscle relaxation.
-                  </p>
-                </div>
-                <div className="pt-3 border-t border-brand-primaryPink/20 flex items-center gap-2 text-[11px] font-semibold text-brand-purple">
-                  <span className="w-2 h-2 rounded-full bg-brand-brightPink animate-pulse"></span>
-                  Thermal onset begins
-                </div>
-              </div>
-
-              {/* Step 2 */}
-              <div className="relative p-6 rounded-2xl bg-white border-2 border-brand-primaryPink/50 shadow-sm hover:shadow-md hover:border-brand-brightPink transition-all flex flex-col justify-between space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-primaryPink/30 text-brand-deepPurple font-bold text-xs">
-                      <Sparkles className="w-3.5 h-3.5 text-brand-brightPink" /> Phase 2
-                    </span>
-                    <span className="text-xs font-mono font-bold text-[#805A82]">1 Hour</span>
-                  </div>
-                  <h4 className="font-display font-extrabold text-base text-brand-deepPurple tracking-tight uppercase">
-                    Peak Soothing Comfort
-                  </h4>
-                  <p className="text-xs sm:text-sm text-[#805A82] leading-relaxed">
-                    Maximum heat intensity reached for deep muscle relief. Significant reduction in cramp discomfort and a feeling of calm.
-                  </p>
-                </div>
-                <div className="pt-3 border-t border-brand-primaryPink/20 flex items-center gap-2 text-[11px] font-semibold text-brand-brightPink">
-                  <span className="w-2 h-2 rounded-full bg-brand-brightPink"></span>
-                  Max therapeutic relief
-                </div>
-              </div>
-
-              {/* Step 3 */}
-              <div className="relative p-6 rounded-2xl bg-white border border-brand-primaryPink/30 shadow-xs hover:shadow-md hover:border-brand-brightPink transition-all flex flex-col justify-between space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FDF5D6] text-amber-800 font-bold text-xs">
-                      <Clock className="w-3.5 h-3.5 text-brand-gold" /> Phase 3
-                    </span>
-                    <span className="text-xs font-mono font-bold text-[#805A82]">Up to 8 Hours</span>
-                  </div>
-                  <h4 className="font-display font-extrabold text-base text-brand-deepPurple tracking-tight uppercase">
-                    Long-Lasting Continuous Warmth
-                  </h4>
-                  <p className="text-xs sm:text-sm text-[#805A82] leading-relaxed">
-                    Consistent, gentle warmth maintained for up to 8 hours. Prolonged comfort and continuous relief from period cramps.
-                  </p>
-                </div>
-                <div className="pt-3 border-t border-brand-primaryPink/20 flex items-center gap-2 text-[11px] font-semibold text-emerald-700">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                  All-day soothing coverage
-                </div>
-              </div>
-            </div>
+          {/* Timeline of Thermal Heat Relief Infographic Image Showcase */}
+          <div className="max-w-5xl mx-auto rounded-3xl overflow-hidden bg-white p-2 sm:p-4 shadow-xl border-2 border-brand-primaryPink/25 hover:border-brand-brightPink/40 transition-all duration-300">
+            <img
+              src="/images/Thermal-Heat-Relief-Timeline.webp"
+              alt="Timeline of Thermal Heat Relief for Period Cramps - Early Activation, Peak Soothing Comfort, Long-Lasting Continuous Warmth"
+              width="1956"
+              height="804"
+              loading="lazy"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = '/images/Thermal Heat Relief Timeline.png';
+              }}
+              className="w-full h-auto rounded-2xl object-cover shadow-xs"
+            />
           </div>
 
           {/* Interactive Stepper Navigation */}
