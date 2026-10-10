@@ -331,24 +331,6 @@ export default function Home() {
 
         <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl space-y-6 text-center lg:text-left mx-auto lg:mx-0">
-            
-            {/* Modern Trust & Innovation Eyebrow */}
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 sm:gap-3.5 text-xs">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-brightPink/15 border border-brand-brightPink/30 text-brand-brightPink font-black text-[11px] tracking-wide shadow-xs backdrop-blur-sm">
-                <Sparkles className="w-3 h-3 text-brand-gold animate-pulse" />
-                India’s 1st
-              </span>
-              <span className="inline-flex items-center gap-1.5 text-brand-darkPurple font-bold text-xs bg-white/80 px-3 py-1 rounded-full border border-brand-pink/20 shadow-xs backdrop-blur-sm">
-                <Award className="w-3.5 h-3.5 text-brand-gold flex-shrink-0" />
-                Premium Imported Quality
-              </span>
-              <span className="hidden sm:inline text-brand-primaryPink/40">•</span>
-              <span className="inline-flex items-center gap-1.5 text-[#805A82] font-semibold text-xs bg-white/80 px-3 py-1 rounded-full border border-brand-pink/20 shadow-xs backdrop-blur-sm">
-                <Flame className="w-3.5 h-3.5 text-brand-brightPink flex-shrink-0" />
-                Air-Activated 8H Heat
-              </span>
-            </div>
-
             {/* Large Dark-Purple Heading */}
             <h1 className="font-brand font-extrabold text-3xl sm:text-5xl lg:text-6xl text-[#38283D] tracking-tight leading-[1.18]">
               Menstrual Cramps Shouldn’t Stop You.{' '}
@@ -389,17 +371,17 @@ export default function Home() {
       {/* 2. TICKER BANNER (Deep Purple & Gold Packaging Aesthetic) */}
       <div className="bg-[#5F3F68] text-white py-3 overflow-hidden border-y border-brand-gold/30 shadow-sm">
         <div className="animate-ticker text-xs font-bold tracking-wider uppercase flex items-center space-x-8 text-brand-lightGold">
-          <span className="flex items-center gap-2"><Sparkles className="w-3.5 h-3.5 text-brand-primaryPink" /> ULTRA THIN DESIGN</span>
+          <span>ULTRA THIN DESIGN</span>
           <span>•</span>
-          <span className="flex items-center gap-2"><Flame className="w-3.5 h-3.5 text-brand-gold" /> AIR-ACTIVATED HEAT THERAPY</span>
+          <span>AIR-ACTIVATED HEAT THERAPY</span>
           <span>•</span>
-          <span className="flex items-center gap-2"><ShieldCheck className="w-3.5 h-3.5 text-emerald-300" /> 100% NATURAL MINERAL CORE</span>
+          <span>100% NATURAL MINERAL CORE</span>
           <span>•</span>
-          <span className="flex items-center gap-2"><Clock className="w-3.5 h-3.5 text-brand-primaryPink" /> UP TO 8 HOURS CONTINUOUS COMFORT</span>
+          <span>UP TO 8 HOURS CONTINUOUS COMFORT</span>
           <span>•</span>
-          <span className="flex items-center gap-2"><Feather className="w-3.5 h-3.5 text-brand-gold" /> ZERO BULK & DISCREET WEAR</span>
+          <span>ZERO BULK & DISCREET WEAR</span>
           <span>•</span>
-          <span className="flex items-center gap-2"><Heart className="w-3.5 h-3.5 text-pink-300" /> SOOTHES PERIOD CRAMPS NATURALLY</span>
+          <span>SOOTHES PERIOD CRAMPS NATURALLY</span>
         </div>
       </div>
 

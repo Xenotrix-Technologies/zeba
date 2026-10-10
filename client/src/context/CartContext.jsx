@@ -84,10 +84,10 @@ export function CartProvider({ children }) {
   const freeShippingThreshold = settings.commerce?.freeShippingThreshold !== undefined && settings.commerce?.freeShippingThreshold !== null
     ? Number(settings.commerce.freeShippingThreshold)
     : 1000;
-  const standardShippingFee = settings.commerce?.standardShippingFee !== undefined && settings.commerce?.standardShippingFee !== null
+  const standardShippingFee = settings.commerce?.standardShippingFee !== undefined && settings.commerce?.standardShippingFee !== null && Number(settings.commerce.standardShippingFee) > 0
     ? Number(settings.commerce.standardShippingFee)
-    : 49;
-  const isAlwaysFreeShipping = standardShippingFee === 0 || freeShippingThreshold === 0;
+    : (freeShippingThreshold > 0 ? 49 : 0);
+  const isAlwaysFreeShipping = freeShippingThreshold === 0;
   const isFreeShippingUnlocked = isAlwaysFreeShipping || subtotal >= freeShippingThreshold;
   const shippingFee = isFreeShippingUnlocked
     ? 0.00

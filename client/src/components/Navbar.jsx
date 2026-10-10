@@ -45,7 +45,7 @@ export default function Navbar() {
       <div className="bg-[#5F3F68] text-white py-2 px-4 text-xs md:text-sm font-brand font-medium tracking-wide text-center border-b border-white/10 flex items-center justify-center space-x-2 shadow-sm">
         <Sparkles className="w-3.5 h-3.5 text-brand-gold animate-pulse flex-shrink-0" />
         <span>
-          Special Offer: <strong>Free Fast Shipping</strong> {settings.commerce?.standardShippingFee === 0 ? 'on all orders!' : `on orders above ₹${settings.commerce?.freeShippingThreshold || 1000}!`}
+          Special Offer: <strong>Free Fast Shipping</strong> {(Number(settings.commerce?.freeShippingThreshold) > 0) ? `on orders above ₹${settings.commerce.freeShippingThreshold}!` : 'on all orders!'}
         </span>
         <span className="hidden md:inline text-brand-lightGold font-semibold">• 100% Safe Natural Minerals • Discreet Packaging</span>
       </div>

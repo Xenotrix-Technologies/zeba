@@ -302,7 +302,7 @@ export default function ProductDetail() {
                   )}
                 </div>
                 <p className="text-[11px] text-[#805A82] mt-1">
-                  Inclusive of all taxes. {settings.commerce?.standardShippingFee === 0 ? 'Free shipping on all orders.' : `Free shipping on orders above ₹${settings.commerce?.freeShippingThreshold || 1000}.`}
+                  Inclusive of all taxes. {(Number(settings.commerce?.freeShippingThreshold) > 0) ? `Free shipping on orders above ₹${settings.commerce.freeShippingThreshold}.` : 'Free shipping on all orders.'}
                 </p>
               </div>
             </div>

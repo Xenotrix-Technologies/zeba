@@ -107,8 +107,11 @@ export async function calculateOrderTotals(items) {
     // Fallback to default business config
   }
 
+  if (freeShippingThreshold > 0 && standardShippingFee <= 0) {
+    standardShippingFee = 49;
+  }
   const roundedSubtotal = Math.round(subtotal * 100) / 100;
-  const shippingFee = (standardShippingFee === 0 || roundedSubtotal >= freeShippingThreshold) ? 0.00 : standardShippingFee;
+  const shippingFee = (freeShippingThreshold === 0 || roundedSubtotal >= freeShippingThreshold) ? 0.00 : standardShippingFee;
   const totalAmount = Math.round((roundedSubtotal + shippingFee) * 100) / 100;
 
   return {

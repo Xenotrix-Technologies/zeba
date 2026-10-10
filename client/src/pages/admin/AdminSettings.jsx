@@ -422,13 +422,13 @@ export default function AdminSettings() {
               onClick={() => handleSaveSection('shipping_commerce', 'commerce', {
                 currency: '₹',
                 currencyCode: 'INR',
-                freeShippingThreshold: Number(shippingForm.freeShippingThreshold),
-                standardShippingFee: Number(shippingForm.standardShippingFee),
+                freeShippingThreshold: shippingForm.freeShippingThreshold !== '' && shippingForm.freeShippingThreshold !== null ? Number(shippingForm.freeShippingThreshold) : 1000,
+                standardShippingFee: shippingForm.standardShippingFee !== '' && shippingForm.standardShippingFee !== null ? Number(shippingForm.standardShippingFee) : 49,
                 codAvailable: Boolean(shippingForm.codAvailable),
                 codFee: 0,
                 estimatedDeliveryDays: '3 - 5 business days',
                 dispatchTime: shippingForm.dispatchTime,
-                returnWindowDays: Number(shippingForm.returnWindowDays)
+                returnWindowDays: Number(shippingForm.returnWindowDays || 7)
               }, 'Shipping Rules')}
               disabled={savingKey === 'shipping_commerce'}
               className="px-3 py-1.5 rounded-xl bg-brand-deepPurple hover:bg-brand-brightPink text-white font-bold text-xs flex items-center space-x-1.5 transition-all shadow-sm disabled:opacity-50"
