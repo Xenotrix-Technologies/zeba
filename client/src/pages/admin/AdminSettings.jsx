@@ -41,10 +41,10 @@ export default function AdminSettings() {
 
   const [contactForm, setContactForm] = useState({
     supportEmail: 'info@zebaofficial.in',
-    supportPhone: '+91 70259 61509',
+    supportPhone: '+91 75609 61509',
     supportHours: 'Monday – Saturday: 9:00 AM – 7:00 PM IST',
-    whatsappNumber: '+917025961509',
-    whatsappDisplay: '+91 70259 61509'
+    whatsappNumber: '+917560961509',
+    whatsappDisplay: '+91 75609 61509'
   });
 
   const [addressForm, setAddressForm] = useState({
@@ -81,10 +81,10 @@ export default function AdminSettings() {
           });
           setContactForm({
             supportEmail: s.supportEmail || 'info@zebaofficial.in',
-            supportPhone: s.supportPhone || '+91 70259 61509',
+            supportPhone: s.supportPhone || '+91 75609 61509',
             supportHours: s.supportHours || 'Monday – Saturday: 9:00 AM – 7:00 PM IST',
-            whatsappNumber: s.whatsapp?.number || '+917025961509',
-            whatsappDisplay: s.whatsapp?.displayNumber || '+91 70259 61509'
+            whatsappNumber: s.whatsapp?.number || '+917560961509',
+            whatsappDisplay: s.whatsapp?.displayNumber || '+91 75609 61509'
           });
           setAddressForm({
             company: s.address?.company || 'ZEBA Wellness Pvt. Ltd.',
@@ -308,7 +308,7 @@ export default function AdminSettings() {
                   type="text"
                   value={contactForm.whatsappNumber}
                   onChange={(e) => setContactForm({ ...contactForm, whatsappNumber: e.target.value })}
-                  placeholder="+917025961509"
+                  placeholder="+917560961509"
                   className="w-full px-3 py-2 rounded-xl border border-brand-primaryPink/30 text-xs focus:outline-none focus:border-brand-brightPink"
                 />
               </div>
@@ -318,7 +318,7 @@ export default function AdminSettings() {
                   type="text"
                   value={contactForm.whatsappDisplay}
                   onChange={(e) => setContactForm({ ...contactForm, whatsappDisplay: e.target.value })}
-                  placeholder="+91 70259 61509"
+                  placeholder="+91 75609 61509"
                   className="w-full px-3 py-2 rounded-xl border border-brand-primaryPink/30 text-xs focus:outline-none focus:border-brand-brightPink"
                 />
               </div>

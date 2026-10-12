@@ -125,7 +125,7 @@ export function renderContactCustomerConfirmation({ name, email, phone, inquiryT
   const appUrl = config.APP_URL || 'https://www.zebaofficial.in';
   const category = inquiryType || 'General / Order Support';
   const whatsappUrl = config.WHATSAPP_NUMBER ? `https://wa.me/${config.WHATSAPP_NUMBER.replace(/\D/g, '')}` : null;
-  const whatsappDisplay = config.WHATSAPP_DISPLAY || '+91 70259 61509';
+  const whatsappDisplay = config.WHATSAPP_DISPLAY || '+91 75609 61509';
 
   const contentHtml = `
     <div style="text-align: center; margin-bottom: 24px;">

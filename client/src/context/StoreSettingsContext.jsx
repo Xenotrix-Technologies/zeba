@@ -35,7 +35,7 @@ export function StoreSettingsProvider({ children }) {
             ...res.settings.whatsapp,
             getWhatsAppUrl: function (customMessage) {
               const msg = encodeURIComponent(customMessage || this.defaultMessage || 'Hi ZEBA Team, I would like to inquire about the Period Pain Relief Heating Pads.');
-              const num = this.numberRaw || (this.number ? this.number.replace(/[^0-9]/g, '') : '917025961509');
+              const num = this.numberRaw || (this.number ? this.number.replace(/[^0-9]/g, '') : '917560961509');
               return `https://wa.me/${num}?text=${msg}`;
             }
           }
@@ -55,7 +55,7 @@ export function StoreSettingsProvider({ children }) {
   const getWhatsAppUrl = useCallback((customMessage) => {
     const defaultMsg = 'Hi ZEBA Team, I would like to inquire about the Period Pain Relief Heating Pads.';
     const msg = encodeURIComponent(customMessage || settings.whatsapp?.defaultMessage || defaultMsg);
-    const num = settings.whatsapp?.numberRaw || (settings.whatsapp?.number ? settings.whatsapp.number.replace(/[^0-9]/g, '') : '917025961509');
+    const num = settings.whatsapp?.numberRaw || (settings.whatsapp?.number ? settings.whatsapp.number.replace(/[^0-9]/g, '') : '917560961509');
     return `https://wa.me/${num}?text=${msg}`;
   }, [settings]);
 
@@ -80,7 +80,7 @@ export function useStoreSettings() {
       settings: defaultFallbackConfig,
       loading: false,
       refreshSettings: async () => {},
-      getWhatsAppUrl: (msg) => `https://wa.me/917025961509?text=${encodeURIComponent(msg || 'Hi ZEBA Team')}`
+      getWhatsAppUrl: (msg) => `https://wa.me/917560961509?text=${encodeURIComponent(msg || 'Hi ZEBA Team')}`
     };
   }
   return context;

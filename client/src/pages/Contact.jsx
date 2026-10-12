@@ -86,7 +86,7 @@ export default function Contact() {
                 rel="noreferrer"
                 className="inline-flex items-center justify-center w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider shadow-md transition-colors btn-tactile"
               >
-                Chat on WhatsApp ({settings.whatsapp?.displayNumber || '+91 70259 61509'})
+                Chat on WhatsApp ({settings.whatsapp?.displayNumber || '+91 75609 61509'})
               </a>
             </div>
 
@@ -237,7 +237,7 @@ export default function Contact() {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      placeholder="e.g. 7025961509"
+                      placeholder="e.g. 7560961509"
                       className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs text-brand-darkPurple placeholder:text-gray-400/80"
                     />
                   </div>

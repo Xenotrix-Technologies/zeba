@@ -195,13 +195,13 @@ export async function seedDatabase() {
         businessEmail: 'info@zebaofficial.in',
         salesEmail: 'info@zebaofficial.in',
         ownerEmail: 'zebaofficial2013@gmail.com',
-        supportPhone: '+91 70259 61509',
-        supportPhoneRaw: '7025961509',
+        supportPhone: '+91 75609 61509',
+        supportPhoneRaw: '7560961509',
         supportHours: 'Monday – Saturday: 9:00 AM – 7:00 PM IST',
         whatsapp: {
-          number: '+917025961509',
-          numberRaw: '917025961509',
-          displayNumber: '+91 70259 61509',
+          number: '+917560961509',
+          numberRaw: '917560961509',
+          displayNumber: '+91 75609 61509',
           defaultMessage: 'Hi ZEBA Team, I would like to inquire about the Period Pain Relief Heating Pads.'
         }
       }

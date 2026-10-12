@@ -20,8 +20,8 @@ export function renderEmailLayout({
   const brandName = config.business?.brandName || 'ZEBA';
   const appUrl = config.APP_URL || 'https://www.zebaofficial.in';
   const supportEmail = config.CONTACT_EMAIL || 'care@zebaofficial.in';
-  const supportPhone = config.CONTACT_PHONE || '+91 70259 61509';
-  const whatsappDisplay = config.WHATSAPP_DISPLAY || '+91 70259 61509';
+  const supportPhone = config.CONTACT_PHONE || '+91 75609 61509';
+  const whatsappDisplay = config.WHATSAPP_DISPLAY || '+91 75609 61509';
   const year = new Date().getFullYear();
 
   const ctaButtonHtml = ctaText && ctaUrl ? `

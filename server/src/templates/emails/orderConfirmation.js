@@ -196,7 +196,7 @@ ${address.city || ''}, ${address.state || ''} - ${address.pincode || ''}
 ${address.country || 'India'}
 
 Track your order: ${trackUrl}
-Support Contact: ${config.CONTACT_EMAIL || 'care@zebaofficial.in'} / WhatsApp: ${config.WHATSAPP_DISPLAY || '+91 70259 61509'}`;
+Support Contact: ${config.CONTACT_EMAIL || 'care@zebaofficial.in'} / WhatsApp: ${config.WHATSAPP_DISPLAY || '+91 75609 61509'}`;
 
   return {
     subject: `Order Confirmed — #${orderNumber}`,

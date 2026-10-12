@@ -133,7 +133,7 @@ Refund Status: ${refStatus}
 Cancelled At: ${cancellationDate}
 
 ${isAdmin ? `Admin Portal: ${adminUrl}` : `Visit Store: ${appUrl}`}
-Support Contact: ${config.CONTACT_EMAIL || 'care@zebaofficial.in'} / WhatsApp: ${config.WHATSAPP_DISPLAY || '+91 70259 61509'}`;
+Support Contact: ${config.CONTACT_EMAIL || 'care@zebaofficial.in'} / WhatsApp: ${config.WHATSAPP_DISPLAY || '+91 75609 61509'}`;
 
   return {
     subject: `Order Cancelled — #${orderNumber}`,
