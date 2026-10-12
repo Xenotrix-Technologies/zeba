@@ -113,10 +113,12 @@ const INLINE_MIGRATIONS = [
           name VARCHAR(255) NOT NULL,
           email VARCHAR(255) NOT NULL,
           phone VARCHAR(50),
+          inquiry_type VARCHAR(150) DEFAULT 'General / Order Support',
           message TEXT NOT NULL,
           status VARCHAR(50) DEFAULT 'unread',
           created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
+      ALTER TABLE contact_messages ADD COLUMN IF NOT EXISTS inquiry_type VARCHAR(150) DEFAULT 'General / Order Support';
 
       CREATE TABLE IF NOT EXISTS order_notifications (
           id SERIAL PRIMARY KEY,

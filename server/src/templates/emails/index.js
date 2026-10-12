@@ -16,3 +16,4 @@ export { renderPaymentFailedEmail } from './paymentFailed.js';
 export { renderRefundEmail } from './refund.js';
 export { renderAdminNewOrderEmail } from './adminNewOrder.js';
 export { renderWelcomeEmail } from './welcome.js';
+export { renderContactAdminAlert, renderContactCustomerConfirmation } from './contactInquiry.js';

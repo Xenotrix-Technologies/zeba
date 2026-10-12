@@ -191,12 +191,12 @@ export default function Contact() {
               <div className="p-8 rounded-2xl bg-emerald-50 border border-emerald-200 text-center space-y-3">
                 <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
                 <h3 className="font-bold text-base text-emerald-900">Message Received!</h3>
-                <p className="text-xs text-emerald-700">
-                  Thank you for contacting ZEBA. Our care team will review your inquiry and reach out shortly.
+                <p className="text-xs text-emerald-700 leading-relaxed max-w-md mx-auto">
+                  Thank you for contacting ZEBA. A confirmation has been sent to your email inbox, and our care team will review your inquiry and respond within 24 hours.
                 </p>
                 <button
                   onClick={() => setSubmitted(false)}
-                  className="mt-2 text-xs font-bold text-brand-brightPink underline"
+                  className="mt-2 text-xs font-bold text-brand-brightPink underline hover:text-brand-deepPink"
                 >
                   Send another message
                 </button>
@@ -211,8 +211,8 @@ export default function Contact() {
                     required
                     value={formData.name}
                     onChange={handleChange}
-                    placeholder="Pooja Sharma"
-                    className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs text-brand-darkPurple"
+                    placeholder="e.g. Pooja Sharma"
+                    className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs text-brand-darkPurple placeholder:text-gray-400/80"
                   />
                 </div>
 
@@ -225,8 +225,8 @@ export default function Contact() {
                       required
                       value={formData.email}
                       onChange={handleChange}
-                      placeholder="pooja@example.com"
-                      className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs text-brand-darkPurple"
+                      placeholder="e.g. pooja@example.com"
+                      className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs text-brand-darkPurple placeholder:text-gray-400/80"
                     />
                   </div>
 
@@ -237,8 +237,8 @@ export default function Contact() {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      placeholder="7025961509"
-                      className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs text-brand-darkPurple"
+                      placeholder="e.g. 7025961509"
+                      className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs text-brand-darkPurple placeholder:text-gray-400/80"
                     />
                   </div>
                 </div>
@@ -267,8 +267,8 @@ export default function Contact() {
                     rows="4"
                     value={formData.message}
                     onChange={handleChange}
-                    placeholder="How can our care specialists assist you today?"
-                    className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs text-brand-darkPurple"
+                    placeholder="How can our care specialists assist you today? Please write your query here..."
+                    className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs text-brand-darkPurple placeholder:text-gray-400/80"
                   />
                 </div>
 

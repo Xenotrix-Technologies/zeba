@@ -10,6 +10,8 @@ import {
   renderRefundEmail,
   renderAdminNewOrderEmail,
   renderWelcomeEmail,
+  renderContactAdminAlert,
+  renderContactCustomerConfirmation,
   renderEmailLayout
 } from '../templates/emails/index.js';
 
@@ -158,6 +160,7 @@ export async function sendEmail({
   subject,
   html,
   text,
+  replyTo = null,
   orderId = null,
   eventType = null,
   notificationType = null,
@@ -219,7 +222,7 @@ export async function sendEmail({
   }
 
   const from = getSenderAddress();
-  const replyTo = config.CONTACT_EMAIL || config.EMAIL_FROM || from;
+  const effectiveReplyTo = replyTo || config.CONTACT_EMAIL || config.EMAIL_FROM || from;
   const transporter = getEmailTransporter();
 
   // 3. Dispatch Live SMTP or Simulated Fallback
@@ -227,7 +230,7 @@ export async function sendEmail({
     try {
       const info = await transporter.sendMail({
         from,
-        replyTo,
+        replyTo: effectiveReplyTo,
         to: cleanRecipient,
         subject,
         text: text || subject,
@@ -952,6 +955,95 @@ export async function retryFailedEmails({ maxRetries = 3, limit = 10, orderId = 
     console.error('Error retrying failed emails:', err);
     return { success: false, error: err.message };
   }
+}
+
+/**
+ * 12. Contact Form Inquiry Notification Service
+ * Sends:
+ *   - Admin Alert email with customer query, phone, email & direct WhatsApp/Reply link
+ *   - Customer Confirmation acknowledgment auto-responder
+ */
+export async function sendContactInquiryEmails({ name, email, phone, inquiryType, message, inquiryId }) {
+  const adminRecipients = Array.from(new Set([
+    config.ADMIN_EMAIL,
+    config.CONTACT_EMAIL,
+    process.env.ADMIN_EMAIL,
+    process.env.OWNER_EMAIL
+  ].filter(e => e && isValidEmail(e))));
+
+  if (adminRecipients.length === 0) {
+    adminRecipients.push('zebaofficial2013@gmail.com');
+  }
+
+  const results = {
+    adminAlertSent: false,
+    customerConfirmationSent: false,
+    errors: []
+  };
+
+  // 1. Dispatch Admin Alert Email
+  try {
+    const adminTemplate = renderContactAdminAlert({
+      name,
+      email,
+      phone,
+      inquiryType,
+      message,
+      inquiryId,
+      createdAt: new Date()
+    });
+
+    for (const recipient of adminRecipients) {
+      const res = await sendEmail({
+        to: recipient,
+        replyTo: email, // Direct reply in inbox goes to the customer
+        subject: adminTemplate.subject,
+        html: adminTemplate.html,
+        text: adminTemplate.text,
+        notificationType: 'contact_admin_alert',
+        payload: { inquiryId, customerEmail: email, customerName: name }
+      });
+      if (res.success) {
+        results.adminAlertSent = true;
+      }
+    }
+  } catch (err) {
+    console.error('Failed to dispatch contact inquiry admin alert:', err.message);
+    results.errors.push(`Admin alert: ${err.message}`);
+  }
+
+  // 2. Dispatch Customer Confirmation Auto-responder
+  if (isValidEmail(email)) {
+    try {
+      const customerTemplate = renderContactCustomerConfirmation({
+        name,
+        email,
+        phone,
+        inquiryType,
+        message,
+        inquiryId
+      });
+
+      const res = await sendEmail({
+        to: email,
+        replyTo: config.CONTACT_EMAIL || 'info@zebaofficial.in',
+        subject: customerTemplate.subject,
+        html: customerTemplate.html,
+        text: customerTemplate.text,
+        notificationType: 'contact_customer_confirmation',
+        payload: { inquiryId }
+      });
+
+      if (res.success) {
+        results.customerConfirmationSent = true;
+      }
+    } catch (err) {
+      console.error('Failed to dispatch contact inquiry customer confirmation:', err.message);
+      results.errors.push(`Customer confirmation: ${err.message}`);
+    }
+  }
+
+  return results;
 }
 
 /**
