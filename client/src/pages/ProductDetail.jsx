@@ -158,8 +158,8 @@ export default function ProductDetail() {
   const allImages = [
     '/images/zeba-1pack.webp',
     '/images/zeba-hero-lifestyle.webp',
-    '/images/zeba-how-to-use-guide.png',
-    '/images/zeba-whats-inside-ingredients.jpg',
+    '/images/zeba-how-to-use-guide.webp',
+    '/images/zeba-whats-inside-ingredients.webp',
     '/images/Thermal-Heat-Relief-Timeline.webp'
   ].filter((img, idx, arr) => arr.indexOf(img) === idx);
 
@@ -493,8 +493,12 @@ export default function ProductDetail() {
                 <div className="flex flex-col lg:flex-row items-center gap-8">
                   <div className="w-full lg:w-1/2 rounded-2xl overflow-hidden border border-brand-primaryPink/25 shadow-sm">
                     <img
-                      src="/images/zeba-how-to-use-guide.png"
+                      src="/images/zeba-how-to-use-guide.webp"
                       alt="ZEBA How to Use It"
+                      width="1536"
+                      height="678"
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-auto object-cover"
                     />
                   </div>
@@ -739,11 +743,15 @@ export default function ProductDetail() {
                 <div className="flex flex-col lg:flex-row items-center gap-8">
                   <div className="w-full lg:w-1/2 rounded-2xl overflow-hidden border border-brand-primaryPink/25 shadow-sm">
                     <img
-                      src="/images/zeba-whats-inside-ingredients.jpg?v=4"
+                      src="/images/zeba-whats-inside-ingredients.webp"
                       alt="ZEBA What's Inside Pure Natural Goodness"
+                      width="1363"
+                      height="768"
+                      loading="lazy"
+                      decoding="async"
                       onError={(e) => {
                         e.currentTarget.onerror = null;
-                        e.currentTarget.src = '/images/zeba-whats-inside-ingredients.png?v=4';
+                        e.currentTarget.src = '/images/zeba-whats-inside-ingredients.jpg';
                       }}
                       className="w-full h-auto object-cover"
                     />

@@ -61,8 +61,16 @@ export default function Footer() {
           <div className="space-y-4 md:col-span-1">
             <Link to="/" className="inline-block">
               <img 
-                src="/images/zeba-logo.png" 
-                alt={settings.brandName} 
+                src="/images/zeba-logo.webp" 
+                alt={settings.brandName || "ZEBA"} 
+                width="150"
+                height="40"
+                loading="lazy"
+                decoding="async"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = '/images/zeba-logo.png';
+                }}
                 className="h-10 w-auto object-contain hover:opacity-95 transition-opacity" 
               />
             </Link>

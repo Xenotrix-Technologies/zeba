@@ -225,6 +225,23 @@ export default function Home() {
   const [activeFaqCategory, setActiveFaqCategory] = useState('All');
   const [faqSearchQuery, setFaqSearchQuery] = useState('');
   const [helpfulVotes, setHelpfulVotes] = useState({});
+  const [videoInView, setVideoInView] = useState(false);
+  const videoContainerRef = React.useRef(null);
+
+  useEffect(() => {
+    if (!videoContainerRef.current) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setVideoInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '300px' }
+    );
+    observer.observe(videoContainerRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     async function loadAllDatabaseData() {
@@ -304,7 +321,7 @@ export default function Home() {
       {/* Full Landing Page Lifestyle Background Photo */}
       <div 
         className="fixed inset-0 pointer-events-none -z-10 bg-cover bg-center bg-no-repeat opacity-[0.22] transition-opacity duration-700"
-        style={{ backgroundImage: "url('/images/zeba-1pack.webp?v=3')" }}
+        style={{ backgroundImage: "url('/images/zeba-1pack-sm.webp')" }}
         aria-hidden="true"
       />
       <div 
@@ -315,11 +332,19 @@ export default function Home() {
       {/* 1. HERO SECTION (Product-Focused with Clear Lifestyle Background) */}
       <section className="relative isolate overflow-hidden pt-12 pb-16 md:pt-16 md:pb-24 min-h-[500px] flex items-center">
         {/* Clear Lifestyle Background Image for Hero Banner */}
-        <img 
-          src="/images/zeba-1pack.webp"
-          alt="ZEBA Periods Pain Relief Heating Pad Banner"
-          className="absolute inset-0 w-full h-full object-cover object-center md:object-right -z-10 pointer-events-none"
-        />
+        <picture className="absolute inset-0 w-full h-full -z-10 pointer-events-none">
+          <source media="(max-width: 640px)" srcSet="/images/zeba-1pack-sm.webp" type="image/webp" />
+          <source media="(max-width: 1024px)" srcSet="/images/zeba-1pack-md.webp" type="image/webp" />
+          <img 
+            src="/images/zeba-1pack.webp"
+            alt="ZEBA Periods Pain Relief Heating Pad Banner"
+            width="2730"
+            height="1536"
+            fetchpriority="high"
+            decoding="async"
+            className="w-full h-full object-cover object-center md:object-right"
+          />
+        </picture>
         {/* Gradient Mask: Solid on left for text legibility, clear on right to showcase packaging */}
         <div 
           className="absolute inset-0 bg-gradient-to-r from-[#FFF5FA] via-[#FFF5FA]/80 to-transparent -z-10 pointer-events-none"
@@ -446,10 +471,7 @@ export default function Home() {
               width="1956"
               height="804"
               loading="lazy"
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = '/images/Thermal Heat Relief Timeline.png';
-              }}
+              decoding="async"
               className="w-full h-auto rounded-2xl object-cover shadow-xs"
             />
           </div>
@@ -556,10 +578,10 @@ export default function Home() {
           {/* Official Visual Infographic */}
           <div className="rounded-3xl bg-white p-4 sm:p-6 border-2 border-brand-gold/40 shadow-2xl max-w-5xl mx-auto overflow-hidden">
             <img
-              src="/images/zeba-how-to-use-guide.png"
+              src="/images/zeba-how-to-use-guide.webp"
               alt="ZEBA How to Use It - 4 Step Visual Guide"
-              width="1000"
-              height="600"
+              width="1536"
+              height="678"
               loading="lazy"
               decoding="async"
               className="w-full h-auto rounded-2xl object-cover shadow-sm"
@@ -632,15 +654,15 @@ export default function Home() {
           {/* Official Ingredients Infographic */}
           <div className="rounded-3xl bg-white p-4 sm:p-6 border-2 border-brand-primaryPink/30 shadow-lg max-w-5xl mx-auto overflow-hidden">
             <img
-              src="/images/zeba-whats-inside-ingredients.jpg?v=4"
+              src="/images/zeba-whats-inside-ingredients.webp"
               alt="ZEBA What's Inside Pure Natural Goodness Ingredients"
-              width="1000"
-              height="600"
+              width="1363"
+              height="768"
               loading="lazy"
               decoding="async"
               onError={(e) => {
                 e.currentTarget.onerror = null;
-                e.currentTarget.src = '/images/zeba-whats-inside-ingredients.png?v=4';
+                e.currentTarget.src = '/images/zeba-whats-inside-ingredients.jpg';
               }}
               className="w-full h-auto rounded-2xl object-cover shadow-sm"
             />
@@ -914,19 +936,30 @@ export default function Home() {
       {/* 8. FINAL HIGH-CONVERTING CTA BANNER WITH FULL BACKGROUND VIDEO */}
       <section className="py-24 sm:py-28 text-white text-center relative overflow-hidden border-t border-brand-gold/30 bg-[#2A1D2E]">
         
-        {/* Full-Bleed Ambient Background Video */}
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="none"
-            poster="/videos/zeba-video-poster.webp"
-            className="w-full h-full object-cover scale-105 filter brightness-75"
-          >
-            <source src="/videos/zeba-comfort-video.mp4" type="video/mp4" />
-          </video>
+        {/* Full-Bleed Ambient Background Video (Lazy Loaded with Observer) */}
+        <div ref={videoContainerRef} className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
+          {videoInView ? (
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              poster="/videos/zeba-video-poster.webp"
+              className="w-full h-full object-cover scale-105 filter brightness-75"
+            >
+              <source src="/videos/zeba-comfort-video.mp4" type="video/mp4" />
+            </video>
+          ) : (
+            <img
+              src="/videos/zeba-video-poster.webp"
+              alt="ZEBA Comfort Ambient Background"
+              width="1920"
+              height="1080"
+              loading="lazy"
+              decoding="async"
+              className="w-full h-full object-cover scale-105 filter brightness-75"
+            />
+          )}
           {/* Deep plum & dark purple gradient overlays for contrast and brand harmony */}
           <div className="absolute inset-0 bg-gradient-to-t from-[#2A1730]/95 via-[#38283D]/80 to-[#5F3F68]/85 mix-blend-multiply" />
           <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />

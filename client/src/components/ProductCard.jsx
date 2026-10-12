@@ -58,11 +58,13 @@ export default function ProductCard({ product, isFeatured = false }) {
         <img
           src={mainImage}
           alt={product.name}
+          width="400"
+          height="400"
           loading="lazy"
           decoding="async"
           onError={(e) => {
             e.currentTarget.onerror = null;
-            e.currentTarget.src = '/images/zeba-1pack.webp';
+            e.currentTarget.src = '/images/zeba-1pack-sm.webp';
           }}
           className="w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-500"
         />
