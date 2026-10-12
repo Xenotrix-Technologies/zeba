@@ -28,19 +28,20 @@ export async function submitContactMessage(req, res, next) {
     const inquiryId = result.rows[0].id;
     const createdAt = result.rows[0].created_at;
 
-    // Asynchronously dispatch transactional emails (Admin Alert + Customer Confirmation)
-    sendContactInquiryEmails({
-      name: cleanName,
-      email: cleanEmail,
-      phone: cleanPhone,
-      inquiryType: cleanCategory,
-      message: cleanMessage,
-      inquiryId
-    }).then(emailRes => {
+    // Await transactional emails dispatch so Vercel Serverless does not freeze before SMTP dispatch finishes
+    try {
+      const emailRes = await sendContactInquiryEmails({
+        name: cleanName,
+        email: cleanEmail,
+        phone: cleanPhone,
+        inquiryType: cleanCategory,
+        message: cleanMessage,
+        inquiryId
+      });
       console.log(`📧 Contact inquiry #${inquiryId} emails processed:`, emailRes);
-    }).catch(err => {
+    } catch (err) {
       console.error(`⚠️ Failed to send emails for contact inquiry #${inquiryId}:`, err.message);
-    });
+    }
 
     res.status(201).json({
       success: true,

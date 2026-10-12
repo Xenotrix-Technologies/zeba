@@ -7,6 +7,15 @@
 
 const env = (typeof __APP_ENV__ !== 'undefined' ? __APP_ENV__ : (typeof process !== 'undefined' ? process.env : {})) || {};
 
+function sanitizePhone(val, fallback) {
+  if (!val || typeof val !== 'string') return fallback;
+  const digits = val.replace(/\D/g, '');
+  if (digits.includes('9876500000') || digits.includes('7025961509') || digits.includes('9037011509') || digits === '9876500000') {
+    return fallback;
+  }
+  return val.trim();
+}
+
 export const businessConfig = {
   // Brand & Legal Entity
   brandName: env.BUSINESS_BRAND_NAME || 'ZEBA',
@@ -26,15 +35,15 @@ export const businessConfig = {
   b2bEmail: env.B2B_EMAIL || env.CONTACT_EMAIL || 'info@zebaofficial.in',
   ownerEmail: env.OWNER_EMAIL || env.ADMIN_DEFAULT_EMAIL || 'zebaofficial2013@gmail.com',
   
-  supportPhone: env.CONTACT_PHONE || '+91 75609 61509',
-  supportPhoneRaw: env.CONTACT_PHONE_RAW || (env.CONTACT_PHONE ? env.CONTACT_PHONE.replace(/[^0-9]/g, '') : '7560961509'),
+  supportPhone: sanitizePhone(env.CONTACT_PHONE, '+91 75609 61509'),
+  supportPhoneRaw: sanitizePhone(env.CONTACT_PHONE_RAW || (env.CONTACT_PHONE ? env.CONTACT_PHONE.replace(/[^0-9]/g, '') : null), '7560961509'),
   supportHours: env.SUPPORT_HOURS || 'Monday – Saturday: 9:00 AM – 7:00 PM IST',
 
   // WhatsApp Support Channel
   whatsapp: {
-    number: env.WHATSAPP_NUMBER || '+917560961509',
-    numberRaw: (env.WHATSAPP_NUMBER ? env.WHATSAPP_NUMBER.replace(/[^0-9]/g, '') : (env.CONTACT_PHONE ? env.CONTACT_PHONE.replace(/[^0-9]/g, '') : '917560961509')),
-    displayNumber: env.WHATSAPP_DISPLAY || env.CONTACT_PHONE || '+91 75609 61509',
+    number: sanitizePhone(env.WHATSAPP_NUMBER, '+917560961509'),
+    numberRaw: sanitizePhone(env.WHATSAPP_NUMBER ? env.WHATSAPP_NUMBER.replace(/[^0-9]/g, '') : (env.CONTACT_PHONE ? env.CONTACT_PHONE.replace(/[^0-9]/g, '') : null), '917560961509'),
+    displayNumber: sanitizePhone(env.WHATSAPP_DISPLAY || env.CONTACT_PHONE, '+91 75609 61509'),
     defaultMessage: 'Hi ZEBA Team, I would like to inquire about the Period Pain Relief Heating Pads.',
     orderQueryMessage: (orderNumber) => 
       `Hi ZEBA Team, I have a question regarding my order #${orderNumber || ''}.`,

@@ -1,6 +1,15 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+function sanitizePhone(val, fallback) {
+  if (!val || typeof val !== 'string') return fallback;
+  const digits = val.replace(/\D/g, '');
+  if (digits.includes('9876500000') || digits.includes('7025961509') || digits.includes('9037011509') || digits === '9876500000') {
+    return fallback;
+  }
+  return val.trim();
+}
+
 /**
  * ZEBA Server Business Configuration & Options
  * Reads customizable environment variables with fallback defaults.
@@ -17,13 +26,13 @@ export const businessConfig = {
   supportEmail: process.env.CONTACT_EMAIL || process.env.SUPPORT_EMAIL || 'care@zebaofficial.in',
   businessEmail: process.env.BUSINESS_EMAIL || 'business@zebaofficial.in',
   ownerEmail: process.env.OWNER_EMAIL || process.env.ADMIN_DEFAULT_EMAIL || 'admin@zebaofficial.in',
-  supportPhone: process.env.CONTACT_PHONE || process.env.SUPPORT_PHONE || '+91 75609 61509',
-  supportPhoneRaw: process.env.CONTACT_PHONE_RAW || '7560961509',
+  supportPhone: sanitizePhone(process.env.CONTACT_PHONE || process.env.SUPPORT_PHONE, '+91 75609 61509'),
+  supportPhoneRaw: sanitizePhone(process.env.CONTACT_PHONE_RAW, '7560961509'),
   supportHours: process.env.SUPPORT_HOURS || 'Monday – Saturday: 9:00 AM – 7:00 PM IST',
 
   // WhatsApp
-  whatsappNumber: process.env.WHATSAPP_NUMBER || '+917560961509',
-  whatsappDisplay: process.env.WHATSAPP_DISPLAY || '+91 75609 61509',
+  whatsappNumber: sanitizePhone(process.env.WHATSAPP_NUMBER, '+917560961509'),
+  whatsappDisplay: sanitizePhone(process.env.WHATSAPP_DISPLAY, '+91 75609 61509'),
 
   // Address
   address: {
