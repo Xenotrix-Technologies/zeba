@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Eye, ChevronLeft, ChevronRight, Calendar, ArrowUpDown, X } from 'lucide-react';
+import { Search, Eye, Calendar, ArrowUpDown, X } from 'lucide-react';
 import api from '../../services/api';
+import Pagination from '../../components/Pagination';
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(15);
   const [totalPages, setTotalPages] = useState(1);
   const [dateFilter, setDateFilter] = useState(''); // 'YYYY-MM-DD'
   const [sortOrder, setSortOrder] = useState('DESC'); // 'DESC' | 'ASC'
@@ -20,7 +22,7 @@ export default function AdminOrders() {
     try {
       const params = new URLSearchParams({
         page: page.toString(),
-        limit: '15',
+        limit: limit.toString(),
         status: statusFilter,
         payment_status: paymentFilter,
         search,
@@ -47,7 +49,7 @@ export default function AdminOrders() {
 
   useEffect(() => {
     fetchOrders();
-  }, [page, statusFilter, paymentFilter, dateFilter, sortOrder]);
+  }, [page, limit, statusFilter, paymentFilter, dateFilter, sortOrder]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -280,27 +282,18 @@ export default function AdminOrders() {
         )}
 
         {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="p-4 border-t border-brand-primaryPink/20 flex items-center justify-between text-xs text-[#805A82] bg-[#FFF5FA]">
-            <span>Page {page} of {totalPages}</span>
-            <div className="flex space-x-2">
-              <button
-                disabled={page <= 1}
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                className="p-1.5 rounded-lg bg-white border border-brand-primaryPink/30 hover:bg-brand-softPink disabled:opacity-40 transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                disabled={page >= totalPages}
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                className="p-1.5 rounded-lg bg-white border border-brand-primaryPink/30 hover:bg-brand-softPink disabled:opacity-40 transition-colors"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        )}
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          total={total}
+          limit={limit}
+          onPageChange={setPage}
+          onLimitChange={(newLimit) => {
+            setLimit(newLimit);
+            setPage(1);
+          }}
+          label="orders"
+        />
       </div>
 
     </div>

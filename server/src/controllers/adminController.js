@@ -290,10 +290,12 @@ export async function getAdminOrders(req, res, next) {
       sortBy = 'created_at',
       sortOrder = 'DESC',
       page = 1,
-      limit = 20
+      limit = 15
     } = req.query;
 
-    const offset = (Math.max(1, parseInt(page, 10)) - 1) * Math.max(1, parseInt(limit, 10));
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, Math.min(100, parseInt(limit, 10) || 15));
+    const offset = (pageNum - 1) * limitNum;
     const conditions = [];
     const params = [];
     let paramIndex = 1;
@@ -405,7 +407,7 @@ export async function getAdminOrders(req, res, next) {
       LIMIT $${paramIndex++} OFFSET $${paramIndex++}
     `;
 
-    const ordersRes = await query(ordersQuery, [...params, parseInt(limit, 10), offset]);
+    const ordersRes = await query(ordersQuery, [...params, limitNum, offset]);
 
     // Also fetch available months with order counts for the admin dropdown
     const monthsRes = await query(`
@@ -418,11 +420,14 @@ export async function getAdminOrders(req, res, next) {
       ORDER BY month_key DESC
     `);
 
+    const totalPages = Math.max(1, Math.ceil(total / limitNum));
+
     res.json({
       success: true,
       total,
-      page: parseInt(page, 10),
-      totalPages: Math.ceil(total / parseInt(limit, 10)),
+      page: pageNum,
+      limit: limitNum,
+      totalPages,
       availableMonths: monthsRes.rows,
       orders: ordersRes.rows
     });
@@ -863,16 +868,33 @@ export async function updateOrderStatus(req, res, next) {
  */
 export async function getAdminCustomers(req, res, next) {
   try {
-    const { search } = req.query;
+    const { search, page = 1, limit = 15 } = req.query;
+
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, Math.min(100, parseInt(limit, 10) || 15));
+    const offset = (pageNum - 1) * limitNum;
+
     let whereClause = '';
     const params = [];
+    let paramIndex = 1;
 
     if (search && search.trim() !== '') {
-      whereClause = 'WHERE c.name ILIKE $1 OR c.email ILIKE $1 OR c.phone ILIKE $1';
+      whereClause = `WHERE c.name ILIKE $${paramIndex} OR c.email ILIKE $${paramIndex} OR c.phone ILIKE $${paramIndex}`;
       params.push(`%${search.trim()}%`);
+      paramIndex++;
     }
 
-    const customersRes = await query(`
+    // 1. Total Count Query
+    const countQuery = `
+      SELECT COUNT(*) AS total
+      FROM customers c
+      ${whereClause}
+    `;
+    const countRes = await query(countQuery, params);
+    const total = parseInt(countRes.rows[0]?.total || 0, 10);
+
+    // 2. Paginated Data Query
+    const customersQuery = `
       SELECT c.id, c.name, c.email, c.phone, c.created_at,
              COUNT(o.id) AS total_orders,
              COALESCE(SUM(o.total_amount) FILTER (WHERE o.payment_status = 'paid'), 0) AS total_spent,
@@ -882,10 +904,18 @@ export async function getAdminCustomers(req, res, next) {
       ${whereClause}
       GROUP BY c.id, c.name, c.email, c.phone, c.created_at
       ORDER BY c.created_at DESC
-    `, params);
+      LIMIT $${paramIndex++} OFFSET $${paramIndex++}
+    `;
+    const customersRes = await query(customersQuery, [...params, limitNum, offset]);
+
+    const totalPages = Math.max(1, Math.ceil(total / limitNum));
 
     res.json({
       success: true,
+      total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages,
       count: customersRes.rows.length,
       customers: customersRes.rows
     });

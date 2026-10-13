@@ -1,9 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Users, Search, Phone, Mail, ShoppingBag, DollarSign, Calendar, Eye, X, RefreshCw } from 'lucide-react';
 import api from '../../services/api';
+import Pagination from '../../components/Pagination';
 
 export default function AdminCustomers() {
   const [customers, setCustomers] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(15);
+  const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -14,9 +19,18 @@ export default function AdminCustomers() {
     if (!isSilent) setLoading(true);
     setRefreshing(true);
     try {
-      const res = await api.get(`/admin/customers?search=${encodeURIComponent(search.trim())}`);
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString()
+      });
+      if (search.trim()) {
+        params.append('search', search.trim());
+      }
+      const res = await api.get(`/admin/customers?${params.toString()}`);
       if (res.success && Array.isArray(res.customers)) {
         setCustomers(res.customers);
+        setTotal(res.total ?? res.count ?? res.customers.length);
+        setTotalPages(res.totalPages || Math.max(1, Math.ceil((res.total || res.customers.length) / limit)));
       }
     } catch (err) {
       console.error('Failed to load customers from database', err);
@@ -24,7 +38,7 @@ export default function AdminCustomers() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [search]);
+  }, [search, page, limit]);
 
   useEffect(() => {
     fetchCustomers();
@@ -32,6 +46,7 @@ export default function AdminCustomers() {
 
   const handleSearch = (e) => {
     e.preventDefault();
+    setPage(1);
     fetchCustomers();
   };
 
@@ -68,7 +83,7 @@ export default function AdminCustomers() {
             <span>{refreshing ? 'Syncing...' : 'Refresh'}</span>
           </button>
           <span className="text-xs font-bold text-brand-deepPurple bg-brand-softPink border border-brand-primaryPink/30 px-3.5 py-1.5 rounded-full">
-            Total Customers: {customers.length}
+            Total Customers: {total}
           </span>
         </div>
       </div>
@@ -80,7 +95,10 @@ export default function AdminCustomers() {
           type="text"
           placeholder="Search by customer name, email, phone..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
           className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-brand-primaryPink/25 text-xs text-brand-dark placeholder-brand-plum/50 focus:border-brand-brightPink outline-none shadow-sm transition-all"
         />
       </form>
@@ -137,6 +155,20 @@ export default function AdminCustomers() {
             </table>
           </div>
         )}
+
+        {/* Pagination */}
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          total={total}
+          limit={limit}
+          onPageChange={setPage}
+          onLimitChange={(newLimit) => {
+            setLimit(newLimit);
+            setPage(1);
+          }}
+          label="customers"
+        />
       </div>
 
       {/* Customer Detail Modal */}
