@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import {
   Building2,
   Phone,
@@ -16,9 +15,7 @@ import {
   Info,
   Trash2,
   Save,
-  RefreshCw,
-  Megaphone,
-  ArrowRight
+  RefreshCw
 } from 'lucide-react';
 import api from '../../services/api';
 import { useToast } from '../../context/ToastContext';
@@ -68,25 +65,6 @@ export default function AdminSettings() {
     returnWindowDays: 7
   });
 
-  const [offerBarForm, setOfferBarForm] = useState({
-    enabled: true,
-    mode: 'threshold',
-    badgeText: 'Special Offer:',
-    boldText: 'Free Fast Shipping',
-    subText: '',
-    autoThreshold: true,
-    customText: '',
-    secondaryText: '• 100% Safe Natural Minerals • Discreet Packaging',
-    couponCode: '',
-    linkUrl: '',
-    bgColor: '#5F3F68',
-    textColor: '#FFFFFF',
-    accentColor: '#ECC695',
-    icon: 'Sparkles',
-    pulseEffect: true,
-    showSecondaryOnMobile: false
-  });
-
   useEffect(() => {
     async function loadSettings() {
       try {
@@ -124,27 +102,6 @@ export default function AdminSettings() {
             dispatchTime: s.commerce?.dispatchTime || 'Dispatched within 24 hours',
             returnWindowDays: Number(s.commerce?.returnWindowDays || 7)
           });
-          const ob = s.offerBar || res.raw?.offer_bar;
-          if (ob) {
-            setOfferBarForm({
-              enabled: ob.enabled !== undefined ? Boolean(ob.enabled) : true,
-              mode: ob.mode || 'threshold',
-              badgeText: ob.badgeText !== undefined ? ob.badgeText : 'Special Offer:',
-              boldText: ob.boldText !== undefined ? ob.boldText : 'Free Fast Shipping',
-              subText: ob.subText !== undefined ? ob.subText : '',
-              autoThreshold: ob.autoThreshold !== undefined ? Boolean(ob.autoThreshold) : true,
-              customText: ob.customText || '',
-              secondaryText: ob.secondaryText !== undefined ? ob.secondaryText : '• 100% Safe Natural Minerals • Discreet Packaging',
-              couponCode: ob.couponCode || '',
-              linkUrl: ob.linkUrl || '',
-              bgColor: ob.bgColor || '#5F3F68',
-              textColor: ob.textColor || '#FFFFFF',
-              accentColor: ob.accentColor || '#ECC695',
-              icon: ob.icon || 'Sparkles',
-              pulseEffect: ob.pulseEffect !== undefined ? Boolean(ob.pulseEffect) : true,
-              showSecondaryOnMobile: ob.showSecondaryOnMobile !== undefined ? Boolean(ob.showSecondaryOnMobile) : false
-            });
-          }
         }
       } catch (err) {
         console.error('Failed to load settings from DB', err);
@@ -217,130 +174,6 @@ export default function AdminSettings() {
             <Trash2 className="w-4 h-4 text-rose-600" />
             <span>{clearing ? 'Purging...' : 'Purge Dummy Orders'}</span>
           </button>
-        </div>
-      </div>
-
-      {/* Top Offer Bar & Announcement Spotlight Card */}
-      <div className="bg-gradient-to-br from-white to-[#FFF5FA] border-2 border-brand-primaryPink/40 rounded-3xl p-6 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-brand-primaryPink/20">
-          <div className="flex items-center space-x-3">
-            <div className="p-2.5 rounded-xl bg-brand-deepPurple text-brand-gold shadow-sm">
-              <Megaphone className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <h3 className="font-display font-bold text-base text-brand-dark">Top Offer Bar & Announcement</h3>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                  offerBarForm.enabled
-                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                    : 'bg-amber-100 text-amber-800 border border-amber-300'
-                }`}>
-                  {offerBarForm.enabled ? '● Active on Store' : '○ Disabled'}
-                </span>
-              </div>
-              <p className="text-[11px] text-brand-plum/70">
-                The top header banner displayed on every page of your storefront.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-2 self-end sm:self-auto">
-            <Link
-              to="/admin/offer-bar"
-              className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-brand-softPink text-brand-deepPurple font-bold text-xs flex items-center space-x-1.5 transition-all border border-brand-primaryPink/30 shadow-sm"
-            >
-              <span>Full Studio</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-            <button
-              onClick={() => handleSaveSection('offer_bar', 'announcement', offerBarForm, 'Offer Bar')}
-              disabled={savingKey === 'offer_bar'}
-              className="px-3.5 py-1.5 rounded-xl bg-brand-deepPurple hover:bg-brand-brightPink text-white font-bold text-xs flex items-center space-x-1.5 transition-all shadow-sm disabled:opacity-50"
-            >
-              <Save className="w-3.5 h-3.5" />
-              <span>{savingKey === 'offer_bar' ? 'Saving...' : 'Save Offer Bar'}</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Live Mini Preview */}
-        <div className="rounded-xl overflow-hidden border border-brand-primaryPink/30 shadow-sm">
-          <div
-            style={{
-              backgroundColor: offerBarForm.bgColor || '#5F3F68',
-              color: offerBarForm.textColor || '#FFFFFF'
-            }}
-            className="py-2.5 px-3 text-xs font-brand font-medium tracking-wide text-center flex items-center justify-center flex-wrap gap-x-2 gap-y-1"
-          >
-            <Sparkles className="w-3.5 h-3.5 flex-shrink-0 animate-pulse" style={{ color: offerBarForm.accentColor || '#ECC695' }} />
-            {offerBarForm.mode === 'custom' && offerBarForm.customText ? (
-              <span className="font-semibold">{offerBarForm.customText}</span>
-            ) : (
-              <span>
-                {offerBarForm.badgeText && <span className="mr-1">{offerBarForm.badgeText}</span>}
-                {offerBarForm.boldText && <strong>{offerBarForm.boldText} </strong>}
-                <span>
-                  {offerBarForm.autoThreshold
-                    ? (Number(shippingForm.freeShippingThreshold || 1000) > 0 ? `on orders above ₹${shippingForm.freeShippingThreshold || 1000}!` : 'on all orders!')
-                    : (offerBarForm.subText || '')}
-                </span>
-              </span>
-            )}
-            {offerBarForm.couponCode && (
-              <span
-                className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase border border-white/20 bg-white/10"
-                style={{ color: offerBarForm.accentColor || '#ECC695' }}
-              >
-                CODE: {offerBarForm.couponCode}
-              </span>
-            )}
-            {offerBarForm.secondaryText && (
-              <span
-                style={{ color: offerBarForm.accentColor || '#ECC695' }}
-                className="hidden sm:inline font-semibold"
-              >
-                {offerBarForm.secondaryText}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Quick Config Inputs */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-1">
-          <div>
-            <label className="text-brand-plum/70 block font-bold mb-1">Status on Storefront:</label>
-            <button
-              type="button"
-              onClick={() => setOfferBarForm({ ...offerBarForm, enabled: !offerBarForm.enabled })}
-              className={`w-full py-2 px-3 rounded-xl font-bold text-xs border transition-all ${
-                offerBarForm.enabled
-                  ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
-                  : 'bg-rose-50 border-rose-300 text-rose-800'
-              }`}
-            >
-              {offerBarForm.enabled ? '✓ Enabled (Visible)' : '✕ Disabled (Hidden)'}
-            </button>
-          </div>
-
-          <div>
-            <label className="text-brand-plum/70 block font-bold mb-1">Prefix / Badge:</label>
-            <input
-              type="text"
-              value={offerBarForm.badgeText}
-              onChange={(e) => setOfferBarForm({ ...offerBarForm, badgeText: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl border border-brand-primaryPink/30 text-xs focus:outline-none focus:border-brand-brightPink"
-            />
-          </div>
-
-          <div>
-            <label className="text-brand-plum/70 block font-bold mb-1">Highlight Bold Text:</label>
-            <input
-              type="text"
-              value={offerBarForm.boldText}
-              onChange={(e) => setOfferBarForm({ ...offerBarForm, boldText: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl border border-brand-primaryPink/30 text-xs font-bold focus:outline-none focus:border-brand-brightPink"
-            />
-          </div>
         </div>
       </div>
 
@@ -652,21 +485,6 @@ export default function AdminSettings() {
           </div>
         </div>
 
-      </div>
-
-      {/* Live Synchronization Info */}
-      <div className="p-6 rounded-3xl bg-white border border-brand-primaryPink/25 shadow-sm flex items-start space-x-4">
-        <div className="p-3 rounded-2xl bg-brand-softPink text-brand-brightPink flex-shrink-0">
-          <Sparkles className="w-5 h-5" />
-        </div>
-        <div className="space-y-1">
-          <h4 className="font-display font-bold text-sm text-brand-dark">
-            Live Storefront Synchronization
-          </h4>
-          <p className="text-xs text-brand-plum/80 leading-relaxed">
-            Every update in these panels takes effect across your storefront immediately. Headers, announcement bars, WhatsApp support links, pricing thresholds, and customer notifications update in real time.
-          </p>
-        </div>
       </div>
 
     </div>
