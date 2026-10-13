@@ -82,47 +82,47 @@ export default function AdminOrders() {
       </div>
 
       {/* Filters & Search Toolbar */}
-      <div className="bg-white p-3 sm:p-3.5 rounded-2xl border border-brand-primaryPink/25 shadow-sm flex flex-col md:flex-row gap-2.5 md:items-center justify-between">
+      <div className="bg-white p-3 sm:p-4 rounded-2xl border border-brand-primaryPink/20 shadow-sm flex flex-col md:flex-row gap-3 md:items-center justify-between">
         
         {/* Search */}
-        <form onSubmit={handleSearchSubmit} className="relative flex-1 min-w-[150px] max-w-xs">
-          <Search className="w-3.5 h-3.5 text-[#805A82] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+        <form onSubmit={handleSearchSubmit} className="relative flex-1 min-w-[220px] max-w-sm lg:max-w-md">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-8.5 pl-9 pr-7 rounded-xl bg-[#FFF5FA] border border-brand-primaryPink/30 text-xs text-brand-darkPurple focus:border-brand-brightPink focus:bg-white outline-none transition-colors"
+            className="w-full h-10 pl-10 pr-8 rounded-xl bg-white border border-slate-200 hover:border-slate-300 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-brightPink/15 text-sm text-slate-800 outline-none shadow-sm transition-all"
           />
           {search && (
             <button
               type="button"
               onClick={() => { setSearch(''); setPage(1); }}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#805A82] hover:text-brand-brightPink p-0.5 rounded-full"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-brand-brightPink p-1 rounded-full transition-colors"
               title="Clear search"
             >
-              <X className="w-3 h-3" />
+              <X className="w-3.5 h-3.5" />
             </button>
           )}
         </form>
 
         {/* Dropdown Filters (Calendar Date, Status, Payment, Sort) - No scroll, fits perfectly */}
-        <div className="flex flex-wrap md:flex-nowrap items-center gap-1.5 sm:gap-2 shrink-0">
+        <div className="flex flex-wrap md:flex-nowrap items-center gap-2 sm:gap-2.5 shrink-0">
           {/* Calendar Date Picker */}
-          <div className="flex items-center space-x-1 text-xs whitespace-nowrap">
-            <span className="text-[#805A82] font-semibold text-[11px]">Date:</span>
+          <div className="flex items-center space-x-1.5 text-xs whitespace-nowrap">
+            <span className="text-slate-500 font-semibold text-[11px]">Date:</span>
             <div className="relative flex items-center">
               <input
                 type="date"
                 value={dateFilter}
                 onChange={(e) => { setDateFilter(e.target.value); setPage(1); }}
-                className="h-8.5 bg-[#FFF5FA] border border-brand-primaryPink/30 text-brand-darkPurple rounded-xl px-2.5 text-xs outline-none focus:border-brand-brightPink font-medium cursor-pointer"
+                className="h-10 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 rounded-xl px-2.5 text-xs outline-none focus:border-brand-brightPink focus:ring-2 focus:ring-brand-brightPink/15 font-medium cursor-pointer shadow-sm transition-all"
                 title="Choose order date"
               />
               {dateFilter && (
                 <button
                   type="button"
                   onClick={() => { setDateFilter(''); setPage(1); }}
-                  className="ml-1 text-[#805A82] hover:text-brand-brightPink p-0.5 rounded-full transition-colors"
+                  className="ml-1 text-slate-400 hover:text-brand-brightPink p-0.5 rounded-full transition-colors"
                   title="Clear date"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -132,12 +132,12 @@ export default function AdminOrders() {
           </div>
 
           {/* Status Filter */}
-          <div className="flex items-center space-x-1 text-xs whitespace-nowrap">
-            <span className="text-[#805A82] font-semibold text-[11px]">Status:</span>
+          <div className="flex items-center space-x-1.5 text-xs whitespace-nowrap">
+            <span className="text-slate-500 font-semibold text-[11px]">Status:</span>
             <select
               value={statusFilter}
               onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-              className="h-8.5 bg-[#FFF5FA] border border-brand-primaryPink/30 text-brand-darkPurple rounded-xl px-2 text-xs outline-none focus:border-brand-brightPink font-medium cursor-pointer"
+              className="h-10 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 rounded-xl px-2.5 text-xs outline-none focus:border-brand-brightPink focus:ring-2 focus:ring-brand-brightPink/15 font-medium cursor-pointer shadow-sm transition-all"
             >
               <option value="all">All Statuses</option>
               <option value="pending">Pending</option>
@@ -151,12 +151,12 @@ export default function AdminOrders() {
           </div>
 
           {/* Payment Filter */}
-          <div className="flex items-center space-x-1 text-xs whitespace-nowrap">
-            <span className="text-[#805A82] font-semibold text-[11px]">Payment:</span>
+          <div className="flex items-center space-x-1.5 text-xs whitespace-nowrap">
+            <span className="text-slate-500 font-semibold text-[11px]">Payment:</span>
             <select
               value={paymentFilter}
               onChange={(e) => { setPaymentFilter(e.target.value); setPage(1); }}
-              className="h-8.5 bg-[#FFF5FA] border border-brand-primaryPink/30 text-brand-darkPurple rounded-xl px-2 text-xs outline-none focus:border-brand-brightPink font-medium cursor-pointer"
+              className="h-10 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 rounded-xl px-2.5 text-xs outline-none focus:border-brand-brightPink focus:ring-2 focus:ring-brand-brightPink/15 font-medium cursor-pointer shadow-sm transition-all"
             >
               <option value="all">All Payments</option>
               <option value="paid">Paid</option>
@@ -167,12 +167,12 @@ export default function AdminOrders() {
           </div>
 
           {/* Sort Filter */}
-          <div className="flex items-center space-x-1 text-xs whitespace-nowrap">
-            <span className="text-[#805A82] font-semibold text-[11px]">Sort:</span>
+          <div className="flex items-center space-x-1.5 text-xs whitespace-nowrap">
+            <span className="text-slate-500 font-semibold text-[11px]">Sort:</span>
             <select
               value={sortOrder}
               onChange={(e) => { setSortOrder(e.target.value); setPage(1); }}
-              className="h-8.5 bg-[#FFF5FA] border border-brand-primaryPink/30 text-brand-darkPurple rounded-xl px-2 text-xs outline-none focus:border-brand-brightPink font-medium cursor-pointer"
+              className="h-10 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 rounded-xl px-2.5 text-xs outline-none focus:border-brand-brightPink focus:ring-2 focus:ring-brand-brightPink/15 font-medium cursor-pointer shadow-sm transition-all"
             >
               <option value="DESC">Newest First</option>
               <option value="ASC">Oldest First</option>

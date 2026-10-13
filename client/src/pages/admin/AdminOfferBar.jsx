@@ -18,7 +18,6 @@ import {
   ArrowRight,
   ExternalLink,
   Sliders,
-  Palette,
   CheckCircle2,
   AlertCircle
 } from 'lucide-react';
@@ -26,50 +25,6 @@ import api from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 
-const THEME_PRESETS = [
-  {
-    name: 'ZEBA Signature Plum',
-    bgColor: '#5F3F68',
-    textColor: '#FFFFFF',
-    accentColor: '#ECC695',
-    description: 'The authentic, elegant ZEBA brand palette'
-  },
-  {
-    name: 'Royal Velvet Wine',
-    bgColor: '#4A154B',
-    textColor: '#FFFFFF',
-    accentColor: '#FBCFE8',
-    description: 'Deep royal purple with soft pink highlights'
-  },
-  {
-    name: 'Crimson Rose',
-    bgColor: '#831843',
-    textColor: '#FFFFFF',
-    accentColor: '#FDE047',
-    description: 'Festive warm berry with golden spark'
-  },
-  {
-    name: 'Natural Forest Emerald',
-    bgColor: '#064E3B',
-    textColor: '#FFFFFF',
-    accentColor: '#A7F3D0',
-    description: 'Organic wellness green with fresh mint highlights'
-  },
-  {
-    name: 'Midnight Obsidian',
-    bgColor: '#0F172A',
-    textColor: '#FFFFFF',
-    accentColor: '#38BDF8',
-    description: 'Modern sleek dark mode with sky blue accents'
-  },
-  {
-    name: 'Warm Amber Bronze',
-    bgColor: '#78350F',
-    textColor: '#FFFFFF',
-    accentColor: '#FDE68A',
-    description: 'Rich earthy warmth with amber glow'
-  }
-];
 
 const AVAILABLE_ICONS = [
   { id: 'Sparkles', label: 'Sparkles (✨)', icon: Sparkles },
@@ -127,11 +82,11 @@ export default function AdminOfferBar() {
               autoThreshold: remoteOfferBar.autoThreshold !== undefined ? Boolean(remoteOfferBar.autoThreshold) : true,
               customText: remoteOfferBar.customText || '',
               secondaryText: remoteOfferBar.secondaryText !== undefined ? remoteOfferBar.secondaryText : '• 100% Safe Natural Minerals • Discreet Packaging',
-              couponCode: remoteOfferBar.couponCode || '',
+              couponCode: '',
               linkUrl: remoteOfferBar.linkUrl || '',
-              bgColor: remoteOfferBar.bgColor || '#5F3F68',
-              textColor: remoteOfferBar.textColor || '#FFFFFF',
-              accentColor: remoteOfferBar.accentColor || '#ECC695',
+              bgColor: '#5F3F68',
+              textColor: '#FFFFFF',
+              accentColor: '#ECC695',
               icon: remoteOfferBar.icon || 'Sparkles',
               pulseEffect: remoteOfferBar.pulseEffect !== undefined ? Boolean(remoteOfferBar.pulseEffect) : true,
               showSecondaryOnMobile: remoteOfferBar.showSecondaryOnMobile !== undefined ? Boolean(remoteOfferBar.showSecondaryOnMobile) : false
@@ -150,8 +105,15 @@ export default function AdminOfferBar() {
   const handleSave = async () => {
     setSaving(true);
     try {
+      const payload = {
+        ...form,
+        couponCode: '',
+        bgColor: '#5F3F68',
+        textColor: '#FFFFFF',
+        accentColor: '#ECC695'
+      };
       const res = await api.put('/settings/offer_bar', {
-        value: form,
+        value: payload,
         category: 'announcement',
         description: 'Top Announcement and Offer Bar'
       });
@@ -171,16 +133,6 @@ export default function AdminOfferBar() {
       setForm(DEFAULT_OFFER_BAR);
       addToast('Reset to default values. Click "Save Changes" to apply.', 'info');
     }
-  };
-
-  const applyThemePreset = (preset) => {
-    setForm((prev) => ({
-      ...prev,
-      bgColor: preset.bgColor,
-      textColor: preset.textColor,
-      accentColor: preset.accentColor
-    }));
-    addToast(`Applied theme preset: ${preset.name}`, 'info');
   };
 
   const handleTestCopy = (code) => {
@@ -209,7 +161,7 @@ export default function AdminOfferBar() {
             Offer Bar Management
           </h1>
           <p className="text-xs text-brand-plum/70 mt-1">
-            Manage the top notification bar across your store. Configure promotions, free shipping highlights, color themes, and discount coupon tags.
+            Manage the top notification bar across your store. Configure promotions, free shipping highlights, and discount coupon tags.
           </p>
         </div>
 
@@ -479,24 +431,6 @@ export default function AdminOfferBar() {
             </span>
           </div>
 
-          {/* Coupon Code Tag */}
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-brand-dark block">
-              Promo / Coupon Code Badge (Optional):
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                value={form.couponCode}
-                onChange={(e) => setForm({ ...form, couponCode: e.target.value.toUpperCase().replace(/\s/g, '') })}
-                placeholder="e.g. ZEBA10 or FREESHIP"
-                className="w-full px-3.5 py-2 rounded-xl border border-brand-primaryPink/30 text-xs font-mono font-bold tracking-wider text-brand-deepPurple focus:outline-none focus:border-brand-brightPink uppercase"
-              />
-            </div>
-            <span className="text-[10px] text-brand-plum/60 block">
-              Displays an interactive badge on the offer bar that users can click to copy instantly.
-            </span>
-          </div>
 
         </div>
 
@@ -618,174 +552,7 @@ export default function AdminOfferBar() {
 
         </div>
 
-        {/* 3. Visual Styling & Color Themes */}
-        <div className="bg-white border border-brand-primaryPink/20 rounded-3xl p-6 shadow-sm space-y-5 lg:col-span-2">
-          <div className="flex items-center space-x-2.5 text-brand-deepPurple pb-3 border-b border-brand-primaryPink/15">
-            <Palette className="w-5 h-5 text-brand-brightPink" />
-            <h3 className="font-display font-bold text-base text-brand-dark">
-              Visual Appearance, Colors & Icon
-            </h3>
-          </div>
 
-          {/* Quick Color Presets */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-brand-dark block">
-              One-Click Brand Theme Presets:
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-              {THEME_PRESETS.map((preset) => {
-                const isSelected =
-                  form.bgColor === preset.bgColor &&
-                  form.textColor === preset.textColor &&
-                  form.accentColor === preset.accentColor;
-
-                return (
-                  <button
-                    key={preset.name}
-                    type="button"
-                    onClick={() => applyThemePreset(preset)}
-                    className={`p-3 rounded-2xl border text-left transition-all relative ${
-                      isSelected
-                        ? 'border-brand-brightPink ring-2 ring-brand-brightPink/50 shadow-sm'
-                        : 'border-slate-200 hover:border-slate-300'
-                    }`}
-                  >
-                    <div
-                      className="w-full h-8 rounded-xl mb-2 flex items-center justify-center shadow-inner"
-                      style={{ backgroundColor: preset.bgColor }}
-                    >
-                      <span className="text-[10px] font-bold" style={{ color: preset.accentColor }}>
-                        ✨ ZEBA
-                      </span>
-                    </div>
-                    <span className="text-xs font-bold text-brand-dark block truncate">
-                      {preset.name}
-                    </span>
-                    {isSelected && (
-                      <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-brand-brightPink" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Custom Color Pickers */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-brand-primaryPink/15">
-            
-            {/* Background Color */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-brand-dark block">
-                Background Color:
-              </label>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="color"
-                  value={form.bgColor}
-                  onChange={(e) => setForm({ ...form, bgColor: e.target.value })}
-                  className="w-9 h-9 rounded-xl border border-slate-300 cursor-pointer p-0.5 bg-white"
-                />
-                <input
-                  type="text"
-                  value={form.bgColor}
-                  onChange={(e) => setForm({ ...form, bgColor: e.target.value })}
-                  placeholder="#5F3F68"
-                  className="w-full px-3 py-2 rounded-xl border border-brand-primaryPink/30 text-xs font-mono uppercase focus:outline-none focus:border-brand-brightPink"
-                />
-              </div>
-            </div>
-
-            {/* Main Text Color */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-brand-dark block">
-                Main Text Color:
-              </label>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="color"
-                  value={form.textColor}
-                  onChange={(e) => setForm({ ...form, textColor: e.target.value })}
-                  className="w-9 h-9 rounded-xl border border-slate-300 cursor-pointer p-0.5 bg-white"
-                />
-                <input
-                  type="text"
-                  value={form.textColor}
-                  onChange={(e) => setForm({ ...form, textColor: e.target.value })}
-                  placeholder="#FFFFFF"
-                  className="w-full px-3 py-2 rounded-xl border border-brand-primaryPink/30 text-xs font-mono uppercase focus:outline-none focus:border-brand-brightPink"
-                />
-              </div>
-            </div>
-
-            {/* Accent / Highlight Color */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-brand-dark block">
-                Accent / Gold Highlight Color:
-              </label>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="color"
-                  value={form.accentColor}
-                  onChange={(e) => setForm({ ...form, accentColor: e.target.value })}
-                  className="w-9 h-9 rounded-xl border border-slate-300 cursor-pointer p-0.5 bg-white"
-                />
-                <input
-                  type="text"
-                  value={form.accentColor}
-                  onChange={(e) => setForm({ ...form, accentColor: e.target.value })}
-                  placeholder="#ECC695"
-                  className="w-full px-3 py-2 rounded-xl border border-brand-primaryPink/30 text-xs font-mono uppercase focus:outline-none focus:border-brand-brightPink"
-                />
-              </div>
-            </div>
-
-          </div>
-
-          {/* Icon Selector & Animation */}
-          <div className="space-y-3 pt-3 border-t border-brand-primaryPink/15">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-brand-dark block">
-                Offer Bar Icon:
-              </label>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="pulseEffect"
-                  checked={form.pulseEffect}
-                  onChange={(e) => setForm({ ...form, pulseEffect: e.target.checked })}
-                  className="w-4 h-4 text-brand-brightPink rounded focus:ring-brand-brightPink"
-                />
-                <label htmlFor="pulseEffect" className="text-xs text-brand-plum/80 font-medium">
-                  Subtle pulse animation
-                </label>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
-              {AVAILABLE_ICONS.map((item) => {
-                const Icon = item.icon;
-                const isSelected = form.icon === item.id;
-
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setForm({ ...form, icon: item.id })}
-                    className={`p-2.5 rounded-xl border text-center flex flex-col items-center justify-center space-y-1 transition-all ${
-                      isSelected
-                        ? 'border-brand-brightPink bg-brand-softPink/60 text-brand-deepPurple font-bold'
-                        : 'border-slate-200 hover:border-slate-300 text-slate-600 bg-white'
-                    }`}
-                  >
-                    {Icon ? <Icon className="w-4 h-4" /> : <span className="text-xs font-mono">—</span>}
-                    <span className="text-[10px] truncate max-w-full">{item.label.split(' ')[0]}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-        </div>
 
       </div>
 
