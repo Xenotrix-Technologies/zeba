@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Lock, ShieldCheck, CreditCard, Banknote, CheckCircle2, Sparkles, Plus, Minus } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
@@ -30,11 +30,36 @@ const loadRazorpayScript = () => {
 };
 
 export default function Checkout() {
-  const { cart, subtotal, freeShippingThreshold, clearCart, updateQuantity } = useCart();
+  const location = useLocation();
+  const {
+    cart,
+    freeShippingThreshold,
+    clearCart,
+    updateQuantity,
+    buyNowItem,
+    updateBuyNowQuantity,
+    clearBuyNow
+  } = useCart();
   const { settings } = useStoreSettings();
   const { customer, isCustomerAuthenticated } = useCustomerAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
+
+  // If explicitly navigated from the cart page/drawer, clear any lingering buyNow session
+  useEffect(() => {
+    if (location.state?.fromCart) {
+      clearBuyNow();
+    }
+  }, [location.state]);
+
+  // Determine if this checkout is for an instant "Buy Now" product or regular shopping cart
+  const isBuyNow = Boolean(buyNowItem && !location.state?.fromCart);
+  const checkoutItems = isBuyNow ? (buyNowItem ? [buyNowItem] : []) : cart;
+
+  const subtotal = checkoutItems.reduce(
+    (acc, item) => acc + (parseFloat(item.price) || 0) * item.quantity,
+    0
+  );
 
   useEffect(() => {
     loadRazorpayScript();
@@ -88,10 +113,18 @@ export default function Checkout() {
   const isFreeShipping = standardShippingFee === 0 || freeThreshold === 0 || subtotal >= freeThreshold;
   const shippingFee = isFreeShipping
     ? 0.00
-    : (cart.length > 0 ? standardShippingFee : 0.00);
+    : (checkoutItems.length > 0 ? standardShippingFee : 0.00);
   const isCod = paymentMethod === 'cod';
   const codFee = isCod ? Number(settings.commerce?.codFee || 0) : 0;
   const totalAmount = subtotal + shippingFee + codFee;
+
+  const handleUpdateItemQuantity = (itemId, delta) => {
+    if (isBuyNow) {
+      updateBuyNowQuantity(delta);
+    } else {
+      updateQuantity(itemId, delta);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -99,8 +132,8 @@ export default function Checkout() {
   };
 
   const validateForm = () => {
-    if (cart.length === 0) {
-      addToast('Your cart is empty. Please add items to checkout.', 'error');
+    if (checkoutItems.length === 0) {
+      addToast('Your checkout is empty. Please add items to checkout.', 'error');
       navigate('/products');
       return false;
     }
@@ -164,7 +197,7 @@ export default function Checkout() {
       // 1. Request backend to validate stock, calculate verified price & create order
       const orderPayload = {
         paymentMethod,
-        items: cart.map(i => ({ productId: i.id, quantity: i.quantity })),
+        items: checkoutItems.map(i => ({ productId: i.id, quantity: i.quantity })),
         customer: {
           name: formData.name.trim(),
           email: formData.email.trim(),
@@ -190,7 +223,11 @@ export default function Checkout() {
 
       // Handle Cash on Delivery order completion
       if (res.isCod) {
-        clearCart();
+        if (isBuyNow) {
+          clearBuyNow();
+        } else {
+          clearCart();
+        }
         addToast('Order placed successfully! Pay cash upon delivery.', 'success');
         navigate(`/order-success?order=${res.orderNumber || res.order?.orderNumber}`);
         return;
@@ -292,7 +329,11 @@ export default function Checkout() {
       const res = await api.post('/payments/verify', verifyPayload);
 
       if (res.success && res.order) {
-        clearCart();
+        if (isBuyNow) {
+          clearBuyNow();
+        } else {
+          clearCart();
+        }
         addToast('Order confirmed and paid successfully!', 'success');
         navigate(`/order-success?order=${res.order.orderNumber}`);
       } else {
@@ -306,10 +347,10 @@ export default function Checkout() {
     }
   };
 
-  if (cart.length === 0) {
+  if (checkoutItems.length === 0) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-4">
-        <h2 className="text-xl font-bold text-brand-deepPurple">Your cart is empty.</h2>
+        <h2 className="text-xl font-bold text-brand-deepPurple">Your checkout is empty.</h2>
         <button
           onClick={() => navigate('/products')}
           className="px-6 py-3 rounded-xl bg-brand-brightPink text-white font-bold text-xs uppercase tracking-wider"
@@ -569,7 +610,7 @@ export default function Checkout() {
 
                 {/* Items preview */}
                 <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
-                  {cart.map((item) => (
+                  {checkoutItems.map((item) => (
                     <div key={item.id} className="flex items-center space-x-3 py-2.5 border-b border-brand-primaryPink/15 last:border-0">
                       <img
                         src={item.image}
@@ -590,7 +631,7 @@ export default function Checkout() {
                           <div className="flex items-center border border-brand-primaryPink/30 rounded-lg bg-brand-softPink/50 p-0.5 flex-shrink-0 shadow-xs">
                             <button
                               type="button"
-                              onClick={() => updateQuantity(item.id, -1)}
+                              onClick={() => handleUpdateItemQuantity(item.id, -1)}
                               className="w-5 h-5 flex items-center justify-center text-brand-deepPurple hover:text-brand-brightPink hover:bg-brand-softPink rounded transition-colors"
                               aria-label="Decrease quantity"
                               title="Decrease quantity"
@@ -602,7 +643,7 @@ export default function Checkout() {
                             </span>
                             <button
                               type="button"
-                              onClick={() => updateQuantity(item.id, 1)}
+                              onClick={() => handleUpdateItemQuantity(item.id, 1)}
                               className="w-5 h-5 flex items-center justify-center text-brand-deepPurple hover:text-brand-brightPink hover:bg-brand-softPink rounded transition-colors"
                               aria-label="Increase quantity"
                               title="Increase quantity"

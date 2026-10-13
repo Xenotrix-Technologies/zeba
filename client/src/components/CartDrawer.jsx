@@ -16,7 +16,8 @@ export default function CartDrawer() {
     freeShippingProgress,
     isAlwaysFreeShipping,
     isFreeShippingUnlocked,
-    remainingForFreeShipping
+    remainingForFreeShipping,
+    clearBuyNow
   } = useCart();
 
   const navigate = useNavigate();
@@ -41,8 +42,9 @@ export default function CartDrawer() {
   if (!isCartOpen) return null;
 
   const handleCheckoutClick = () => {
+    clearBuyNow();
     setIsCartOpen(false);
-    navigate('/checkout');
+    navigate('/checkout', { state: { fromCart: true } });
   };
 
   return (

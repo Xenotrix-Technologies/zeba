@@ -17,7 +17,8 @@ export default function CartPage() {
     isAlwaysFreeShipping,
     isFreeShippingUnlocked,
     remainingForFreeShipping,
-    shippingFee: cartShippingFee
+    shippingFee: cartShippingFee,
+    clearBuyNow
   } = useCart();
 
   const navigate = useNavigate();
@@ -205,7 +206,10 @@ export default function CartPage() {
             </div>
 
             <button
-              onClick={() => navigate('/checkout')}
+              onClick={() => {
+                clearBuyNow();
+                navigate('/checkout', { state: { fromCart: true } });
+              }}
               className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-brand-brightPink to-brand-deepPink hover:from-brand-deepPink hover:to-brand-brightPink text-white font-bold text-sm shadow-xl shadow-brand-pink/30 flex items-center justify-center space-x-2 transition-all transform hover:-translate-y-0.5 btn-tactile"
             >
               <span>Proceed to Checkout</span>

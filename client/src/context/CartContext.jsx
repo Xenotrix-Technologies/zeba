@@ -17,6 +17,66 @@ export function CartProvider({ children }) {
     }
   });
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [buyNowItem, setBuyNowItem] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('zeba_buynow');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const startBuyNow = (product, quantity = 1) => {
+    const item = {
+      id: product.id,
+      slug: product.slug,
+      name: product.name,
+      pack_size: product.pack_size,
+      price: parseFloat(product.price) || 0,
+      original_price: parseFloat(product.original_price || product.price) || 0,
+      show_original_price: product.show_original_price !== false,
+      image: getProductMainImage(product.images),
+      quantity: Math.max(1, quantity)
+    };
+    setBuyNowItem(item);
+    try {
+      sessionStorage.setItem('zeba_buynow', JSON.stringify(item));
+    } catch (e) {
+      console.error('Failed to save buyNowItem to sessionStorage', e);
+    }
+    return item;
+  };
+
+  const updateBuyNowQuantity = (delta) => {
+    setBuyNowItem(prev => {
+      if (!prev) return null;
+      const newQty = prev.quantity + delta;
+      if (newQty <= 0) {
+        try {
+          sessionStorage.removeItem('zeba_buynow');
+        } catch (e) {
+          console.error(e);
+        }
+        return null;
+      }
+      const updated = { ...prev, quantity: newQty };
+      try {
+        sessionStorage.setItem('zeba_buynow', JSON.stringify(updated));
+      } catch (e) {
+        console.error(e);
+      }
+      return updated;
+    });
+  };
+
+  const clearBuyNow = () => {
+    setBuyNowItem(null);
+    try {
+      sessionStorage.removeItem('zeba_buynow');
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   useEffect(() => {
     try {
@@ -122,7 +182,11 @@ export function CartProvider({ children }) {
       freeShippingProgress,
       isAlwaysFreeShipping,
       isFreeShippingUnlocked,
-      remainingForFreeShipping
+      remainingForFreeShipping,
+      buyNowItem,
+      startBuyNow,
+      updateBuyNowQuantity,
+      clearBuyNow
     }}>
       {children}
     </CartContext.Provider>

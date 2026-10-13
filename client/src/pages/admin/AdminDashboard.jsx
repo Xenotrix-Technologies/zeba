@@ -335,7 +335,7 @@ export default function AdminDashboard() {
                     <BarChart3 className="w-4 h-4" />
                   </div>
                   <h2 className="font-display font-bold text-lg text-brand-deepPurple">
-                    Monthly Revenue Analytics
+                    Revenue Analytics
                   </h2>
                 </div>
                 <p className="text-xs text-[#805A82] mt-0.5">

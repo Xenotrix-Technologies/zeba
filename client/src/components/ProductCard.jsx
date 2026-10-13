@@ -5,13 +5,13 @@ import { useCart } from '../context/CartContext';
 import { getProductMainImage } from '../utils/imageUtils';
 
 export default function ProductCard({ product, isFeatured = false }) {
-  const { addToCart } = useCart();
+  const { addToCart, startBuyNow } = useCart();
   const navigate = useNavigate();
 
   const handleBuyNow = (e) => {
     e.preventDefault();
-    addToCart(product, 1, false);
-    navigate('/checkout');
+    startBuyNow(product, 1);
+    navigate('/checkout', { state: { buyNow: true } });
   };
 
   const mainImage = getProductMainImage(product.images);

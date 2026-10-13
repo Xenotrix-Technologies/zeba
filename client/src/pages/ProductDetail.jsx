@@ -74,7 +74,7 @@ export default function ProductDetail() {
     location: ''
   });
 
-  const { addToCart } = useCart();
+  const { addToCart, startBuyNow } = useCart();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -168,8 +168,8 @@ export default function ProductDetail() {
 
   const handleBuyNow = () => {
     if (!selectedProduct) return;
-    addToCart(selectedProduct, quantity, false);
-    navigate('/checkout');
+    startBuyNow(selectedProduct, quantity);
+    navigate('/checkout', { state: { buyNow: true } });
   };
 
   if (loading) {
