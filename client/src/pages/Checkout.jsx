@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, ShieldCheck, CreditCard, Banknote, CheckCircle2, Sparkles } from 'lucide-react';
+import { Lock, ShieldCheck, CreditCard, Banknote, CheckCircle2, Sparkles, Plus, Minus } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
 import { useCustomerAuth } from '../context/CustomerAuthContext';
@@ -30,7 +30,7 @@ const loadRazorpayScript = () => {
 };
 
 export default function Checkout() {
-  const { cart, subtotal, freeShippingThreshold, clearCart } = useCart();
+  const { cart, subtotal, freeShippingThreshold, clearCart, updateQuantity } = useCart();
   const { settings } = useStoreSettings();
   const { customer, isCustomerAuthenticated } = useCustomerAuth();
   const { addToast } = useToast();
@@ -570,7 +570,7 @@ export default function Checkout() {
                 {/* Items preview */}
                 <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
                   {cart.map((item) => (
-                    <div key={item.id} className="flex items-center space-x-3 py-2 border-b border-brand-primaryPink/15 last:border-0">
+                    <div key={item.id} className="flex items-center space-x-3 py-2.5 border-b border-brand-primaryPink/15 last:border-0">
                       <img
                         src={item.image}
                         alt={item.name}
@@ -581,10 +581,42 @@ export default function Checkout() {
                         className="w-12 h-12 rounded-xl object-cover border border-brand-primaryPink/15 flex-shrink-0"
                       />
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-xs font-bold text-brand-deepPurple truncate">{item.name}</h4>
-                        <div className="flex items-center justify-between text-[11px] text-[#805A82] mt-0.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <h4 className="text-xs font-bold text-brand-deepPurple truncate leading-tight">
+                            {item.name}
+                          </h4>
+
+                          {/* + and - quantity stepper */}
+                          <div className="flex items-center border border-brand-primaryPink/30 rounded-lg bg-brand-softPink/50 p-0.5 flex-shrink-0 shadow-xs">
+                            <button
+                              type="button"
+                              onClick={() => updateQuantity(item.id, -1)}
+                              className="w-5 h-5 flex items-center justify-center text-brand-deepPurple hover:text-brand-brightPink hover:bg-brand-softPink rounded transition-colors"
+                              aria-label="Decrease quantity"
+                              title="Decrease quantity"
+                            >
+                              <Minus className="w-3 h-3" />
+                            </button>
+                            <span className="px-1.5 text-xs font-bold text-brand-deepPurple min-w-[1.25rem] text-center select-none">
+                              {item.quantity}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => updateQuantity(item.id, 1)}
+                              className="w-5 h-5 flex items-center justify-center text-brand-deepPurple hover:text-brand-brightPink hover:bg-brand-softPink rounded transition-colors"
+                              aria-label="Increase quantity"
+                              title="Increase quantity"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between text-[11px] text-[#805A82] mt-1">
                           <span>Qty: {item.quantity} × ₹{item.price.toFixed(0)}</span>
-                          <span className="font-bold text-brand-deepPurple">₹{(item.price * item.quantity).toFixed(2)}</span>
+                          <span className="font-bold text-brand-deepPurple">
+                            ₹{(item.price * item.quantity).toFixed(2)}
+                          </span>
                         </div>
                       </div>
                     </div>
