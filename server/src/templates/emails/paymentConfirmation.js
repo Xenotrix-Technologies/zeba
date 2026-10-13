@@ -199,7 +199,7 @@ Items:
 ${itemsText}
 
 ${isAdmin ? `Admin Portal: ${adminUrl}` : `Track your order: ${trackUrl}`}
-Support Contact: ${config.CONTACT_EMAIL || 'care@zebaofficial.in'}`;
+Support Contact: ${config.CONTACT_EMAIL || 'info@zebaofficial.in'}`;
 
   return {
     subject: `Payment Confirmed — Order #${orderNumber}`,

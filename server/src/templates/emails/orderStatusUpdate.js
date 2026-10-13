@@ -245,7 +245,7 @@ ${courier ? `Courier: ${courier}\n` : ''}${trackingNum ? `Tracking Number: ${tra
 ${itemsText ? `Items:\n${itemsText}\n` : ''}Total Amount: Rs. ${totalAmount}
 
 Track live: ${orderTrackUrl}
-Support: ${config.CONTACT_EMAIL || 'care@zebaofficial.in'}`;
+Support: ${config.CONTACT_EMAIL || 'info@zebaofficial.in'}`;
 
   return {
     subject: `Order Update — #${orderNumber} is now ${formattedNewStatus}`,

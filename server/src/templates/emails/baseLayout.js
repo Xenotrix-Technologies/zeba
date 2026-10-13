@@ -19,7 +19,7 @@ export function renderEmailLayout({
 }) {
   const brandName = config.business?.brandName || 'ZEBA';
   const appUrl = config.APP_URL || 'https://www.zebaofficial.in';
-  const supportEmail = config.CONTACT_EMAIL || 'care@zebaofficial.in';
+  const supportEmail = config.CONTACT_EMAIL || 'info@zebaofficial.in';
   const supportPhone = config.CONTACT_PHONE && !config.CONTACT_PHONE.includes('98765') && !config.CONTACT_PHONE.includes('70259') ? config.CONTACT_PHONE : '+91 75609 61509';
   const rawWhatsapp = String(config.WHATSAPP_DISPLAY || '');
   const whatsappDisplay = (!rawWhatsapp || rawWhatsapp.includes('98765') || rawWhatsapp.includes('70259')) ? '+91 75609 61509' : rawWhatsapp;

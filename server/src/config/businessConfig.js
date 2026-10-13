@@ -23,7 +23,7 @@ export const businessConfig = {
   websiteUrl: process.env.APP_URL || process.env.WEBSITE_URL || 'https://www.zebaofficial.in',
 
   // Contact Information
-  supportEmail: process.env.CONTACT_EMAIL || process.env.SUPPORT_EMAIL || 'care@zebaofficial.in',
+  supportEmail: process.env.CONTACT_EMAIL || process.env.SUPPORT_EMAIL || 'info@zebaofficial.in',
   businessEmail: process.env.BUSINESS_EMAIL || 'business@zebaofficial.in',
   ownerEmail: process.env.OWNER_EMAIL || process.env.ADMIN_DEFAULT_EMAIL || 'admin@zebaofficial.in',
   supportPhone: sanitizePhone(process.env.CONTACT_PHONE || process.env.SUPPORT_PHONE, '+91 75609 61509'),
