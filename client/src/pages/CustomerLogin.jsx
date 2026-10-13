@@ -141,7 +141,7 @@ export default function CustomerLogin() {
                     autoComplete="username"
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
-                    placeholder="name@example.com or 9876543210"
+                    placeholder="yourname@domain.com or 1234567890"
                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple bg-brand-softPink/20 transition-colors"
                   />
                 </div>
@@ -159,7 +159,7 @@ export default function CustomerLogin() {
                     autoComplete="current-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
+                    placeholder="••••••••••••••••"
                     className="w-full pl-10 pr-10 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple bg-brand-softPink/20 transition-colors"
                   />
                   <button
@@ -196,7 +196,7 @@ export default function CustomerLogin() {
                     required
                     value={regName}
                     onChange={(e) => setRegName(e.target.value)}
-                    placeholder="Ananya Sharma"
+                    placeholder="Enter Your Name"
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple bg-brand-softPink/20 transition-colors"
                   />
                 </div>
@@ -213,7 +213,7 @@ export default function CustomerLogin() {
                     required
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
-                    placeholder="ananya@example.com"
+                    placeholder="yourname@domain.com"
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple bg-brand-softPink/20 transition-colors"
                   />
                 </div>
@@ -230,7 +230,7 @@ export default function CustomerLogin() {
                     required
                     value={regPhone}
                     onChange={(e) => setRegPhone(e.target.value)}
-                    placeholder="7560961509"
+                    placeholder="1234567890"
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple bg-brand-softPink/20 transition-colors"
                   />
                 </div>
@@ -248,7 +248,7 @@ export default function CustomerLogin() {
                     minLength={6}
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
-                    placeholder="••••••••"
+                    placeholder="••••••••••••••••"
                     className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple bg-brand-softPink/20 transition-colors"
                   />
                   <button

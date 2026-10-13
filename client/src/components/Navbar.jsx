@@ -288,7 +288,7 @@ export default function Navbar() {
 
             {/* Shop 3-Pack CTA */}
             <Link
-              to="/products"
+              to="/products/zeba-heating-pad-3-pack"
               className="hidden lg:inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-brand font-bold uppercase tracking-wider text-white bg-gradient-to-r from-brand-brightPink to-brand-deepPink hover:from-brand-deepPink hover:to-brand-brightPink transition-all duration-200 shadow-md shadow-brand-pink/25 btn-tactile"
             >
               Shop 3-Pack

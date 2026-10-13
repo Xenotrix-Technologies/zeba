@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Eye, ChevronLeft, ChevronRight, Calendar, ArrowUpDown, X } from 'lucide-react';
 import api from '../../services/api';
@@ -8,13 +8,12 @@ export default function AdminOrders() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [monthFilter, setMonthFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState(''); // 'YYYY-MM-DD'
   const [sortOrder, setSortOrder] = useState('DESC'); // 'DESC' | 'ASC'
   const [statusFilter, setStatusFilter] = useState('all');
   const [paymentFilter, setPaymentFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
-  const [availableMonths, setAvailableMonths] = useState([]);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -29,8 +28,8 @@ export default function AdminOrders() {
         sortOrder
       });
 
-      if (monthFilter && monthFilter !== 'all') {
-        params.append('month', monthFilter);
+      if (dateFilter && dateFilter.trim() !== '') {
+        params.append('date', dateFilter);
       }
 
       const res = await api.get(`/admin/orders?${params.toString()}`);
@@ -38,9 +37,6 @@ export default function AdminOrders() {
         setOrders(res.orders);
         setTotal(res.total);
         setTotalPages(res.totalPages || 1);
-        if (res.availableMonths) {
-          setAvailableMonths(res.availableMonths);
-        }
       }
     } catch (err) {
       console.error('Failed to load admin orders', err);
@@ -51,38 +47,13 @@ export default function AdminOrders() {
 
   useEffect(() => {
     fetchOrders();
-  }, [page, statusFilter, paymentFilter, monthFilter, sortOrder]);
+  }, [page, statusFilter, paymentFilter, dateFilter, sortOrder]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setPage(1);
     fetchOrders();
   };
-
-  // Generate list of available months (DB recorded months + recent rolling 12 months)
-  const monthOptions = useMemo(() => {
-    const map = new Map();
-
-    availableMonths.forEach((m) => {
-      map.set(m.month_key, {
-        value: m.month_key,
-        label: m.month_label,
-        count: parseInt(m.count, 10)
-      });
-    });
-
-    const now = new Date();
-    for (let i = 0; i < 12; i++) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      const label = d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
-      if (!map.has(key)) {
-        map.set(key, { value: key, label, count: 0 });
-      }
-    }
-
-    return Array.from(map.values()).sort((a, b) => b.value.localeCompare(a.value));
-  }, [availableMonths]);
 
   return (
     <div className="space-y-6">
@@ -93,12 +64,14 @@ export default function AdminOrders() {
           <p className="text-xs text-[#805A82] mt-0.5">Manage customer orders, track shipments, and review payments</p>
         </div>
         <div className="flex items-center gap-2">
-          {monthFilter !== 'all' && (
+          {dateFilter && (
             <button
-              onClick={() => { setMonthFilter('all'); setPage(1); }}
+              onClick={() => { setDateFilter(''); setPage(1); }}
               className="inline-flex items-center space-x-1.5 text-xs font-bold text-brand-brightPink bg-brand-softPink px-3 py-1.5 rounded-full border border-brand-primaryPink/30 hover:bg-brand-brightPink hover:text-white transition-colors"
+              title="Click to clear date filter"
             >
-              <span>Month: {monthOptions.find(m => m.value === monthFilter)?.label || monthFilter}</span>
+              <Calendar className="w-3.5 h-3.5" />
+              <span>Date: {new Date(dateFilter + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
               <X className="w-3.5 h-3.5" />
             </button>
           )}
@@ -116,30 +89,46 @@ export default function AdminOrders() {
           <Search className="w-3.5 h-3.5 text-[#805A82] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
-            placeholder="Search orders..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-8.5 pl-8.5 pr-3 rounded-xl bg-[#FFF5FA] border border-brand-primaryPink/30 text-xs text-brand-darkPurple placeholder-[#805A82]/60 focus:border-brand-brightPink focus:bg-white outline-none transition-colors"
+            className="w-full h-8.5 pl-9 pr-7 rounded-xl bg-[#FFF5FA] border border-brand-primaryPink/30 text-xs text-brand-darkPurple focus:border-brand-brightPink focus:bg-white outline-none transition-colors"
           />
+          {search && (
+            <button
+              type="button"
+              onClick={() => { setSearch(''); setPage(1); }}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#805A82] hover:text-brand-brightPink p-0.5 rounded-full"
+              title="Clear search"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          )}
         </form>
 
-        {/* Dropdown Filters (Month, Status, Payment, Sort) - No scroll, fits perfectly */}
+        {/* Dropdown Filters (Calendar Date, Status, Payment, Sort) - No scroll, fits perfectly */}
         <div className="flex flex-wrap md:flex-nowrap items-center gap-1.5 sm:gap-2 shrink-0">
-          {/* Month Filter */}
+          {/* Calendar Date Picker */}
           <div className="flex items-center space-x-1 text-xs whitespace-nowrap">
-            <span className="text-[#805A82] font-semibold text-[11px]">Month:</span>
-            <select
-              value={monthFilter}
-              onChange={(e) => { setMonthFilter(e.target.value); setPage(1); }}
-              className="h-8.5 bg-[#FFF5FA] border border-brand-primaryPink/30 text-brand-darkPurple rounded-xl px-2 text-xs outline-none focus:border-brand-brightPink font-medium cursor-pointer"
-            >
-              <option value="all">All Months</option>
-              {monthOptions.map((m) => (
-                <option key={m.value} value={m.value}>
-                  {m.label} {m.count > 0 ? `(${m.count})` : ''}
-                </option>
-              ))}
-            </select>
+            <span className="text-[#805A82] font-semibold text-[11px]">Date:</span>
+            <div className="relative flex items-center">
+              <input
+                type="date"
+                value={dateFilter}
+                onChange={(e) => { setDateFilter(e.target.value); setPage(1); }}
+                className="h-8.5 bg-[#FFF5FA] border border-brand-primaryPink/30 text-brand-darkPurple rounded-xl px-2.5 text-xs outline-none focus:border-brand-brightPink font-medium cursor-pointer"
+                title="Choose order date"
+              />
+              {dateFilter && (
+                <button
+                  type="button"
+                  onClick={() => { setDateFilter(''); setPage(1); }}
+                  className="ml-1 text-[#805A82] hover:text-brand-brightPink p-0.5 rounded-full transition-colors"
+                  title="Clear date"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Status Filter */}
@@ -198,8 +187,21 @@ export default function AdminOrders() {
         {loading ? (
           <div className="py-16 text-center text-xs text-[#805A82]">Loading orders...</div>
         ) : orders.length === 0 ? (
-          <div className="py-16 text-center text-xs text-[#805A82]">
-            No matching orders found.
+          <div className="py-16 text-center text-xs text-[#805A82] space-y-2">
+            <p>
+              {dateFilter
+                ? `No orders found for ${new Date(dateFilter + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}.`
+                : 'No matching orders found.'}
+            </p>
+            {dateFilter && (
+              <button
+                type="button"
+                onClick={() => { setDateFilter(''); setPage(1); }}
+                className="text-xs text-brand-brightPink font-bold hover:underline"
+              >
+                Clear date filter
+              </button>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto">

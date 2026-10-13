@@ -283,6 +283,7 @@ export async function getAdminOrders(req, res, next) {
       payment_status,
       refund_status,
       search,
+      date,
       month,
       startDate,
       endDate,
@@ -296,6 +297,11 @@ export async function getAdminOrders(req, res, next) {
     const conditions = [];
     const params = [];
     let paramIndex = 1;
+
+    if (date && date !== 'all' && date.trim() !== '') {
+      conditions.push(`TO_CHAR(o.created_at, 'YYYY-MM-DD') = $${paramIndex++}`);
+      params.push(date.trim());
+    }
 
     if (status && status !== 'all') {
       conditions.push(`o.status = $${paramIndex++}`);

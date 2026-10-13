@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   Star,
   Truck,
@@ -21,8 +21,36 @@ import { useStoreSettings } from '../context/StoreSettingsContext';
 import { useToast } from '../context/ToastContext';
 import { parseProductImages, DEFAULT_PRODUCT_IMAGE } from '../utils/imageUtils';
 
+function resolveProduct(prods, targetSlug, searchParams) {
+  if (!prods || prods.length === 0) return null;
+
+  // 1. By slug in URL path (/products/:slug)
+  if (targetSlug) {
+    const match = prods.find(p => p.slug === targetSlug);
+    if (match) return match;
+  }
+
+  // 2. By pack count in query parameter (/products?pack=1 or /products?pack=3)
+  const packParam = searchParams?.get('pack');
+  if (packParam) {
+    const match = prods.find(p => String(p.pack_count) === String(packParam));
+    if (match) return match;
+  }
+
+  // 3. By ID query parameter (/products?id=1)
+  const idParam = searchParams?.get('id');
+  if (idParam) {
+    const match = prods.find(p => String(p.id) === String(idParam));
+    if (match) return match;
+  }
+
+  // 4. Default fallback when no specific pack requested: 3-pack or first product
+  return prods.find(p => p.pack_count > 1) || prods[0];
+}
+
 export default function ProductDetail() {
   const { slug } = useParams();
+  const [searchParams] = useSearchParams();
   const { settings, getWhatsAppUrl } = useStoreSettings();
   const { addToast } = useToast();
   const [products, setProducts] = useState([]);
@@ -62,13 +90,7 @@ export default function ProductDetail() {
           const prods = prodRes.value.products;
           setProducts(prods);
 
-          let initialProd = null;
-          if (slug) {
-            initialProd = prods.find(p => p.slug === slug);
-          }
-          if (!initialProd) {
-            initialProd = prods.find(p => p.pack_count > 1) || prods[0];
-          }
+          const initialProd = resolveProduct(prods, slug, searchParams);
           setSelectedProduct(initialProd);
         }
 
@@ -92,6 +114,16 @@ export default function ProductDetail() {
 
     loadProductAndReviews();
   }, [slug]);
+
+  // Synchronize selected variant if URL slug or searchParams change while staying on the page
+  useEffect(() => {
+    if (!products || products.length === 0) return;
+    const targetProd = resolveProduct(products, slug, searchParams);
+    if (targetProd && targetProd.id !== selectedProduct?.id) {
+      setSelectedProduct(targetProd);
+      setActiveImageIndex(0);
+    }
+  }, [slug, searchParams, products]);
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
@@ -124,6 +156,9 @@ export default function ProductDetail() {
   const handleVariantSelect = (product) => {
     setSelectedProduct(product);
     setActiveImageIndex(0);
+    if (product?.slug) {
+      navigate(`/products/${product.slug}`, { replace: true });
+    }
   };
 
   const handleAddToCart = () => {
@@ -155,13 +190,15 @@ export default function ProductDetail() {
   }
 
   // Curate product gallery with primary product shots, lifestyle photo, how-to-use guide, ingredients, and thermal heat relief timeline
-  const allImages = [
+  const productImages = parseProductImages(selectedProduct.images);
+  const infoImages = [
     '/images/zeba-1pack.webp',
     '/images/zeba-hero-lifestyle.webp',
     '/images/zeba-how-to-use-guide.webp',
     '/images/zeba-whats-inside-ingredients.webp',
     '/images/Thermal-Heat-Relief-Timeline.webp'
-  ].filter((img, idx, arr) => arr.indexOf(img) === idx);
+  ];
+  const allImages = [...productImages, ...infoImages].filter((img, idx, arr) => arr.indexOf(img) === idx);
 
   const currentPrice = parseFloat(selectedProduct.price) || 0;
   const originalPrice = parseFloat(selectedProduct.original_price) || 0;

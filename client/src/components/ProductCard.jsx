@@ -22,6 +22,10 @@ export default function ProductCard({ product, isFeatured = false }) {
     ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100)
     : 0;
 
+  const productUrl = product.slug
+    ? `/products/${product.slug}`
+    : `/products?pack=${product.pack_count || 1}`;
+
   return (
     <div
       className={`relative rounded-3xl bg-white border transition-all duration-300 flex flex-col justify-between overflow-hidden group ${
@@ -53,7 +57,7 @@ export default function ProductCard({ product, isFeatured = false }) {
 
       {/* Product Image Gallery Link */}
       <Link
-        to={`/products`}
+        to={productUrl}
         className="relative block bg-gradient-to-b from-[#FFF5FA] to-white overflow-hidden aspect-square flex items-center justify-center p-6"
       >
         <img
@@ -89,7 +93,7 @@ export default function ProductCard({ product, isFeatured = false }) {
           </div>
 
           {/* Title */}
-          <Link to="/products">
+          <Link to={productUrl}>
             <h3 className="font-display font-extrabold text-lg sm:text-xl text-brand-deepPurple group-hover:text-brand-brightPink transition-colors line-clamp-1">
               {product.name}
             </h3>

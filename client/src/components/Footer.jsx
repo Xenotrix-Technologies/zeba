@@ -116,12 +116,12 @@ export default function Footer() {
             <h4 className="text-white text-sm font-bold uppercase tracking-wider text-brand-lightGold">Shop Products</h4>
             <ul className="space-y-2 text-xs">
               <li>
-                <Link to="/products" className="hover:text-brand-primaryPink transition-colors text-pink-100/80">
+                <Link to="/products/zeba-heating-pad-1-pack" className="hover:text-brand-primaryPink transition-colors text-pink-100/80">
                   ZEBA Heating Pad – 1 Pack
                 </Link>
               </li>
               <li>
-                <Link to="/products" className="hover:text-brand-primaryPink transition-colors text-pink-100/80">
+                <Link to="/products/zeba-heating-pad-3-pack" className="hover:text-brand-primaryPink transition-colors text-pink-100/80">
                   ZEBA Heating Pad – 3 Pack (Value Pack)
                 </Link>
               </li>
