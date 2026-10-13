@@ -38,6 +38,10 @@ export function StoreSettingsProvider({ children }) {
               const num = this.numberRaw || (this.number ? this.number.replace(/[^0-9]/g, '') : '917560961509');
               return `https://wa.me/${num}?text=${msg}`;
             }
+          },
+          offerBar: {
+            ...prev.offerBar,
+            ...(res.settings.offerBar || (res.raw?.offer_bar || {}))
           }
         }));
       }

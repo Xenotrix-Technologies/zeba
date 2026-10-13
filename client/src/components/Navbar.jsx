@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Menu, X, Sparkles, User, LogOut } from 'lucide-react';
+import { ShoppingBag, Menu, X, Sparkles, User, LogOut, Flame, Gift, Tag, Bell, Heart, ShieldCheck, Copy, ArrowRight } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useCustomerAuth } from '../context/CustomerAuthContext';
 import { useStoreSettings } from '../context/StoreSettingsContext';
+import { useToast } from '../context/ToastContext';
 
 export default function Navbar() {
   const { settings } = useStoreSettings();
+  const { addToast } = useToast();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -15,6 +17,62 @@ export default function Navbar() {
   const { customer, isCustomerAuthenticated, logout } = useCustomerAuth();
   const location = useLocation();
   const navigate = useNavigate();
+
+  const offerBar = settings.offerBar || {
+    enabled: true,
+    mode: 'threshold',
+    badgeText: 'Special Offer:',
+    boldText: 'Free Fast Shipping',
+    subText: '',
+    autoThreshold: true,
+    customText: '',
+    secondaryText: '• 100% Safe Natural Minerals • Discreet Packaging',
+    couponCode: '',
+    linkUrl: '',
+    bgColor: '#5F3F68',
+    textColor: '#FFFFFF',
+    accentColor: '#ECC695',
+    icon: 'Sparkles',
+    pulseEffect: true,
+    showSecondaryOnMobile: false
+  };
+
+  const renderOfferIcon = () => {
+    const iconClass = `w-3.5 h-3.5 flex-shrink-0 ${offerBar.pulseEffect ? 'animate-pulse' : ''}`;
+    const iconStyle = { color: offerBar.accentColor || '#ECC695' };
+    switch (offerBar.icon) {
+      case 'Flame': return <Flame className={iconClass} style={iconStyle} />;
+      case 'Gift': return <Gift className={iconClass} style={iconStyle} />;
+      case 'Tag': return <Tag className={iconClass} style={iconStyle} />;
+      case 'Bell': return <Bell className={iconClass} style={iconStyle} />;
+      case 'Heart': return <Heart className={iconClass} style={iconStyle} />;
+      case 'ShieldCheck': return <ShieldCheck className={iconClass} style={iconStyle} />;
+      case 'None': return null;
+      case 'Sparkles':
+      default:
+        return <Sparkles className={iconClass} style={iconStyle} />;
+    }
+  };
+
+  const handleCopyCoupon = (e, code) => {
+    e.stopPropagation();
+    if (navigator?.clipboard) {
+      navigator.clipboard.writeText(code);
+      addToast(`Promo code "${code}" copied to clipboard!`, 'success');
+    }
+  };
+
+  const handleOfferBarClick = () => {
+    if (!offerBar.linkUrl) return;
+    if (offerBar.linkUrl.startsWith('http')) {
+      window.open(offerBar.linkUrl, '_blank', 'noopener,noreferrer');
+    } else if (offerBar.linkUrl.startsWith('#')) {
+      const el = document.querySelector(offerBar.linkUrl);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      navigate(offerBar.linkUrl);
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -42,13 +100,65 @@ export default function Navbar() {
   return (
     <>
       {/* Top Notification Announcement Bar */}
-      <div className="bg-[#5F3F68] text-white py-2 px-4 text-xs md:text-sm font-brand font-medium tracking-wide text-center border-b border-white/10 flex items-center justify-center space-x-2 shadow-sm">
-        <Sparkles className="w-3.5 h-3.5 text-brand-gold animate-pulse flex-shrink-0" />
-        <span>
-          Special Offer: <strong>Free Fast Shipping</strong> {(Number(settings.commerce?.freeShippingThreshold) > 0) ? `on orders above ₹${settings.commerce.freeShippingThreshold}!` : 'on all orders!'}
-        </span>
-        <span className="hidden md:inline text-brand-lightGold font-semibold">• 100% Safe Natural Minerals • Discreet Packaging</span>
-      </div>
+      {offerBar.enabled && (
+        <div
+          onClick={offerBar.linkUrl ? handleOfferBarClick : undefined}
+          style={{
+            backgroundColor: offerBar.bgColor || '#5F3F68',
+            color: offerBar.textColor || '#FFFFFF'
+          }}
+          className={`py-2 px-4 text-xs md:text-sm font-brand font-medium tracking-wide text-center border-b border-white/10 flex items-center justify-center flex-wrap gap-x-2 gap-y-1 shadow-sm transition-opacity select-none ${
+            offerBar.linkUrl ? 'cursor-pointer hover:opacity-95' : ''
+          }`}
+        >
+          {renderOfferIcon()}
+
+          {offerBar.mode === 'custom' && offerBar.customText ? (
+            <span className="font-semibold">{offerBar.customText}</span>
+          ) : (
+            <span>
+              {offerBar.badgeText && <span className="mr-1">{offerBar.badgeText}</span>}
+              {offerBar.boldText && <strong>{offerBar.boldText} </strong>}
+              <span>
+                {offerBar.autoThreshold
+                  ? (Number(settings.commerce?.freeShippingThreshold) > 0
+                    ? `on orders above ₹${settings.commerce.freeShippingThreshold}!`
+                    : 'on all orders!')
+                  : (offerBar.subText || '')}
+              </span>
+            </span>
+          )}
+
+          {offerBar.couponCode && (
+            <button
+              type="button"
+              onClick={(e) => handleCopyCoupon(e, offerBar.couponCode)}
+              className="inline-flex items-center space-x-1 px-2 py-0.5 rounded text-[11px] font-bold tracking-wider uppercase border border-white/20 bg-white/10 hover:bg-white/20 transition-colors shadow-sm ml-1"
+              style={{ color: offerBar.accentColor || '#ECC695' }}
+              title="Click to copy promo code"
+            >
+              <Tag className="w-3 h-3 flex-shrink-0" />
+              <span>CODE: {offerBar.couponCode}</span>
+              <Copy className="w-2.5 h-2.5 opacity-70 ml-0.5" />
+            </button>
+          )}
+
+          {offerBar.secondaryText && (
+            <span
+              style={{ color: offerBar.accentColor || '#ECC695' }}
+              className={`font-semibold ${offerBar.showSecondaryOnMobile ? 'inline' : 'hidden md:inline'}`}
+            >
+              {offerBar.secondaryText}
+            </span>
+          )}
+
+          {offerBar.linkUrl && (
+            <span className="hidden sm:inline-flex items-center text-[11px] opacity-80 hover:opacity-100 transition-opacity ml-1">
+              <ArrowRight className="w-3 h-3" />
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Main Sticky Navbar */}
       <header

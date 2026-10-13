@@ -33,6 +33,7 @@ const AdminOrderDetail = lazy(() => import('./pages/admin/AdminOrderDetail'));
 const AdminProducts = lazy(() => import('./pages/admin/AdminProducts'));
 const AdminCustomers = lazy(() => import('./pages/admin/AdminCustomers'));
 const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
+const AdminOfferBar = lazy(() => import('./pages/admin/AdminOfferBar'));
 
 function PageLoader() {
   return (
@@ -115,6 +116,7 @@ export default function App() {
           <Route path="orders/:id" element={<AdminOrderDetail />} />
           <Route path="products" element={<AdminProducts />} />
           <Route path="customers" element={<AdminCustomers />} />
+          <Route path="offer-bar" element={<AdminOfferBar />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>
 

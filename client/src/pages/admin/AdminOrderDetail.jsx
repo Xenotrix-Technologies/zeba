@@ -15,7 +15,6 @@ import {
   Mail,
   MessageCircle,
   Send,
-  BellRing,
   History,
   Calendar,
   RefreshCw,
@@ -553,47 +552,6 @@ export default function AdminOrderDetail() {
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-          </div>
-
-          {/* Customer Notifications Dispatch History Log */}
-          <div className="bg-white rounded-3xl p-6 border border-brand-primaryPink/20 shadow-sm space-y-4">
-            <h3 className="font-display font-bold text-base text-brand-dark flex items-center space-x-2">
-              <BellRing className="w-4 h-4 text-brand-gold" />
-              <span>Transactional Notifications Dispatch History ({order.notifications?.length || 0})</span>
-            </h3>
-
-            {(!order.notifications || order.notifications.length === 0) ? (
-              <p className="text-xs text-brand-plum/60">
-                No notification logged yet. When order status updates are triggered, records appear here.
-              </p>
-            ) : (
-              <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
-                {order.notifications.map((notif) => (
-                  <div key={notif.id} className="p-3.5 rounded-2xl bg-brand-softPink/60 border border-brand-primaryPink/20 text-xs space-y-1">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
-                          notif.notification_type?.includes('whatsapp')
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            : 'bg-brand-primaryPink/20 text-brand-deepPurple border border-brand-primaryPink/40'
-                        }`}>
-                          {notif.notification_type}
-                        </span>
-                        <span className="font-bold text-brand-dark uppercase text-[11px]">
-                          Status: {notif.status_sent}
-                        </span>
-                      </div>
-                      <span className="text-brand-plum/60 text-[10px]">
-                        {new Date(notif.created_at).toLocaleString('en-IN')}
-                      </span>
-                    </div>
-                    <p className="text-brand-dark font-mono text-[11px] whitespace-pre-line bg-white p-2.5 rounded-xl border border-brand-primaryPink/15 mt-1.5">
-                      {notif.message}
-                    </p>
-                  </div>
-                ))}
               </div>
             )}
           </div>

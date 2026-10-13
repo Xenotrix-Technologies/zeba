@@ -112,6 +112,26 @@ export const businessConfig = {
     gatewayName: 'Razorpay',
     methods: ['UPI (GPay, PhonePe, Paytm)', 'Credit/Debit Cards', 'NetBanking', 'Wallets', 'Cash on Delivery (COD)'],
     securityNotice: '256-Bit SSL Encrypted Razorpay Checkout'
+  },
+
+  // Top Header Announcement & Offer Bar
+  offerBar: {
+    enabled: true,
+    mode: 'threshold', // 'threshold' or 'custom'
+    badgeText: 'Special Offer:',
+    boldText: 'Free Fast Shipping',
+    subText: '',
+    autoThreshold: true,
+    customText: '',
+    secondaryText: '• 100% Safe Natural Minerals • Discreet Packaging',
+    couponCode: '',
+    linkUrl: '',
+    bgColor: '#5F3F68',
+    textColor: '#FFFFFF',
+    accentColor: '#ECC695',
+    icon: 'Sparkles',
+    pulseEffect: true,
+    showSecondaryOnMobile: false
   }
 };
 

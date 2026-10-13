@@ -270,6 +270,29 @@ export async function seedDatabase() {
         inquiryEmail: 'info@zebaofficial.in',
         contactPerson: 'Corporate Wellness Team'
       }
+    },
+    {
+      key: 'offer_bar',
+      category: 'announcement',
+      description: 'Top header announcement and offer bar configuration',
+      value: {
+        enabled: true,
+        mode: 'threshold',
+        badgeText: 'Special Offer:',
+        boldText: 'Free Fast Shipping',
+        subText: '',
+        autoThreshold: true,
+        customText: '',
+        secondaryText: '• 100% Safe Natural Minerals • Discreet Packaging',
+        couponCode: '',
+        linkUrl: '',
+        bgColor: '#5F3F68',
+        textColor: '#FFFFFF',
+        accentColor: '#ECC695',
+        icon: 'Sparkles',
+        pulseEffect: true,
+        showSecondaryOnMobile: false
+      }
     }
   ];
 

@@ -29,6 +29,7 @@ export async function getPublicSettings(req, res, next) {
     const commerce = typeof settingsMap.shipping_commerce === 'object' && settingsMap.shipping_commerce !== null ? settingsMap.shipping_commerce : {};
     const social = typeof settingsMap.social_channels === 'object' && settingsMap.social_channels !== null ? settingsMap.social_channels : {};
     const b2b = typeof settingsMap.b2b_wholesale === 'object' && settingsMap.b2b_wholesale !== null ? settingsMap.b2b_wholesale : {};
+    const offerBar = typeof settingsMap.offer_bar === 'object' && settingsMap.offer_bar !== null ? settingsMap.offer_bar : {};
 
     res.json({
       success: true,
@@ -106,6 +107,24 @@ export async function getPublicSettings(req, res, next) {
           corporateGiftingEnabled: true,
           inquiryEmail: 'info@zebaofficial.in',
           contactPerson: 'Corporate Wellness Team'
+        },
+        offerBar: {
+          enabled: offerBar.enabled !== undefined ? Boolean(offerBar.enabled) : true,
+          mode: offerBar.mode || 'threshold',
+          badgeText: offerBar.badgeText !== undefined ? offerBar.badgeText : 'Special Offer:',
+          boldText: offerBar.boldText !== undefined ? offerBar.boldText : 'Free Fast Shipping',
+          subText: offerBar.subText !== undefined ? offerBar.subText : '',
+          autoThreshold: offerBar.autoThreshold !== undefined ? Boolean(offerBar.autoThreshold) : true,
+          customText: offerBar.customText || '',
+          secondaryText: offerBar.secondaryText !== undefined ? offerBar.secondaryText : '• 100% Safe Natural Minerals • Discreet Packaging',
+          couponCode: offerBar.couponCode || '',
+          linkUrl: offerBar.linkUrl || '',
+          bgColor: offerBar.bgColor || '#5F3F68',
+          textColor: offerBar.textColor || '#FFFFFF',
+          accentColor: offerBar.accentColor || '#ECC695',
+          icon: offerBar.icon || 'Sparkles',
+          pulseEffect: offerBar.pulseEffect !== undefined ? Boolean(offerBar.pulseEffect) : true,
+          showSecondaryOnMobile: offerBar.showSecondaryOnMobile !== undefined ? Boolean(offerBar.showSecondaryOnMobile) : false
         }
       },
       raw: settingsMap
