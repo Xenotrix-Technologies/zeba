@@ -82,10 +82,11 @@ export default function Checkout() {
   const freeThreshold = settings.commerce?.freeShippingThreshold !== undefined && settings.commerce?.freeShippingThreshold !== null
     ? Number(settings.commerce.freeShippingThreshold)
     : (freeShippingThreshold || 1000);
-  const standardShippingFee = settings.commerce?.standardShippingFee !== undefined && settings.commerce?.standardShippingFee !== null && Number(settings.commerce.standardShippingFee) > 0
+  const standardShippingFee = settings.commerce?.standardShippingFee !== undefined && settings.commerce?.standardShippingFee !== null
     ? Number(settings.commerce.standardShippingFee)
-    : (freeThreshold > 0 ? 49.00 : 0.00);
-  const shippingFee = (freeThreshold === 0 || subtotal >= freeThreshold)
+    : 49.00;
+  const isFreeShipping = standardShippingFee === 0 || freeThreshold === 0 || subtotal >= freeThreshold;
+  const shippingFee = isFreeShipping
     ? 0.00
     : (cart.length > 0 ? standardShippingFee : 0.00);
   const isCod = paymentMethod === 'cod';
@@ -366,7 +367,7 @@ export default function Checkout() {
                       type="text"
                       name="name"
                       required
-                      placeholder="e.g. Pooja Sharma"
+                      placeholder="Full Name"
                       value={formData.name}
                       onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple"
@@ -379,7 +380,7 @@ export default function Checkout() {
                       type="tel"
                       name="phone"
                       required
-                      placeholder="10-digit mobile number"
+                      placeholder="Mobile Number"
                       value={formData.phone}
                       onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple"
@@ -392,7 +393,7 @@ export default function Checkout() {
                       type="email"
                       name="email"
                       required
-                      placeholder="yourname@domain.com"
+                      placeholder="Email Address"
                       value={formData.email}
                       onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple"
@@ -415,7 +416,7 @@ export default function Checkout() {
                       type="text"
                       name="houseBuilding"
                       required
-                      placeholder="Flat 402, Lotus Apartments"
+                      placeholder="Flat / House No. / Building Name"
                       value={formData.houseBuilding}
                       onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple"
@@ -427,7 +428,7 @@ export default function Checkout() {
                     <input
                       type="text"
                       name="street"
-                      placeholder="Near City Park, 12th Main"
+                      placeholder="Street / Landmark"
                       value={formData.street}
                       onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple"
@@ -439,7 +440,7 @@ export default function Checkout() {
                     <input
                       type="text"
                       name="area"
-                      placeholder="Indiranagar"
+                      placeholder="Area / Locality"
                       value={formData.area}
                       onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple"
@@ -452,7 +453,7 @@ export default function Checkout() {
                       type="text"
                       name="city"
                       required
-                      placeholder="Bengaluru"
+                      placeholder="City"
                       value={formData.city}
                       onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple"
@@ -465,7 +466,7 @@ export default function Checkout() {
                       type="text"
                       name="state"
                       required
-                      placeholder="Karnataka"
+                      placeholder="State"
                       value={formData.state}
                       onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple"
@@ -479,7 +480,7 @@ export default function Checkout() {
                       name="pincode"
                       required
                       maxLength="6"
-                      placeholder="560038"
+                      placeholder="PIN Code (6 digits)"
                       value={formData.pincode}
                       onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple"
@@ -502,7 +503,7 @@ export default function Checkout() {
                     <input
                       type="text"
                       name="notes"
-                      placeholder="Leave with security / Call before delivery"
+                      placeholder="Special delivery instructions (optional)"
                       value={formData.notes}
                       onChange={handleChange}
                       className="w-full px-4 py-3 rounded-xl border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-2 focus:ring-brand-pink/20 outline-none text-xs font-medium text-brand-darkPurple"
@@ -523,85 +524,34 @@ export default function Checkout() {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Option 1: Razorpay Online */}
-                  <div
-                    onClick={() => setPaymentMethod('razorpay')}
-                    className={`cursor-pointer rounded-2xl p-4 sm:p-5 border-2 transition-all relative ${
-                      paymentMethod === 'razorpay'
-                        ? 'border-brand-brightPink bg-[#FFF0F7] shadow-md ring-2 ring-brand-pink/20'
-                        : 'border-brand-primaryPink/20 bg-white hover:border-brand-primaryPink/50 hover:bg-brand-softPink/30'
-                    }`}
-                  >
+                <div>
+                  {/* Option 1: Razorpay Online Payment */}
+                  <div className="rounded-2xl p-4 sm:p-5 border-2 border-brand-brightPink bg-[#FFF0F7] shadow-md ring-2 ring-brand-pink/20 relative">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                          paymentMethod === 'razorpay' ? 'bg-brand-brightPink text-white' : 'bg-brand-softPink text-brand-deepPurple'
-                        }`}>
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-brand-brightPink text-white shadow-sm">
                           <CreditCard className="w-5 h-5" />
                         </div>
                         <div>
-                          <h3 className="text-xs font-bold text-brand-deepPurple">Online Payment (Razorpay)</h3>
+                          <h3 className="text-sm font-bold text-brand-deepPurple">Online Payment (Razorpay)</h3>
                           <span className="text-[11px] text-emerald-700 font-semibold flex items-center space-x-1 mt-0.5">
-                            <Sparkles className="w-3 h-3 text-emerald-600" />
-                            <span>Instant Confirmation</span>
+                            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>Instant Confirmation • All Payment Modes Supported</span>
                           </span>
                         </div>
                       </div>
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-1 ${
-                        paymentMethod === 'razorpay' ? 'border-brand-brightPink bg-brand-brightPink text-white' : 'border-gray-300'
-                      }`}>
-                        {paymentMethod === 'razorpay' && <div className="w-2 h-2 rounded-full bg-white" />}
+                      <div className="w-5 h-5 rounded-full border-2 border-brand-brightPink bg-brand-brightPink text-white flex items-center justify-center mt-1">
+                        <div className="w-2 h-2 rounded-full bg-white" />
                       </div>
                     </div>
 
-                    <p className="text-[11px] text-[#805A82] mt-3 leading-relaxed">
-                      Pay instantly with UPI (Google Pay, PhonePe, Paytm, BHIM), Cards (Visa, Mastercard, RuPay), or NetBanking.
+                    <p className="text-xs text-[#805A82] mt-3 leading-relaxed">
+                      Pay securely with UPI (Google Pay, PhonePe, Paytm, BHIM), Cards (Visa, Mastercard, RuPay), or NetBanking.
                     </p>
 
-                    <div className="mt-3 flex items-center space-x-2 pt-2 border-t border-brand-primaryPink/15 text-[10px] text-[#805A82] font-semibold">
-                      <Lock className="w-3 h-3 text-emerald-600" />
-                      <span>Razorpay 256-Bit SSL Encrypted</span>
-                    </div>
-                  </div>
-
-                  {/* Option 2: Cash on Delivery */}
-                  <div
-                    onClick={() => setPaymentMethod('cod')}
-                    className={`cursor-pointer rounded-2xl p-4 sm:p-5 border-2 transition-all relative ${
-                      paymentMethod === 'cod'
-                        ? 'border-brand-brightPink bg-[#FFF0F7] shadow-md ring-2 ring-brand-pink/20'
-                        : 'border-brand-primaryPink/20 bg-white hover:border-brand-primaryPink/50 hover:bg-brand-softPink/30'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                          paymentMethod === 'cod' ? 'bg-brand-brightPink text-white' : 'bg-brand-softPink text-brand-deepPurple'
-                        }`}>
-                          <Banknote className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <h3 className="text-xs font-bold text-brand-deepPurple">Cash on Delivery (COD)</h3>
-                          <span className="text-[11px] text-brand-brightPink font-semibold block mt-0.5">
-                            Pay Cash at Doorstep
-                          </span>
-                        </div>
-                      </div>
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-1 ${
-                        paymentMethod === 'cod' ? 'border-brand-brightPink bg-brand-brightPink text-white' : 'border-gray-300'
-                      }`}>
-                        {paymentMethod === 'cod' && <div className="w-2 h-2 rounded-full bg-white" />}
-                      </div>
-                    </div>
-
-                    <p className="text-[11px] text-[#805A82] mt-3 leading-relaxed">
-                      Pay with cash when our courier delivers the discreet, plain parcel directly to your address.
-                    </p>
-
-                    <div className="mt-3 flex items-center space-x-2 pt-2 border-t border-brand-primaryPink/15 text-[10px] text-[#805A82] font-semibold">
-                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                      <span>Zero Advance Payment Required</span>
+                    <div className="mt-3 flex items-center space-x-2 pt-2 border-t border-brand-primaryPink/15 text-[11px] text-[#805A82] font-semibold">
+                      <Lock className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Razorpay 256-Bit SSL Encrypted & RBI Compliant</span>
                     </div>
                   </div>
                 </div>

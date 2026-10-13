@@ -121,9 +121,11 @@ export default function Navbar() {
               {offerBar.boldText && <strong>{offerBar.boldText} </strong>}
               <span>
                 {offerBar.autoThreshold
-                  ? (Number(settings.commerce?.freeShippingThreshold) > 0
-                    ? `on orders above ₹${settings.commerce.freeShippingThreshold}!`
-                    : 'on all orders!')
+                  ? (Number(settings.commerce?.standardShippingFee) === 0 || Number(settings.commerce?.freeShippingThreshold) === 0
+                    ? 'on all orders!'
+                    : (Number(settings.commerce?.freeShippingThreshold) > 0
+                      ? `on orders above ₹${settings.commerce.freeShippingThreshold}!`
+                      : 'on all orders!'))
                   : (offerBar.subText || '')}
               </span>
             </span>

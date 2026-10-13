@@ -6,6 +6,7 @@ function formatProduct(prod) {
     ...prod,
     price: parseFloat(prod.price),
     original_price: parseFloat(prod.original_price),
+    show_original_price: prod.show_original_price !== false,
     stock_quantity: parseInt(prod.stock_quantity, 10),
     pack_count: parseInt(prod.pack_count, 10),
     images: Array.isArray(prod.images) ? prod.images : (typeof prod.images === 'string' ? JSON.parse(prod.images || '[]') : [])
@@ -15,7 +16,7 @@ function formatProduct(prod) {
 export async function getProducts(req, res, next) {
   try {
     const result = await query(
-      `SELECT id, slug, name, pack_size, pack_count, price, original_price,
+      `SELECT id, slug, name, pack_size, pack_count, price, original_price, show_original_price,
               stock_quantity, badge_text, short_description, description,
               benefits, how_to_use, features, images, is_active, is_featured,
               created_at, updated_at
@@ -38,7 +39,7 @@ export async function getProductBySlug(req, res, next) {
   try {
     const { slug } = req.params;
     const result = await query(
-      `SELECT id, slug, name, pack_size, pack_count, price, original_price,
+      `SELECT id, slug, name, pack_size, pack_count, price, original_price, show_original_price,
               stock_quantity, badge_text, short_description, description,
               benefits, how_to_use, features, images, is_active, is_featured,
               created_at, updated_at

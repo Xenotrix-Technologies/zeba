@@ -183,7 +183,7 @@ export default function CartDrawer() {
                         <span className="text-xs sm:text-sm font-extrabold text-brand-deepPurple">
                           ₹{(item.price * item.quantity).toFixed(2)}
                         </span>
-                        {parseFloat(item.original_price) > parseFloat(item.price) && (
+                        {item.show_original_price !== false && parseFloat(item.original_price) > parseFloat(item.price) && (
                           <div className="text-[10px] text-slate-400 line-through">
                             ₹{(parseFloat(item.original_price) * item.quantity).toFixed(2)}
                           </div>

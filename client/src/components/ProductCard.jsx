@@ -17,7 +17,8 @@ export default function ProductCard({ product, isFeatured = false }) {
   const mainImage = getProductMainImage(product.images);
   const currentPrice = parseFloat(product.price) || 0;
   const originalPrice = parseFloat(product.original_price) || 0;
-  const discountPercent = originalPrice > currentPrice
+  const isOriginalPriceActive = product.show_original_price !== false && originalPrice > currentPrice;
+  const discountPercent = isOriginalPriceActive
     ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100)
     : 0;
 
@@ -118,7 +119,7 @@ export default function ProductCard({ product, isFeatured = false }) {
             <span className="font-display font-black text-2xl text-brand-deepPurple">
               ₹{parseFloat(product.price).toFixed(0)}
             </span>
-            {parseFloat(product.original_price) > parseFloat(product.price) && (
+            {isOriginalPriceActive && (
               <>
                 <span className="text-sm text-slate-400 line-through">
                   ₹{parseFloat(product.original_price).toFixed(0)}

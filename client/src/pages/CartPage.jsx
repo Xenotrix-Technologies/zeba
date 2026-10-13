@@ -23,7 +23,7 @@ export default function CartPage() {
   const navigate = useNavigate();
   const shippingFee = cartShippingFee !== undefined
     ? cartShippingFee
-    : (isFreeShippingUnlocked ? 0.00 : (cart.length > 0 ? (standardShippingFee || 49.00) : 0.00));
+    : (isFreeShippingUnlocked ? 0.00 : (cart.length > 0 ? (typeof standardShippingFee === 'number' ? standardShippingFee : 49.00) : 0.00));
   const grandTotal = subtotal + shippingFee;
 
   if (cart.length === 0) {
@@ -147,7 +147,7 @@ export default function CartPage() {
                     <div className="font-display font-extrabold text-base text-brand-deepPurple">
                       ₹{(item.price * item.quantity).toFixed(2)}
                     </div>
-                    {parseFloat(item.original_price) > parseFloat(item.price) && (
+                    {item.show_original_price !== false && parseFloat(item.original_price) > parseFloat(item.price) && (
                       <div className="text-[11px] text-slate-400 line-through">
                         ₹{(parseFloat(item.original_price) * item.quantity).toFixed(2)}
                       </div>

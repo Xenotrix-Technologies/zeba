@@ -248,7 +248,7 @@ export default function CustomerAuthModal({
                     required
                     value={regName}
                     onChange={(e) => setRegName(e.target.value)}
-                    placeholder="Pooja Sharma"
+                    placeholder="Full Name"
                     className="w-full pl-8 pr-3 py-2 rounded-lg border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-1 focus:ring-brand-pink/20 outline-none text-xs text-brand-darkPurple bg-brand-softPink/15"
                   />
                 </div>
@@ -266,7 +266,7 @@ export default function CustomerAuthModal({
                       required
                       value={regEmail}
                       onChange={(e) => setRegEmail(e.target.value)}
-                      placeholder="pooja@domain.com"
+                      placeholder="Email Address"
                       className="w-full pl-7 pr-2 py-2 rounded-lg border border-brand-primaryPink/30 focus:border-brand-brightPink focus:ring-1 focus:ring-brand-pink/20 outline-none text-xs text-brand-darkPurple bg-brand-softPink/15 truncate"
                     />
                   </div>

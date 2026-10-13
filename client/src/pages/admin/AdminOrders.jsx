@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Eye, ChevronLeft, ChevronRight, Calendar, ArrowUpDown, X } from 'lucide-react';
 import api from '../../services/api';
 
 export default function AdminOrders() {
@@ -8,10 +8,13 @@ export default function AdminOrders() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [monthFilter, setMonthFilter] = useState('all');
+  const [sortOrder, setSortOrder] = useState('DESC'); // 'DESC' | 'ASC'
   const [statusFilter, setStatusFilter] = useState('all');
   const [paymentFilter, setPaymentFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [availableMonths, setAvailableMonths] = useState([]);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -21,14 +24,23 @@ export default function AdminOrders() {
         limit: '15',
         status: statusFilter,
         payment_status: paymentFilter,
-        search
+        search,
+        sortBy: 'created_at',
+        sortOrder
       });
+
+      if (monthFilter && monthFilter !== 'all') {
+        params.append('month', monthFilter);
+      }
 
       const res = await api.get(`/admin/orders?${params.toString()}`);
       if (res.success) {
         setOrders(res.orders);
         setTotal(res.total);
         setTotalPages(res.totalPages || 1);
+        if (res.availableMonths) {
+          setAvailableMonths(res.availableMonths);
+        }
       }
     } catch (err) {
       console.error('Failed to load admin orders', err);
@@ -39,13 +51,38 @@ export default function AdminOrders() {
 
   useEffect(() => {
     fetchOrders();
-  }, [page, statusFilter, paymentFilter]);
+  }, [page, statusFilter, paymentFilter, monthFilter, sortOrder]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setPage(1);
     fetchOrders();
   };
+
+  // Generate list of available months (DB recorded months + recent rolling 12 months)
+  const monthOptions = useMemo(() => {
+    const map = new Map();
+
+    availableMonths.forEach((m) => {
+      map.set(m.month_key, {
+        value: m.month_key,
+        label: m.month_label,
+        count: parseInt(m.count, 10)
+      });
+    });
+
+    const now = new Date();
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const label = d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+      if (!map.has(key)) {
+        map.set(key, { value: key, label, count: 0 });
+      }
+    }
+
+    return Array.from(map.values()).sort((a, b) => b.value.localeCompare(a.value));
+  }, [availableMonths]);
 
   return (
     <div className="space-y-6">
@@ -55,34 +92,63 @@ export default function AdminOrders() {
           <h1 className="font-display font-black text-2xl sm:text-3xl text-brand-deepPurple">Order Management</h1>
           <p className="text-xs text-[#805A82] mt-0.5">Manage customer orders, track shipments, and review payments</p>
         </div>
-        <span className="text-xs font-bold text-brand-deepPurple bg-white border border-brand-primaryPink/30 px-3.5 py-1.5 rounded-full w-fit shadow-sm">
-          Total Orders: {total}
-        </span>
+        <div className="flex items-center gap-2">
+          {monthFilter !== 'all' && (
+            <button
+              onClick={() => { setMonthFilter('all'); setPage(1); }}
+              className="inline-flex items-center space-x-1.5 text-xs font-bold text-brand-brightPink bg-brand-softPink px-3 py-1.5 rounded-full border border-brand-primaryPink/30 hover:bg-brand-brightPink hover:text-white transition-colors"
+            >
+              <span>Month: {monthOptions.find(m => m.value === monthFilter)?.label || monthFilter}</span>
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+          <span className="text-xs font-bold text-brand-deepPurple bg-white border border-brand-primaryPink/30 px-3.5 py-1.5 rounded-full shadow-sm">
+            Total Orders: {total}
+          </span>
+        </div>
       </div>
 
       {/* Filters & Search Toolbar */}
-      <div className="bg-white p-4 rounded-2xl border border-brand-primaryPink/25 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
+      <div className="bg-white p-3 sm:p-3.5 rounded-2xl border border-brand-primaryPink/25 shadow-sm flex flex-col md:flex-row gap-2.5 md:items-center justify-between">
         
         {/* Search */}
-        <form onSubmit={handleSearchSubmit} className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-[#805A82] absolute left-3.5 top-3" />
+        <form onSubmit={handleSearchSubmit} className="relative flex-1 min-w-[150px] max-w-xs">
+          <Search className="w-3.5 h-3.5 text-[#805A82] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
-            placeholder="Search by order #, name, phone..."
+            placeholder="Search orders..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#FFF5FA] border border-brand-primaryPink/30 text-xs text-brand-darkPurple placeholder-[#805A82]/60 focus:border-brand-brightPink focus:bg-white outline-none transition-colors"
+            className="w-full h-8.5 pl-8.5 pr-3 rounded-xl bg-[#FFF5FA] border border-brand-primaryPink/30 text-xs text-brand-darkPurple placeholder-[#805A82]/60 focus:border-brand-brightPink focus:bg-white outline-none transition-colors"
           />
         </form>
 
-        {/* Dropdown Filters */}
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          <div className="flex items-center space-x-2 text-xs">
-            <span className="text-[#805A82] font-semibold">Status:</span>
+        {/* Dropdown Filters (Month, Status, Payment, Sort) - No scroll, fits perfectly */}
+        <div className="flex flex-wrap md:flex-nowrap items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Month Filter */}
+          <div className="flex items-center space-x-1 text-xs whitespace-nowrap">
+            <span className="text-[#805A82] font-semibold text-[11px]">Month:</span>
+            <select
+              value={monthFilter}
+              onChange={(e) => { setMonthFilter(e.target.value); setPage(1); }}
+              className="h-8.5 bg-[#FFF5FA] border border-brand-primaryPink/30 text-brand-darkPurple rounded-xl px-2 text-xs outline-none focus:border-brand-brightPink font-medium cursor-pointer"
+            >
+              <option value="all">All Months</option>
+              {monthOptions.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label} {m.count > 0 ? `(${m.count})` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Status Filter */}
+          <div className="flex items-center space-x-1 text-xs whitespace-nowrap">
+            <span className="text-[#805A82] font-semibold text-[11px]">Status:</span>
             <select
               value={statusFilter}
               onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-              className="bg-[#FFF5FA] border border-brand-primaryPink/30 text-brand-darkPurple rounded-xl px-3 py-1.5 text-xs outline-none focus:border-brand-brightPink font-medium"
+              className="h-8.5 bg-[#FFF5FA] border border-brand-primaryPink/30 text-brand-darkPurple rounded-xl px-2 text-xs outline-none focus:border-brand-brightPink font-medium cursor-pointer"
             >
               <option value="all">All Statuses</option>
               <option value="pending">Pending</option>
@@ -95,18 +161,32 @@ export default function AdminOrders() {
             </select>
           </div>
 
-          <div className="flex items-center space-x-2 text-xs">
-            <span className="text-[#805A82] font-semibold">Payment:</span>
+          {/* Payment Filter */}
+          <div className="flex items-center space-x-1 text-xs whitespace-nowrap">
+            <span className="text-[#805A82] font-semibold text-[11px]">Payment:</span>
             <select
               value={paymentFilter}
               onChange={(e) => { setPaymentFilter(e.target.value); setPage(1); }}
-              className="bg-[#FFF5FA] border border-brand-primaryPink/30 text-brand-darkPurple rounded-xl px-3 py-1.5 text-xs outline-none focus:border-brand-brightPink font-medium"
+              className="h-8.5 bg-[#FFF5FA] border border-brand-primaryPink/30 text-brand-darkPurple rounded-xl px-2 text-xs outline-none focus:border-brand-brightPink font-medium cursor-pointer"
             >
               <option value="all">All Payments</option>
               <option value="paid">Paid</option>
               <option value="pending">Pending</option>
               <option value="failed">Failed</option>
               <option value="refunded">Refunded</option>
+            </select>
+          </div>
+
+          {/* Sort Filter */}
+          <div className="flex items-center space-x-1 text-xs whitespace-nowrap">
+            <span className="text-[#805A82] font-semibold text-[11px]">Sort:</span>
+            <select
+              value={sortOrder}
+              onChange={(e) => { setSortOrder(e.target.value); setPage(1); }}
+              className="h-8.5 bg-[#FFF5FA] border border-brand-primaryPink/30 text-brand-darkPurple rounded-xl px-2 text-xs outline-none focus:border-brand-brightPink font-medium cursor-pointer"
+            >
+              <option value="DESC">Newest First</option>
+              <option value="ASC">Oldest First</option>
             </select>
           </div>
         </div>
@@ -133,7 +213,16 @@ export default function AdminOrders() {
                   <th className="p-4">Amount</th>
                   <th className="p-4">Payment</th>
                   <th className="p-4">Status</th>
-                  <th className="p-4">Date</th>
+                  <th 
+                    className="p-4 cursor-pointer hover:text-brand-brightPink transition-colors select-none"
+                    onClick={() => { setSortOrder(prev => prev === 'DESC' ? 'ASC' : 'DESC'); setPage(1); }}
+                    title="Click to sort by date"
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>Date</span>
+                      <ArrowUpDown className="w-3 h-3 text-[#805A82]" />
+                    </div>
+                  </th>
                   <th className="p-4 text-right">Action</th>
                 </tr>
               </thead>

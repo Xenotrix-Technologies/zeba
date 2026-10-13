@@ -110,7 +110,7 @@ export const businessConfig = {
   // Payment Gateway Configuration
   payments: {
     gatewayName: 'Razorpay',
-    methods: ['UPI (GPay, PhonePe, Paytm)', 'Credit/Debit Cards', 'NetBanking', 'Wallets', 'Cash on Delivery (COD)'],
+    methods: ['UPI (GPay, PhonePe, Paytm)', 'Credit/Debit Cards', 'NetBanking', 'Wallets'],
     securityNotice: '256-Bit SSL Encrypted Razorpay Checkout'
   },
 

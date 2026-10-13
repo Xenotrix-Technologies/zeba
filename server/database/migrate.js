@@ -375,6 +375,13 @@ const INLINE_MIGRATIONS = [
       CREATE INDEX IF NOT EXISTS idx_email_notifications_created_at ON email_notifications(created_at);
       ALTER TABLE IF EXISTS email_notifications DISABLE ROW LEVEL SECURITY;
     `
+  },
+  {
+    name: '009_product_original_price_toggle.sql',
+    sql: `
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS show_original_price BOOLEAN DEFAULT TRUE;
+      UPDATE products SET show_original_price = TRUE WHERE show_original_price IS NULL;
+    `
   }
 ];
 

@@ -59,7 +59,18 @@ export function validateStatusTransition(currentStatus, targetStatus) {
  */
 export async function getDashboardMetrics(req, res, next) {
   try {
-    // 1. Order Status Counts & Total Revenue
+    const { range = 'all' } = req.query; // 'day' | 'month' | 'year' | 'all'
+
+    let dateCondition = '';
+    if (range === 'day') {
+      dateCondition = 'WHERE created_at >= CURRENT_DATE';
+    } else if (range === 'month') {
+      dateCondition = "WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE)";
+    } else if (range === 'year') {
+      dateCondition = "WHERE created_at >= DATE_TRUNC('year', CURRENT_DATE)";
+    }
+
+    // 1. Order Status Counts & Revenue filtered by selected range (day/month/year/all)
     const orderStatsRes = await query(`
       SELECT 
         COUNT(*) AS total_orders,
@@ -72,14 +83,100 @@ export async function getDashboardMetrics(req, res, next) {
         COUNT(*) FILTER (WHERE status = 'cancelled') AS cancelled_orders,
         COUNT(*) FILTER (WHERE payment_status = 'paid') AS paid_orders,
         COUNT(*) FILTER (WHERE payment_status = 'failed') AS failed_payments,
-        COALESCE(SUM(total_amount) FILTER (WHERE payment_status = 'paid'), 0) AS total_revenue
+        COALESCE(SUM(total_amount) FILTER (WHERE payment_status = 'paid'), 0) AS total_revenue,
+        COALESCE(SUM(total_amount), 0) AS total_booked_revenue,
+        COUNT(DISTINCT customer_id) AS active_buyers
+      FROM orders
+      ${dateCondition}
+    `);
+
+    // 2. All-time baseline totals
+    const allTimeStatsRes = await query(`
+      SELECT 
+        COUNT(*) AS all_time_orders,
+        COALESCE(SUM(total_amount) FILTER (WHERE payment_status = 'paid'), 0) AS all_time_revenue
       FROM orders
     `);
 
-    // 2. Total Customers Count
-    const customerCountRes = await query('SELECT COUNT(*) AS total_customers FROM customers');
+    // 3. Units / Items Sold in selected period
+    let itemsOrderCond = '';
+    if (range === 'day') {
+      itemsOrderCond = 'WHERE o.created_at >= CURRENT_DATE';
+    } else if (range === 'month') {
+      itemsOrderCond = "WHERE o.created_at >= DATE_TRUNC('month', CURRENT_DATE)";
+    } else if (range === 'year') {
+      itemsOrderCond = "WHERE o.created_at >= DATE_TRUNC('year', CURRENT_DATE)";
+    }
 
-    // 3. Total Products Count & Low Stock Count
+    const itemsSoldRes = await query(`
+      SELECT 
+        COALESCE(SUM(oi.quantity), 0) AS total_units_sold,
+        COUNT(DISTINCT oi.product_id) AS distinct_products_sold
+      FROM order_items oi
+      JOIN orders o ON oi.order_id = o.id
+      ${itemsOrderCond}
+    `);
+
+    // 4. Monthly Revenue Analytics (Aggregated by Month for the Revenue Chart)
+    const monthlyRevenueRes = await query(`
+      SELECT 
+        TO_CHAR(created_at, 'YYYY-MM') AS month_key,
+        TO_CHAR(created_at, 'Mon YYYY') AS month_label,
+        TO_CHAR(created_at, 'Mon') AS short_month,
+        COALESCE(SUM(total_amount) FILTER (WHERE payment_status = 'paid'), 0) AS paid_revenue,
+        COALESCE(SUM(total_amount), 0) AS total_revenue,
+        COUNT(*) AS total_orders,
+        COUNT(*) FILTER (WHERE payment_status = 'paid') AS paid_orders
+      FROM orders
+      GROUP BY TO_CHAR(created_at, 'YYYY-MM'), TO_CHAR(created_at, 'Mon YYYY'), TO_CHAR(created_at, 'Mon')
+      ORDER BY month_key ASC
+    `);
+
+    // 5. Daily Revenue Analytics (Last 30 Days)
+    const dailyRevenueRes = await query(`
+      SELECT 
+        TO_CHAR(created_at, 'YYYY-MM-DD') AS day_key,
+        TO_CHAR(created_at, 'DD Mon') AS day_label,
+        COALESCE(SUM(total_amount) FILTER (WHERE payment_status = 'paid'), 0) AS paid_revenue,
+        COALESCE(SUM(total_amount), 0) AS total_revenue,
+        COUNT(*) AS total_orders
+      FROM orders
+      WHERE created_at >= NOW() - INTERVAL '30 days'
+      GROUP BY TO_CHAR(created_at, 'YYYY-MM-DD'), TO_CHAR(created_at, 'DD Mon')
+      ORDER BY day_key ASC
+    `);
+
+    // 6. Yearly Revenue Analytics
+    const yearlyRevenueRes = await query(`
+      SELECT 
+        TO_CHAR(created_at, 'YYYY') AS year_key,
+        COALESCE(SUM(total_amount) FILTER (WHERE payment_status = 'paid'), 0) AS paid_revenue,
+        COALESCE(SUM(total_amount), 0) AS total_revenue,
+        COUNT(*) AS total_orders
+      FROM orders
+      GROUP BY TO_CHAR(created_at, 'YYYY')
+      ORDER BY year_key ASC
+    `);
+
+    // 7. Customers Count (scoped and all-time)
+    let custCond = 'true';
+    if (range === 'day') {
+      custCond = 'created_at >= CURRENT_DATE';
+    } else if (range === 'month') {
+      custCond = "created_at >= DATE_TRUNC('month', CURRENT_DATE)";
+    } else if (range === 'year') {
+      custCond = "created_at >= DATE_TRUNC('year', CURRENT_DATE)";
+    }
+
+    const customerCountRes = await query(`
+      SELECT 
+        COUNT(*) AS total_customers,
+        COUNT(*) FILTER (WHERE ${custCond}) AS period_customers,
+        COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE) AS new_customers_today
+      FROM customers
+    `);
+
+    // 8. Total Products Count & Low Stock Count
     const productCountRes = await query(`
       SELECT 
         COUNT(*) AS total_products,
@@ -88,17 +185,18 @@ export async function getDashboardMetrics(req, res, next) {
       WHERE is_active = true
     `);
 
-    // 4. Recent Orders (Last 6)
+    // 9. Recent Orders in selected period (falls back to all recent if 0 in period for "all")
     const recentOrdersRes = await query(`
       SELECT o.id, o.order_number, o.status, o.payment_status, o.total_amount, o.created_at,
              c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone
       FROM orders o
       LEFT JOIN customers c ON o.customer_id = c.id
+      ${dateCondition}
       ORDER BY o.created_at DESC
-      LIMIT 6
+      LIMIT 8
     `);
 
-    // 5. Contact Inquiries summary
+    // 10. Contact Inquiries summary
     const msgStatsRes = await query(`
       SELECT 
         COUNT(*) AS total_messages,
@@ -107,12 +205,18 @@ export async function getDashboardMetrics(req, res, next) {
     `);
 
     const stats = orderStatsRes.rows[0];
+    const allTimeStats = allTimeStatsRes.rows[0];
+    const customerStats = customerCountRes.rows[0] || {};
+    const itemsStats = itemsSoldRes.rows[0] || {};
 
     res.json({
       success: true,
+      range,
       metrics: {
         totalRevenue: parseFloat(stats.total_revenue || 0),
+        totalBookedRevenue: parseFloat(stats.total_booked_revenue || 0),
         totalOrders: parseInt(stats.total_orders || 0, 10),
+        activeBuyers: parseInt(stats.active_buyers || 0, 10),
         paidOrders: parseInt(stats.paid_orders || 0, 10),
         failedPayments: parseInt(stats.failed_payments || 0, 10),
         pendingOrders: parseInt(stats.pending_orders || 0, 10),
@@ -122,11 +226,44 @@ export async function getDashboardMetrics(req, res, next) {
         outForDeliveryOrders: parseInt(stats.out_for_delivery_orders || 0, 10),
         deliveredOrders: parseInt(stats.delivered_orders || 0, 10),
         cancelledOrders: parseInt(stats.cancelled_orders || 0, 10),
-        totalCustomers: parseInt(customerCountRes.rows[0]?.total_customers || 0, 10),
+        periodCustomers: parseInt(customerStats.period_customers || 0, 10),
+        newCustomersToday: parseInt(customerStats.new_customers_today || 0, 10),
+        totalCustomers: parseInt(customerStats.total_customers || 0, 10),
+        totalUnitsSold: parseInt(itemsStats.total_units_sold || 0, 10),
+        distinctProductsSold: parseInt(itemsStats.distinct_products_sold || 0, 10),
         totalProducts: parseInt(productCountRes.rows[0]?.total_products || 0, 10),
         lowStockProducts: parseInt(productCountRes.rows[0]?.low_stock_products || 0, 10),
         unreadMessages: parseInt(msgStatsRes.rows[0]?.unread_messages || 0, 10),
-        totalMessages: parseInt(msgStatsRes.rows[0]?.total_messages || 0, 10)
+        totalMessages: parseInt(msgStatsRes.rows[0]?.total_messages || 0, 10),
+        allTimeRevenue: parseFloat(allTimeStats.all_time_revenue || 0),
+        allTimeOrders: parseInt(allTimeStats.all_time_orders || 0, 10)
+      },
+      chartData: {
+        monthly: monthlyRevenueRes.rows.map(r => ({
+          key: r.month_key,
+          label: r.month_label,
+          shortLabel: r.short_month,
+          totalRevenue: parseFloat(r.total_revenue || 0),
+          paidRevenue: parseFloat(r.paid_revenue || 0),
+          orders: parseInt(r.total_orders || 0, 10),
+          paidOrders: parseInt(r.paid_orders || 0, 10)
+        })),
+        daily: dailyRevenueRes.rows.map(r => ({
+          key: r.day_key,
+          label: r.day_label,
+          shortLabel: r.day_label,
+          totalRevenue: parseFloat(r.total_revenue || 0),
+          paidRevenue: parseFloat(r.paid_revenue || 0),
+          orders: parseInt(r.total_orders || 0, 10)
+        })),
+        yearly: yearlyRevenueRes.rows.map(r => ({
+          key: r.year_key,
+          label: r.year_key,
+          shortLabel: r.year_key,
+          totalRevenue: parseFloat(r.total_revenue || 0),
+          paidRevenue: parseFloat(r.paid_revenue || 0),
+          orders: parseInt(r.total_orders || 0, 10)
+        }))
       },
       recentOrders: recentOrdersRes.rows
     });
@@ -146,6 +283,7 @@ export async function getAdminOrders(req, res, next) {
       payment_status,
       refund_status,
       search,
+      month,
       startDate,
       endDate,
       sortBy = 'created_at',
@@ -172,6 +310,35 @@ export async function getAdminOrders(req, res, next) {
     if (refund_status && refund_status !== 'all') {
       conditions.push(`o.refund_status = $${paramIndex++}`);
       params.push(refund_status.toLowerCase().trim());
+    }
+
+    if (month && month !== 'all') {
+      let targetYear;
+      let targetMonth; // 1-indexed
+
+      if (month === 'current') {
+        const now = new Date();
+        targetYear = now.getFullYear();
+        targetMonth = now.getMonth() + 1;
+      } else if (month === 'last') {
+        const now = new Date();
+        now.setMonth(now.getMonth() - 1);
+        targetYear = now.getFullYear();
+        targetMonth = now.getMonth() + 1;
+      } else {
+        const match = month.match(/^(\d{4})-(\d{2})$/);
+        if (match) {
+          targetYear = parseInt(match[1], 10);
+          targetMonth = parseInt(match[2], 10);
+        }
+      }
+
+      if (targetYear && targetMonth) {
+        const startOfMonth = new Date(Date.UTC(targetYear, targetMonth - 1, 1, 0, 0, 0, 0));
+        const startOfNextMonth = new Date(Date.UTC(targetYear, targetMonth, 1, 0, 0, 0, 0));
+        conditions.push(`o.created_at >= $${paramIndex++} AND o.created_at < $${paramIndex++}`);
+        params.push(startOfMonth.toISOString(), startOfNextMonth.toISOString());
+      }
     }
 
     if (startDate) {
@@ -234,11 +401,23 @@ export async function getAdminOrders(req, res, next) {
 
     const ordersRes = await query(ordersQuery, [...params, parseInt(limit, 10), offset]);
 
+    // Also fetch available months with order counts for the admin dropdown
+    const monthsRes = await query(`
+      SELECT 
+        TO_CHAR(created_at, 'YYYY-MM') AS month_key,
+        TO_CHAR(created_at, 'FMMonth YYYY') AS month_label,
+        COUNT(*) AS count
+      FROM orders
+      GROUP BY TO_CHAR(created_at, 'YYYY-MM'), TO_CHAR(created_at, 'FMMonth YYYY')
+      ORDER BY month_key DESC
+    `);
+
     res.json({
       success: true,
       total,
       page: parseInt(page, 10),
       totalPages: Math.ceil(total / parseInt(limit, 10)),
+      availableMonths: monthsRes.rows,
       orders: ordersRes.rows
     });
   } catch (err) {
@@ -768,6 +947,7 @@ export async function getAdminProducts(req, res, next) {
         ...prod,
         price: parseFloat(prod.price),
         original_price: parseFloat(prod.original_price),
+        show_original_price: prod.show_original_price !== false,
         stock_quantity: parseInt(prod.stock_quantity, 10),
         pack_count: parseInt(prod.pack_count, 10),
         images: Array.isArray(prod.images) ? prod.images : (typeof prod.images === 'string' ? JSON.parse(prod.images || '[]') : [])
@@ -790,6 +970,7 @@ export async function updateAdminProduct(req, res, next) {
       pack_count,
       price,
       original_price,
+      show_original_price,
       stock_quantity,
       badge_text,
       short_description,
@@ -811,6 +992,7 @@ export async function updateAdminProduct(req, res, next) {
     if (pack_count !== undefined) { updates.push(`pack_count = $${paramIndex++}`); params.push(parseInt(pack_count, 10)); }
     if (price !== undefined) { updates.push(`price = $${paramIndex++}`); params.push(parseFloat(price)); }
     if (original_price !== undefined) { updates.push(`original_price = $${paramIndex++}`); params.push(parseFloat(original_price)); }
+    if (show_original_price !== undefined) { updates.push(`show_original_price = $${paramIndex++}`); params.push(Boolean(show_original_price)); }
     if (stock_quantity !== undefined) { updates.push(`stock_quantity = $${paramIndex++}`); params.push(parseInt(stock_quantity, 10)); }
     if (badge_text !== undefined) { updates.push(`badge_text = $${paramIndex++}`); params.push(badge_text); }
     if (short_description !== undefined) { updates.push(`short_description = $${paramIndex++}`); params.push(short_description); }
@@ -842,10 +1024,19 @@ export async function updateAdminProduct(req, res, next) {
       return res.status(404).json({ success: false, message: 'Product not found.' });
     }
 
+    const updatedProd = result.rows[0];
     res.json({
       success: true,
       message: 'Product updated successfully.',
-      product: result.rows[0]
+      product: {
+        ...updatedProd,
+        price: parseFloat(updatedProd.price),
+        original_price: parseFloat(updatedProd.original_price),
+        show_original_price: updatedProd.show_original_price !== false,
+        stock_quantity: parseInt(updatedProd.stock_quantity, 10),
+        pack_count: parseInt(updatedProd.pack_count, 10),
+        images: Array.isArray(updatedProd.images) ? updatedProd.images : (typeof updatedProd.images === 'string' ? JSON.parse(updatedProd.images || '[]') : [])
+      }
     });
   } catch (err) {
     next(err);

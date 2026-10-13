@@ -30,17 +30,24 @@ export default function AdminProducts() {
   }, []);
 
   const handleEditClick = (product) => {
-    setEditingProduct({ ...product });
+    setEditingProduct({
+      ...product,
+      show_original_price: product.show_original_price !== false
+    });
   };
 
   const handleSaveProduct = async () => {
     if (!editingProduct) return;
     setSaving(true);
     try {
+      const isOriginalPriceEnabled = editingProduct.show_original_price !== false;
       const res = await api.patch(`/admin/products/${editingProduct.id}`, {
         name: editingProduct.name,
         price: parseFloat(editingProduct.price),
-        original_price: parseFloat(editingProduct.original_price),
+        original_price: editingProduct.original_price !== undefined && editingProduct.original_price !== ''
+          ? parseFloat(editingProduct.original_price)
+          : parseFloat(editingProduct.price),
+        show_original_price: isOriginalPriceEnabled,
         stock_quantity: parseInt(editingProduct.stock_quantity, 10),
         badge_text: editingProduct.badge_text,
         short_description: editingProduct.short_description,
@@ -129,14 +136,50 @@ export default function AdminProducts() {
                         </div>
 
                         <div>
-                          <label className="block text-brand-darkPurple font-bold mb-1">Original Price (₹)</label>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="block text-brand-darkPurple font-bold">Original Price (₹)</label>
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={editingProduct.show_original_price !== false}
+                              onClick={() => setEditingProduct(prev => ({
+                                ...prev,
+                                show_original_price: prev.show_original_price === false ? true : false
+                              }))}
+                              className="inline-flex items-center gap-1.5 cursor-pointer focus:outline-none"
+                            >
+                              <span className={`text-[10px] font-bold ${
+                                editingProduct.show_original_price !== false ? 'text-brand-brightPink' : 'text-slate-400'
+                              }`}>
+                                {editingProduct.show_original_price !== false ? 'Enabled' : 'Disabled'}
+                              </span>
+                              <span className={`w-7 h-4 flex items-center rounded-full p-0.5 transition-colors duration-200 ${
+                                editingProduct.show_original_price !== false ? 'bg-brand-brightPink' : 'bg-slate-300'
+                              }`}>
+                                <span className={`bg-white w-3 h-3 rounded-full shadow transform transition-transform duration-200 ${
+                                  editingProduct.show_original_price !== false ? 'translate-x-3' : 'translate-x-0'
+                                }`} />
+                              </span>
+                            </button>
+                          </div>
                           <input
                             type="number"
                             step="1"
-                            value={editingProduct.original_price}
+                            disabled={editingProduct.show_original_price === false}
+                            value={editingProduct.show_original_price === false ? '' : (editingProduct.original_price ?? '')}
                             onChange={(e) => setEditingProduct({ ...editingProduct, original_price: e.target.value })}
-                            className="w-full bg-[#FFF5FA] border border-brand-primaryPink/30 text-brand-darkPurple rounded-xl p-2.5 outline-none focus:border-brand-brightPink focus:bg-white"
+                            placeholder={editingProduct.show_original_price === false ? 'Disabled (Hidden on store)' : 'e.g. 399'}
+                            className={`w-full border rounded-xl p-2.5 outline-none transition-all ${
+                              editingProduct.show_original_price === false
+                                ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed select-none placeholder:text-slate-400'
+                                : 'bg-[#FFF5FA] border-brand-primaryPink/30 text-brand-darkPurple focus:border-brand-brightPink focus:bg-white'
+                            }`}
                           />
+                          <p className="text-[10px] text-[#805A82] mt-1">
+                            {editingProduct.show_original_price !== false
+                              ? 'Strikethrough MRP shown on store'
+                              : 'Disabled: Only selling price will show'}
+                          </p>
                         </div>
                       </div>
 
@@ -222,9 +265,15 @@ export default function AdminProducts() {
                             <span className="text-2xl font-black text-brand-brightPink">
                               ₹{parseFloat(product.price).toFixed(0)}
                             </span>
-                            <span className="text-sm text-slate-400 line-through">
-                              ₹{parseFloat(product.original_price).toFixed(0)}
-                            </span>
+                            {product.show_original_price !== false && parseFloat(product.original_price) > parseFloat(product.price) ? (
+                              <span className="text-sm text-slate-400 line-through">
+                                ₹{parseFloat(product.original_price).toFixed(0)}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+                                Strikethrough price disabled
+                              </span>
+                            )}
                           </div>
                           <div className="text-xs text-[#805A82]">
                             Available Stock: <span className="font-bold text-brand-deepPurple">{product.stock_quantity} units</span>

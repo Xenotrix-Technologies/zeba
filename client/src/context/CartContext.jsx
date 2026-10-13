@@ -44,6 +44,7 @@ export function CartProvider({ children }) {
           pack_size: product.pack_size,
           price: parseFloat(product.price) || 0,
           original_price: parseFloat(product.original_price || product.price) || 0,
+          show_original_price: product.show_original_price !== false,
           image: getProductMainImage(product.images),
           quantity: Math.max(1, quantity)
         }];
@@ -79,15 +80,19 @@ export function CartProvider({ children }) {
 
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const originalSubtotal = cart.reduce((acc, item) => acc + (item.original_price || item.price) * item.quantity, 0);
+  const originalSubtotal = cart.reduce((acc, item) => {
+    const isOrigActive = item.show_original_price !== false && (item.original_price || item.price) > item.price;
+    const effectiveOrig = isOrigActive ? (item.original_price || item.price) : item.price;
+    return acc + effectiveOrig * item.quantity;
+  }, 0);
   const totalSavings = Math.max(0, originalSubtotal - subtotal);
   const freeShippingThreshold = settings.commerce?.freeShippingThreshold !== undefined && settings.commerce?.freeShippingThreshold !== null
     ? Number(settings.commerce.freeShippingThreshold)
     : 1000;
-  const standardShippingFee = settings.commerce?.standardShippingFee !== undefined && settings.commerce?.standardShippingFee !== null && Number(settings.commerce.standardShippingFee) > 0
+  const standardShippingFee = settings.commerce?.standardShippingFee !== undefined && settings.commerce?.standardShippingFee !== null
     ? Number(settings.commerce.standardShippingFee)
-    : (freeShippingThreshold > 0 ? 49 : 0);
-  const isAlwaysFreeShipping = freeShippingThreshold === 0;
+    : 49;
+  const isAlwaysFreeShipping = standardShippingFee === 0 || freeShippingThreshold === 0;
   const isFreeShippingUnlocked = isAlwaysFreeShipping || subtotal >= freeShippingThreshold;
   const shippingFee = isFreeShippingUnlocked
     ? 0.00

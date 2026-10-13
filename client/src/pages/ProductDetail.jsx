@@ -165,7 +165,8 @@ export default function ProductDetail() {
 
   const currentPrice = parseFloat(selectedProduct.price) || 0;
   const originalPrice = parseFloat(selectedProduct.original_price) || 0;
-  const discountPercent = originalPrice > currentPrice
+  const isOriginalPriceActive = selectedProduct.show_original_price !== false && originalPrice > currentPrice;
+  const discountPercent = isOriginalPriceActive
     ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100)
     : 0;
 
@@ -290,7 +291,7 @@ export default function ProductDetail() {
                   <span className="font-display font-black text-3xl sm:text-4xl text-brand-deepPurple">
                     ₹{parseFloat(selectedProduct.price).toFixed(0)}
                   </span>
-                  {parseFloat(selectedProduct.original_price) > parseFloat(selectedProduct.price) && (
+                  {isOriginalPriceActive && (
                     <>
                       <span className="text-base text-slate-400 line-through">
                         ₹{parseFloat(selectedProduct.original_price).toFixed(0)}
@@ -318,8 +319,9 @@ export default function ProductDetail() {
                   const isSelected = selectedProduct.id === prod.id;
                   const pPrice = parseFloat(prod.price) || 0;
                   const pOrigPrice = parseFloat(prod.original_price) || 0;
-                  const savings = pOrigPrice > pPrice ? (pOrigPrice - pPrice) : 0;
-                  const pDiscount = pOrigPrice > 0 ? Math.round((savings / pOrigPrice) * 100) : 0;
+                  const isPOrigActive = prod.show_original_price !== false && pOrigPrice > pPrice;
+                  const savings = isPOrigActive ? (pOrigPrice - pPrice) : 0;
+                  const pDiscount = isPOrigActive && pOrigPrice > 0 ? Math.round((savings / pOrigPrice) * 100) : 0;
                   
                   return (
                     <button
