@@ -17,7 +17,7 @@ export async function getProducts(req, res, next) {
   try {
     const result = await query(
       `SELECT id, slug, name, pack_size, pack_count, price, original_price, show_original_price,
-              stock_quantity, badge_text, short_description, description,
+              stock_quantity, barcode, barcode_image, badge_text, short_description, description,
               benefits, how_to_use, features, images, is_active, is_featured,
               created_at, updated_at
        FROM products
@@ -40,7 +40,7 @@ export async function getProductBySlug(req, res, next) {
     const { slug } = req.params;
     const result = await query(
       `SELECT id, slug, name, pack_size, pack_count, price, original_price, show_original_price,
-              stock_quantity, badge_text, short_description, description,
+              stock_quantity, barcode, barcode_image, badge_text, short_description, description,
               benefits, how_to_use, features, images, is_active, is_featured,
               created_at, updated_at
        FROM products

@@ -75,9 +75,9 @@ export async function getOrderByNumber(req, res, next) {
     const itemsRes = await query(
       `SELECT oi.id, oi.product_id, oi.product_name, oi.pack_size,
               oi.unit_price, oi.quantity, oi.subtotal_price,
-              p.images, p.slug
+              p.images, p.slug, p.barcode, p.barcode_image
        FROM order_items oi
-       LEFT JOIN products p ON oi.product_id = p.id
+       LEFT JOIN products p ON (oi.product_id = p.id OR oi.product_name = p.name)
        WHERE oi.order_id = $1`,
       [order.id]
     );

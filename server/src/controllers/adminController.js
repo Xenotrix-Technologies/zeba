@@ -481,9 +481,9 @@ export async function getAdminOrderDetail(req, res, next) {
     const order = orderRes.rows[0];
 
     const itemsRes = await query(
-      `SELECT oi.*, p.images, p.slug
+      `SELECT oi.*, p.images, p.slug, p.barcode, p.barcode_image
        FROM order_items oi
-       LEFT JOIN products p ON oi.product_id = p.id
+       LEFT JOIN products p ON (oi.product_id = p.id OR oi.product_name = p.name)
        WHERE oi.order_id = $1`,
       [order.id]
     );
@@ -1016,7 +1016,9 @@ export async function updateAdminProduct(req, res, next) {
       features,
       images,
       is_active,
-      is_featured
+      is_featured,
+      barcode,
+      barcode_image
     } = req.body;
 
     const updates = [];
@@ -1039,6 +1041,8 @@ export async function updateAdminProduct(req, res, next) {
     if (images !== undefined) { updates.push(`images = $${paramIndex++}`); params.push(typeof images === 'string' ? images : JSON.stringify(images)); }
     if (is_active !== undefined) { updates.push(`is_active = $${paramIndex++}`); params.push(Boolean(is_active)); }
     if (is_featured !== undefined) { updates.push(`is_featured = $${paramIndex++}`); params.push(Boolean(is_featured)); }
+    if (barcode !== undefined) { updates.push(`barcode = $${paramIndex++}`); params.push(barcode ? String(barcode).trim() : null); }
+    if (barcode_image !== undefined) { updates.push(`barcode_image = $${paramIndex++}`); params.push(barcode_image ? String(barcode_image).trim() : null); }
 
     if (updates.length === 0) {
       return res.status(400).json({ success: false, message: 'No fields provided for update.' });

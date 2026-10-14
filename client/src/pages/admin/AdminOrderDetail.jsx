@@ -18,14 +18,19 @@ import {
   History,
   Calendar,
   RefreshCw,
-  XCircle
+  XCircle,
+  Printer,
+  FileText
 } from 'lucide-react';
 import api from '../../services/api';
 import { useToast } from '../../context/ToastContext';
+import { useStoreSettings } from '../../context/StoreSettingsContext';
+import OrderInvoiceModal from '../../components/OrderInvoiceModal';
 
 export default function AdminOrderDetail() {
   const { id } = useParams();
   const { addToast } = useToast();
+  const { settings } = useStoreSettings();
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -40,6 +45,7 @@ export default function AdminOrderDetail() {
   const [notifyCustomer, setNotifyCustomer] = useState(true);
   const [saving, setSaving] = useState(false);
   const [whatsappLink, setWhatsappLink] = useState('');
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
 
   const fetchOrderDetail = async () => {
     try {
@@ -195,16 +201,28 @@ export default function AdminOrderDetail() {
           </div>
         </div>
 
-        {/* Quick WhatsApp Action Button */}
-        <a
-          href={directWhatsAppUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition-all w-fit"
-        >
-          <MessageCircle className="w-4 h-4" />
-          <span>WhatsApp Customer Update</span>
-        </a>
+        {/* Quick Actions: Invoice Generator & WhatsApp Update */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => setShowInvoiceModal(true)}
+            className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-brand-plum hover:bg-brand-darkPurple text-white font-bold text-xs shadow-md shadow-brand-plum/20 transition-all border border-brand-primaryPink/30 cursor-pointer"
+            title="Generate Tax Invoice & Courier Shipping Slip for Print"
+          >
+            <Printer className="w-4 h-4 text-brand-gold" />
+            <span>Generate Courier Invoice</span>
+          </button>
+
+          <a
+            href={directWhatsAppUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition-all w-fit"
+          >
+            <MessageCircle className="w-4 h-4" />
+            <span>WhatsApp Customer Update</span>
+          </a>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -614,10 +632,21 @@ export default function AdminOrderDetail() {
 
             {/* Courier Dispatch Tracking Fields */}
             <div className="pt-2 border-t border-brand-primaryPink/15 space-y-3">
-              <h3 className="text-xs font-bold text-brand-dark flex items-center space-x-1.5">
-                <Truck className="w-3.5 h-3.5 text-brand-brightPink" />
-                <span>Courier Tracking Details</span>
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold text-brand-dark flex items-center space-x-1.5">
+                  <Truck className="w-3.5 h-3.5 text-brand-brightPink" />
+                  <span>Courier Tracking Details</span>
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowInvoiceModal(true)}
+                  className="text-[11px] font-bold text-brand-plum hover:text-brand-brightPink flex items-center space-x-1 underline cursor-pointer"
+                  title="Generate Courier Invoice & Shipping Label"
+                >
+                  <Printer className="w-3 h-3 text-brand-gold" />
+                  <span>Print Slip</span>
+                </button>
+              </div>
 
               <div>
                 <label className="block text-[11px] font-semibold text-brand-plum mb-1">Courier Partner</label>
@@ -716,6 +745,19 @@ export default function AdminOrderDetail() {
         </div>
 
       </div>
+
+      {/* Invoice & Courier Dispatch Printable Modal */}
+      {showInvoiceModal && (
+        <OrderInvoiceModal
+          isOpen={showInvoiceModal}
+          onClose={() => setShowInvoiceModal(false)}
+          order={order}
+          courierPartner={courierPartner}
+          trackingNumber={trackingNumber}
+          estimatedDeliveryDate={estimatedDeliveryDate}
+          settings={settings}
+        />
+      )}
 
     </div>
   );

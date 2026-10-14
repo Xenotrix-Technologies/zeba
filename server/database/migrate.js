@@ -382,6 +382,18 @@ const INLINE_MIGRATIONS = [
       ALTER TABLE products ADD COLUMN IF NOT EXISTS show_original_price BOOLEAN DEFAULT TRUE;
       UPDATE products SET show_original_price = TRUE WHERE show_original_price IS NULL;
     `
+  },
+  {
+    name: '010_product_barcode.sql',
+    sql: `
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS barcode VARCHAR(100) DEFAULT NULL;
+    `
+  },
+  {
+    name: '011_product_barcode_image.sql',
+    sql: `
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS barcode_image TEXT DEFAULT NULL;
+    `
   }
 ];
 
