@@ -68,6 +68,8 @@ app.use(helmet({
       scriptSrc: [
         "'self'",
         "'unsafe-inline'",
+        "https://www.googletagmanager.com",
+        "https://*.google-analytics.com",
         "https://checkout.razorpay.com",
         "https://api.razorpay.com"
       ],
@@ -82,6 +84,9 @@ app.use(helmet({
         "https://api.razorpay.com",
         "https://checkout.razorpay.com",
         "https://lumberjack.razorpay.com",
+        "https://*.google-analytics.com",
+        "https://*.analytics.google.com",
+        "https://*.googletagmanager.com",
         "wss://*.supabase.co"
       ],
       imgSrc: [
@@ -90,7 +95,9 @@ app.use(helmet({
         "blob:",
         "https:",
         "https://*.supabase.co",
-        "https://checkout.razorpay.com"
+        "https://checkout.razorpay.com",
+        "https://*.google-analytics.com",
+        "https://*.googletagmanager.com"
       ],
       styleSrc: [
         "'self'",
