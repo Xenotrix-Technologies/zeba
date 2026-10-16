@@ -49,7 +49,7 @@ export const config = {
   // Backward compatibility SMTP aliases
   SMTP_HOST: (process.env.EMAIL_HOST || process.env.SMTP_HOST || 'smtp.gmail.com').trim(),
   SMTP_PORT: parseInt(process.env.EMAIL_PORT || process.env.SMTP_PORT || '465', 10),
-  SMTP_SECURE: process.env.EMAIL_PORT === '465' || process.env.SMTP_PORT === '465' || process.env.SMTP_SECURE === 'true' || true,
+  SMTP_SECURE: (process.env.EMAIL_PORT === '465' || process.env.SMTP_PORT === '465' || process.env.SMTP_SECURE === 'true') && process.env.SMTP_SECURE !== 'false',
   SMTP_USER: (process.env.EMAIL_USER || process.env.SMTP_USER || 'zebaofficial2013@gmail.com').trim(),
   SMTP_PASSWORD: (process.env.EMAIL_PASSWORD || process.env.EMAIL_PASS || process.env.SMTP_PASSWORD || process.env.SMTP_PASS || 'ylrmdpzviyrttpqi').trim(),
   business: businessConfig

@@ -70,8 +70,6 @@ export function getAdminEmailList() {
  * Get or create Nodemailer SMTP transporter (optimized for serverless and long-running Node)
  */
 export function getEmailTransporter() {
-  const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NODE_ENV === 'production');
-
   const host = (config.EMAIL_HOST || config.SMTP_HOST || process.env.EMAIL_HOST || process.env.SMTP_HOST || 'smtp.gmail.com').trim();
   const user = (config.EMAIL_USER || config.SMTP_USER || process.env.EMAIL_USER || process.env.SMTP_USER || '').trim();
   let pass = (config.EMAIL_PASSWORD || config.SMTP_PASSWORD || config.SMTP_PASS || process.env.EMAIL_PASSWORD || process.env.EMAIL_PASS || process.env.SMTP_PASSWORD || process.env.SMTP_PASS || '').trim();
@@ -82,16 +80,16 @@ export function getEmailTransporter() {
   }
 
   const port = parseInt(config.EMAIL_PORT || config.SMTP_PORT || process.env.EMAIL_PORT || process.env.SMTP_PORT || '465', 10);
-  const secure = port === 465 || config.SMTP_SECURE === true || process.env.SMTP_SECURE === 'true' || true;
+  const secure = port === 465 || config.SMTP_SECURE === true || process.env.SMTP_SECURE === 'true';
 
   if (host && user && pass) {
-    if (isServerless) {
+    const isGmail = host.includes('gmail') || user.endsWith('@gmail.com');
+
+    if (isGmail) {
       return nodemailer.createTransport({
-        host,
-        port,
-        secure,
+        service: 'gmail',
         auth: { user, pass },
-        pool: false,
+        family: 4, // Force IPv4 to prevent 20-second IPv6 connection timeout on Windows/cloud
         connectionTimeout: 10000,
         greetingTimeout: 10000,
         socketTimeout: 15000,
@@ -101,25 +99,20 @@ export function getEmailTransporter() {
       });
     }
 
-    if (cachedTransporter) return cachedTransporter;
-
-    cachedTransporter = nodemailer.createTransport({
+    // Standard custom SMTP transport
+    return nodemailer.createTransport({
       host,
       port,
       secure,
       auth: { user, pass },
-      pool: true,
-      maxConnections: 5,
-      maxMessages: 100,
-      connectionTimeout: 15000,
-      greetingTimeout: 15000,
-      socketTimeout: 20000,
+      family: 4, // Force IPv4 to prevent IPv6 DNS hangs
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
       tls: {
         rejectUnauthorized: false
       }
     });
-
-    return cachedTransporter;
   }
 
   return null;
@@ -505,7 +498,7 @@ export async function sendOrderStatusUpdateEmail({
   courierPartner,
   trackingNumber,
   trackingUrl,
-  forceResend = false
+  forceResend = true
 }) {
   const results = { customer: null, admin: null };
   const status = (newStatus || order.status || 'confirmed').toLowerCase().trim();
@@ -585,7 +578,7 @@ export async function sendOrderStatusUpdateEmail({
  * Trigger: Order is cancelled (by customer or admin).
  * Send to: BOTH Customer AND Admin at the same time
  */
-export async function sendOrderCancelledEmail({ order, reason, cancellationReason, refundStatus, forceResend = false }) {
+export async function sendOrderCancelledEmail({ order, reason, cancellationReason, refundStatus, forceResend = true }) {
   const results = { customer: null, admin: null };
   const cancelReason = reason || cancellationReason || order.cancellation_reason || 'Order cancelled';
   const customerRecipient = order.customer?.email || order.customer_email || order.email;
