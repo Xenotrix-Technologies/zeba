@@ -533,14 +533,22 @@ export async function getAdminOrderDetail(req, res, next) {
 
       for (const n of emailNotifications) {
         const type = (n.notification_type || '').toLowerCase();
-        if (type.includes('order_confirmation') || type.includes('order_received')) {
-          emailStatusSummary.orderConfirmation = n.status;
+        if (type.includes('order_confirmation') || type.includes('order_received') || type.includes('admin_new_order')) {
+          if (emailStatusSummary.orderConfirmation !== 'sent') {
+            emailStatusSummary.orderConfirmation = n.status;
+          }
         } else if (type.includes('payment_confirmation') || type.includes('payment_success')) {
-          emailStatusSummary.paymentConfirmation = n.status;
+          if (emailStatusSummary.paymentConfirmation !== 'sent') {
+            emailStatusSummary.paymentConfirmation = n.status;
+          }
         } else if (type.includes('order_status_') || type.includes('status_')) {
-          emailStatusSummary.statusUpdate = n.status;
+          if (emailStatusSummary.statusUpdate !== 'sent') {
+            emailStatusSummary.statusUpdate = n.status;
+          }
         } else if (type.includes('order_cancelled') || type.includes('cancellation')) {
-          emailStatusSummary.cancellation = n.status;
+          if (emailStatusSummary.cancellation !== 'sent') {
+            emailStatusSummary.cancellation = n.status;
+          }
         }
       }
 
@@ -759,71 +767,109 @@ export async function updateOrderStatus(req, res, next) {
     if (custRes.rows.length > 0) {
       const customer = custRes.rows[0];
 
-      if (notify_customer && isStatusChange) {
-        if (targetStatus === 'cancelled') {
-          // Send Order Cancellation email to Customer & Admin
-          try {
-            await sendOrderCancelledEmail({
-              order: {
-                ...updatedOrder,
-                customer
-              },
-              reason: cancellation_reason || notes || 'Cancelled by store administrator',
-              refundStatus: updatedOrder.refund_status
-            });
-          } catch (cancelErr) {
-            console.error('Admin cancellation email dispatch note:', cancelErr.message);
+      const fullOrderForEmail = {
+        ...updatedOrder,
+        customer
+      };
+
+      const isShippingUpdate = (
+        (tracking_number !== undefined && tracking_number !== currentOrder.tracking_number) ||
+        (courier_partner !== undefined && courier_partner !== currentOrder.courier_partner)
+      );
+
+      const isPaymentPaidUpdate = (
+        payment_status && payment_status === 'paid' && currentOrder.payment_status !== 'paid'
+      );
+
+      if (notify_customer) {
+        // 1. Order Status Changed
+        if (isStatusChange) {
+          if (targetStatus === 'cancelled') {
+            try {
+              await sendOrderCancelledEmail({
+                order: fullOrderForEmail,
+                reason: cancellation_reason || notes || 'Cancelled by store administrator',
+                refundStatus: updatedOrder.refund_status
+              });
+            } catch (cancelErr) {
+              console.error('Admin cancellation email dispatch note:', cancelErr.message);
+            }
+          } else {
+            try {
+              await sendOrderStatusUpdateEmail({
+                order: fullOrderForEmail,
+                newStatus: targetStatus,
+                previousStatus: currentOrder.status,
+                notes: notes || updatedOrder.notes,
+                courierPartner: updatedOrder.courier_partner,
+                trackingNumber: updatedOrder.tracking_number
+              });
+            } catch (statusErr) {
+              console.error('Admin order status update email dispatch note:', statusErr.message);
+            }
           }
-        } else {
-          // Send Status Update email to Customer
+        } else if (isShippingUpdate) {
+          // 2. Shipping / Tracking details were updated without status change
           try {
             await sendOrderStatusUpdateEmail({
-              order: {
-                ...updatedOrder,
-                customer
-              },
+              order: fullOrderForEmail,
               newStatus: targetStatus,
               previousStatus: currentOrder.status,
               notes: notes || updatedOrder.notes,
               courierPartner: updatedOrder.courier_partner,
-              trackingNumber: updatedOrder.tracking_number
+              trackingNumber: updatedOrder.tracking_number,
+              forceResend: true
             });
-          } catch (statusErr) {
-            console.error('Admin order status update email dispatch note:', statusErr.message);
+          } catch (shipErr) {
+            console.error('Admin shipping update email dispatch note:', shipErr.message);
           }
         }
 
-        try {
-          notificationResult = await sendCustomerStatusNotification({
-            orderId: updatedOrder.id,
-            orderNumber: updatedOrder.order_number,
-            customerName: customer.name,
-            customerEmail: customer.email,
-            customerPhone: customer.phone,
-            status: targetStatus,
-            paymentStatus: updatedOrder.payment_status,
-            notes: notes || updatedOrder.notes,
-            totalAmount: updatedOrder.total_amount,
-            courierPartner: updatedOrder.courier_partner,
-            trackingNumber: updatedOrder.tracking_number
-          });
-        } catch (_) {}
-      }
-
-      // Check if refund status changed to dispatch refund-specific emails
-      if (notify_customer && refund_status && refund_status !== currentOrder.refund_status && ['requested', 'processing', 'completed', 'failed'].includes(refund_status)) {
-        try {
-          await sendRefundEmail({
-            order: {
-              ...updatedOrder,
-              customer
-            },
-            refundStatus: refund_status,
-            reason: notes || cancellation_reason || 'Admin processed refund update'
-          });
-        } catch (refundErr) {
-          console.error('Admin refund email dispatch note:', refundErr.message);
+        // 3. Payment Status Updated to 'paid'
+        if (isPaymentPaidUpdate) {
+          try {
+            await sendPaymentConfirmationEmail({
+              order: fullOrderForEmail,
+              transactionId: updatedOrder.razorpay_payment_id || 'ADMIN_CONFIRMED',
+              paymentMethod: updatedOrder.payment_method || 'Confirmed by Store Admin'
+            });
+          } catch (payErr) {
+            console.error('Admin payment paid email dispatch note:', payErr.message);
+          }
         }
+
+        // 4. Refund Status Updated
+        if (refund_status && refund_status !== currentOrder.refund_status && ['requested', 'processing', 'completed', 'failed'].includes(refund_status)) {
+          try {
+            await sendRefundEmail({
+              order: fullOrderForEmail,
+              refundStatus: refund_status,
+              reason: notes || cancellation_reason || 'Admin processed refund update'
+            });
+          } catch (refundErr) {
+            console.error('Admin refund email dispatch note:', refundErr.message);
+          }
+        }
+
+        // Record WhatsApp notification log
+        try {
+          const whatsappMessage = generateWhatsAppMessage(
+            {
+              order_number: updatedOrder.order_number,
+              customer_name: customer.name,
+              total_amount: updatedOrder.total_amount
+            },
+            targetStatus,
+            notes || updatedOrder.notes
+          );
+
+          await query(
+            `INSERT INTO order_notifications (order_id, notification_type, recipient, status_sent, message)
+             VALUES ($1, $2, $3, $4, $5)
+             ON CONFLICT (order_id, notification_type) DO NOTHING`,
+            [updatedOrder.id, `whatsapp_status_${targetStatus}`, customer.phone, targetStatus, whatsappMessage]
+          );
+        } catch (_) {}
       }
 
       // Generate WhatsApp Direct Send Link

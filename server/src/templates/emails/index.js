@@ -15,5 +15,7 @@ export { renderOrderCancelledEmail as renderCancellationEmail } from './orderCan
 export { renderPaymentFailedEmail } from './paymentFailed.js';
 export { renderRefundEmail } from './refund.js';
 export { renderAdminNewOrderEmail } from './adminNewOrder.js';
-export { renderWelcomeEmail } from './welcome.js';
+export { renderWelcomeEmail, renderAdminNewCustomerAlert } from './welcome.js';
 export { renderContactAdminAlert, renderContactCustomerConfirmation } from './contactInquiry.js';
+
+

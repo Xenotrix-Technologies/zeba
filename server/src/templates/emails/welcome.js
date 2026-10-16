@@ -48,3 +48,48 @@ export function renderWelcomeEmail({ name, email }) {
     text
   };
 }
+
+export function renderAdminNewCustomerAlert({ name, email, phone, customerId }) {
+  const customerName = name || 'New Customer';
+  const appUrl = config.APP_URL || 'https://www.zebaofficial.in';
+  const adminCustomersUrl = `${appUrl}/admin/customers`;
+
+  const contentHtml = `
+    <div style="text-align: center; margin-bottom: 24px;">
+      <div style="display: inline-block; background-color: #EBF8FF; color: #2B6CB0; padding: 6px 18px; border-radius: 20px; font-weight: 700; font-size: 12px; border: 1px solid #BEE3F8; margin-bottom: 10px;">
+        👤 New Customer Registration
+      </div>
+      <h2 style="color: #0E1B4D; font-size: 22px; margin: 8px 0 4px 0; font-weight: 800;">New Account Created</h2>
+      <p style="color: #718096; font-size: 13px; margin: 0;">ZEBA Online Store Customer Database</p>
+    </div>
+
+    <p style="color: #4A5568; font-size: 14px; line-height: 1.6; margin-bottom: 16px;">
+      A new user has just registered an account on ZEBA Period Care.
+    </p>
+
+    <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 18px 20px; border-radius: 12px; margin-bottom: 22px; font-size: 13px;">
+      <div style="margin-bottom: 8px; color: #4A5568;"><strong style="color: #0E1B4D;">Full Name:</strong> ${customerName}</div>
+      <div style="margin-bottom: 8px; color: #4A5568;"><strong style="color: #0E1B4D;">Email Address:</strong> <a href="mailto:${email}" style="color: #FF2D78;">${email}</a></div>
+      <div style="margin-bottom: 8px; color: #4A5568;"><strong style="color: #0E1B4D;">Phone Number:</strong> ${phone || 'Not provided'}</div>
+      ${customerId ? `<div style="margin-bottom: 8px; color: #4A5568;"><strong style="color: #0E1B4D;">Customer ID:</strong> #${customerId}</div>` : ''}
+      <div style="color: #718096; font-size: 12px;">Registered at: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</div>
+    </div>
+  `;
+
+  const html = renderEmailLayout({
+    title: `[Admin Alert] New Customer Registration: ${customerName}`,
+    preheader: `New customer account created: ${customerName} (${email})`,
+    badge: 'CUSTOMER REGISTRATION',
+    contentHtml,
+    ctaText: 'View Customers in Admin',
+    ctaUrl: adminCustomersUrl
+  });
+
+  const text = `New Customer Registered: ${customerName} (${email}, ${phone || 'No phone'}). View customer directory: ${adminCustomersUrl}`;
+
+  return {
+    subject: `👤 [Admin Alert] New Customer Account Created: ${customerName}`,
+    html,
+    text
+  };
+}

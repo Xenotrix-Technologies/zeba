@@ -312,13 +312,12 @@ export async function createPaymentOrder(req, res, next) {
         ]
       );
 
-      // 6c. Dispatch Confirmation & Alert Emails
+      // 6c. Dispatch Confirmation & Alert Emails to Customer and Admin simultaneously
       let fullOrder = null;
       try {
         fullOrder = await fetchConsolidatedOrder(orderId);
         if (fullOrder) {
           await sendOrderConfirmationEmail({ order: fullOrder });
-          await sendAdminNewOrderAlert({ order: fullOrder, razorpayOrderId: 'COD' });
         }
       } catch (notifErr) {
         console.error('COD Order confirmation email dispatch note:', notifErr.message);
@@ -593,16 +592,19 @@ export async function verifyPayment(req, res, next) {
     // 8. Fetch Full Consolidated Order Details for Confirmation & Emails
     const fullOrder = await fetchConsolidatedOrder(order.id);
 
-    // 9. Dispatch Customer & Admin Payment Confirmation Emails (Non-blocking safe dispatch)
+    // 9. Dispatch Customer & Admin Order Confirmation AND Payment Confirmation Emails simultaneously
     try {
-      await sendPaymentConfirmationEmail({
-        order: fullOrder,
-        transactionId: razorpay_payment_id,
-        razorpayPaymentId: razorpay_payment_id,
-        paymentMethod
-      });
+      await Promise.allSettled([
+        sendOrderConfirmationEmail({ order: fullOrder }),
+        sendPaymentConfirmationEmail({
+          order: fullOrder,
+          transactionId: razorpay_payment_id,
+          razorpayPaymentId: razorpay_payment_id,
+          paymentMethod
+        })
+      ]);
     } catch (payNotifErr) {
-      console.error('Payment confirmation email dispatch note:', payNotifErr.message);
+      console.error('Payment/Order confirmation email dispatch note:', payNotifErr.message);
     }
 
     res.json({
@@ -811,17 +813,20 @@ export async function handleRazorpayWebhook(req, res, next) {
               );
             }
 
-            // Dispatch Payment Confirmation
+            // Dispatch Order Confirmation & Payment Confirmation simultaneously to Customer & Admin
             const fullOrder = await fetchConsolidatedOrder(order.id);
             try {
-              await sendPaymentConfirmationEmail({
-                order: fullOrder,
-                transactionId: rzpPaymentId,
-                razorpayPaymentId: rzpPaymentId,
-                paymentMethod: paymentEntity?.method ? `Razorpay (${paymentEntity.method.toUpperCase()})` : 'Razorpay Online'
-              });
+              await Promise.allSettled([
+                sendOrderConfirmationEmail({ order: fullOrder }),
+                sendPaymentConfirmationEmail({
+                  order: fullOrder,
+                  transactionId: rzpPaymentId,
+                  razorpayPaymentId: rzpPaymentId,
+                  paymentMethod: paymentEntity?.method ? `Razorpay (${paymentEntity.method.toUpperCase()})` : 'Razorpay Online'
+                })
+              ]);
             } catch (notifErr) {
-              console.error('Webhook payment confirmation email dispatch note:', notifErr.message);
+              console.error('Webhook payment/order confirmation email dispatch note:', notifErr.message);
             }
           }
         }
@@ -893,9 +898,11 @@ export async function handleRazorpayWebhook(req, res, next) {
  */
 async function fetchConsolidatedOrder(orderId) {
   const orderRes = await query(
-    `SELECT o.id, o.order_number, o.status, o.payment_status, o.subtotal,
+    `SELECT o.id, o.order_number, o.status, o.payment_status, o.refund_status, o.subtotal,
             o.shipping_fee, o.total_amount, o.currency, o.notes, o.created_at,
             o.razorpay_order_id, o.razorpay_payment_id,
+            o.tracking_number, o.courier_partner, o.estimated_delivery_date,
+            o.delivered_at, o.cancelled_at, o.cancellation_reason,
             c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone,
             a.house_building, a.street, a.area, a.city, a.state, a.pincode, a.country,
             COALESCE(o.payment_method, p.payment_method, 'Razorpay Online') AS payment_method
@@ -925,11 +932,18 @@ async function fetchConsolidatedOrder(orderId) {
     orderNumber: o.order_number,
     status: o.status,
     paymentStatus: o.payment_status,
+    refundStatus: o.refund_status || 'not_applicable',
     subtotal: parseFloat(o.subtotal),
     shippingFee: parseFloat(o.shipping_fee),
     totalAmount: parseFloat(o.total_amount),
     currency: o.currency || 'INR',
     notes: o.notes,
+    trackingNumber: o.tracking_number,
+    courierPartner: o.courier_partner,
+    estimatedDeliveryDate: o.estimated_delivery_date,
+    deliveredAt: o.delivered_at,
+    cancelledAt: o.cancelled_at,
+    cancellationReason: o.cancellation_reason,
     createdAt: o.created_at,
     razorpayOrderId: o.razorpay_order_id,
     razorpayPaymentId: o.razorpay_payment_id,

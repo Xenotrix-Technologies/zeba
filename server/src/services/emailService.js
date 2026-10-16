@@ -10,6 +10,7 @@ import {
   renderRefundEmail,
   renderAdminNewOrderEmail,
   renderWelcomeEmail,
+  renderAdminNewCustomerAlert,
   renderContactAdminAlert,
   renderContactCustomerConfirmation,
   renderEmailLayout
@@ -41,6 +42,29 @@ export function getSenderAddress() {
 
   return `"${name}" <${address}>`;
 }
+
+/**
+ * Get normalized, deduplicated list of administrator email recipients
+ */
+export function getAdminEmailList() {
+  const rawList = [
+    config.ADMIN_EMAIL,
+    process.env.ADMIN_EMAIL,
+    process.env.OWNER_EMAIL,
+    config.ADMIN_DEFAULT_EMAIL,
+    config.EMAIL_USER
+  ];
+
+  const emails = rawList
+    .filter(Boolean)
+    .flatMap(e => String(e).split(','))
+    .map(e => e.trim().toLowerCase())
+    .filter(isValidEmail);
+
+  const unique = Array.from(new Set(emails));
+  return unique.length > 0 ? unique : ['zebaofficial2013@gmail.com'];
+}
+
 
 /**
  * Get or create Nodemailer SMTP transporter (optimized for serverless and long-running Node)
@@ -350,49 +374,44 @@ export async function sendEmail({
 /**
  * 2.A Order Confirmation Email
  * Trigger: Order successfully placed.
- * Send to: BOTH Customer AND Admin
+ * Send to: BOTH Customer AND Admin at the same time
  */
 export async function sendOrderConfirmationEmail({ order, forceResend = false }) {
   const results = { customer: null, admin: null };
+  const recipient = order.customer?.email || order.customer_email || order.email;
+  const orderNumber = order.orderNumber || order.order_number;
 
-  // 1. Send Order Confirmation to Customer
-  try {
-    const recipient = order.customer?.email || order.customer_email || order.email;
-    if (recipient) {
-      const { subject, html, text } = renderOrderConfirmationEmail({ order });
-      const orderNumber = order.orderNumber || order.order_number;
-
-      results.customer = await sendEmail({
-        to: recipient,
-        subject,
-        html,
-        text,
-        orderId: order.id,
-        eventType: 'order_confirmation',
-        notificationType: 'order_confirmation',
-        payload: { orderNumber },
-        forceResend
-      });
-    } else {
-      console.warn(`⚠️ Customer email missing for Order #${order.id || order.order_number}`);
-      results.customer = { success: false, error: 'Customer email address missing.' };
+  const customerTask = (async () => {
+    if (!recipient) {
+      console.warn(`⚠️ Customer email missing for Order #${order.id || orderNumber}`);
+      return { success: false, error: 'Customer email address missing.' };
     }
-  } catch (custErr) {
-    console.error('Error sending customer order confirmation:', custErr.message);
-    results.customer = { success: false, error: custErr.message };
-  }
+    const { subject, html, text } = renderOrderConfirmationEmail({ order });
+    return await sendEmail({
+      to: recipient,
+      subject,
+      html,
+      text,
+      orderId: order.id,
+      eventType: 'order_confirmation',
+      notificationType: 'order_confirmation',
+      payload: { orderNumber },
+      forceResend
+    });
+  })();
 
-  // 2. Send New Order Alert to Admin
-  try {
-    results.admin = await sendAdminNewOrderAlert({
+  const adminTask = (async () => {
+    return await sendAdminNewOrderAlert({
       order,
       razorpayOrderId: order.razorpayOrderId || order.razorpay_order_id,
-      razorpayPaymentId: order.razorpayPaymentId || order.razorpay_payment_id
+      razorpayPaymentId: order.razorpayPaymentId || order.razorpay_payment_id,
+      forceResend
     });
-  } catch (adminErr) {
-    console.error('Error sending admin new order alert in confirmation:', adminErr.message);
-    results.admin = { success: false, error: adminErr.message };
-  }
+  })();
+
+  const [custSettled, adminSettled] = await Promise.allSettled([customerTask, adminTask]);
+  results.customer = custSettled.status === 'fulfilled' ? custSettled.value : { success: false, error: custSettled.reason?.message };
+  results.admin = adminSettled.status === 'fulfilled' ? adminSettled.value : { success: false, error: adminSettled.reason?.message };
 
   return {
     success: results.customer?.success || results.admin?.success || false,
@@ -403,44 +422,40 @@ export async function sendOrderConfirmationEmail({ order, forceResend = false })
 /**
  * 2.B Payment Confirmation Email
  * Trigger: Payment is successfully verified on backend.
- * Send to: BOTH Customer AND Admin
+ * Send to: BOTH Customer AND Admin at the same time
  */
 export async function sendPaymentConfirmationEmail({ order, transactionId, razorpayPaymentId, paymentMethod, forceResend = false }) {
   const results = { customer: null, admin: null };
   const payId = transactionId || razorpayPaymentId || order.razorpayPaymentId || order.razorpay_payment_id || 'VERIFIED';
   const method = paymentMethod || order.paymentMethod || order.payment_method || 'Razorpay Online';
+  const customerRecipient = order.customer?.email || order.customer_email || order.email;
+  const adminEmailList = getAdminEmailList();
 
-  // 1. Send to Customer
-  try {
-    const customerRecipient = order.customer?.email || order.customer_email || order.email;
-    if (customerRecipient) {
-      const custRender = renderPaymentConfirmationEmail({
-        order,
-        transactionId: payId,
-        paymentMethod: method,
-        isAdmin: false
-      });
-
-      results.customer = await sendEmail({
-        to: customerRecipient,
-        subject: custRender.subject,
-        html: custRender.html,
-        text: custRender.text,
-        orderId: order.id,
-        eventType: 'payment_confirmation_customer',
-        notificationType: 'payment_confirmation_customer',
-        payload: { transactionId: payId, paymentMethod: method },
-        forceResend
-      });
+  const customerTask = (async () => {
+    if (!customerRecipient) {
+      return { success: false, error: 'Customer email missing.' };
     }
-  } catch (custErr) {
-    console.error('Error sending customer payment confirmation:', custErr.message);
-    results.customer = { success: false, error: custErr.message };
-  }
+    const custRender = renderPaymentConfirmationEmail({
+      order,
+      transactionId: payId,
+      paymentMethod: method,
+      isAdmin: false
+    });
 
-  // 2. Send to Admin
-  try {
-    const adminEmail = config.ADMIN_EMAIL || process.env.ADMIN_EMAIL || 'zebaofficial2013@gmail.com';
+    return await sendEmail({
+      to: customerRecipient,
+      subject: custRender.subject,
+      html: custRender.html,
+      text: custRender.text,
+      orderId: order.id,
+      eventType: 'payment_confirmation_customer',
+      notificationType: 'payment_confirmation_customer',
+      payload: { transactionId: payId, paymentMethod: method },
+      forceResend
+    });
+  })();
+
+  const adminTask = (async () => {
     const adminRender = renderPaymentConfirmationEmail({
       order,
       transactionId: payId,
@@ -448,21 +463,28 @@ export async function sendPaymentConfirmationEmail({ order, transactionId, razor
       isAdmin: true
     });
 
-    results.admin = await sendEmail({
-      to: adminEmail,
-      subject: adminRender.subject,
-      html: adminRender.html,
-      text: adminRender.text,
-      orderId: order.id,
-      eventType: 'payment_confirmation_admin',
-      notificationType: 'payment_confirmation_admin',
-      payload: { transactionId: payId, paymentMethod: method },
-      forceResend
-    });
-  } catch (adminErr) {
-    console.error('Error sending admin payment confirmation:', adminErr.message);
-    results.admin = { success: false, error: adminErr.message };
-  }
+    const adminDispatches = adminEmailList.map(adminEmail =>
+      sendEmail({
+        to: adminEmail,
+        subject: adminRender.subject,
+        html: adminRender.html,
+        text: adminRender.text,
+        orderId: order.id,
+        eventType: 'payment_confirmation_admin',
+        notificationType: 'payment_confirmation_admin',
+        payload: { transactionId: payId, paymentMethod: method },
+        forceResend
+      })
+    );
+
+    const adminResults = await Promise.allSettled(adminDispatches);
+    const firstSuccess = adminResults.find(r => r.status === 'fulfilled' && r.value.success);
+    return firstSuccess ? firstSuccess.value : (adminResults[0]?.status === 'fulfilled' ? adminResults[0].value : { success: false });
+  })();
+
+  const [custSettled, adminSettled] = await Promise.allSettled([customerTask, adminTask]);
+  results.customer = custSettled.status === 'fulfilled' ? custSettled.value : { success: false, error: custSettled.reason?.message };
+  results.admin = adminSettled.status === 'fulfilled' ? adminSettled.value : { success: false, error: adminSettled.reason?.message };
 
   return {
     success: results.customer?.success || results.admin?.success || false,
@@ -472,8 +494,8 @@ export async function sendPaymentConfirmationEmail({ order, transactionId, razor
 
 /**
  * 2.C Order Status Update Email
- * Trigger: Whenever order status changes (processing, packed, shipped, out_for_delivery, delivered).
- * Send to: BOTH Customer AND Admin
+ * Trigger: Whenever order status changes (confirmed, processing, packed, shipped, out_for_delivery, delivered) or tracking details are updated.
+ * Send to: BOTH Customer AND Admin at the same time
  */
 export async function sendOrderStatusUpdateEmail({
   order,
@@ -482,46 +504,19 @@ export async function sendOrderStatusUpdateEmail({
   notes,
   courierPartner,
   trackingNumber,
-  trackingUrl
+  trackingUrl,
+  forceResend = false
 }) {
   const results = { customer: null, admin: null };
   const status = (newStatus || order.status || 'confirmed').toLowerCase().trim();
   const eventType = `order_status_${status}`;
+  const recipient = order.customer?.email || order.customer_email || order.email;
+  const adminEmailList = getAdminEmailList();
 
-  // 1. Send to Customer
-  try {
-    const recipient = order.customer?.email || order.customer_email || order.email;
-    if (recipient) {
-      const { subject, html, text } = renderOrderStatusUpdateEmail({
-        order,
-        newStatus: status,
-        previousStatus,
-        notes,
-        courierPartner,
-        trackingNumber,
-        trackingUrl
-      });
-
-      results.customer = await sendEmail({
-        to: recipient,
-        subject,
-        html,
-        text,
-        orderId: order.id,
-        eventType,
-        notificationType: eventType,
-        payload: { status, trackingNumber, courierPartner }
-      });
+  const customerTask = (async () => {
+    if (!recipient) {
+      return { success: false, error: 'Customer email missing.' };
     }
-  } catch (err) {
-    console.error('Error in sendOrderStatusUpdateEmail (Customer):', err.message);
-    results.customer = { success: false, error: err.message };
-  }
-
-  // 2. Send Copy / Alert to Admin
-  try {
-    const adminEmail = config.ADMIN_EMAIL || process.env.ADMIN_EMAIL || 'zebaofficial2013@gmail.com';
-    const orderNum = order.orderNumber || order.order_number || order.id;
     const { subject, html, text } = renderOrderStatusUpdateEmail({
       order,
       newStatus: status,
@@ -532,20 +527,52 @@ export async function sendOrderStatusUpdateEmail({
       trackingUrl
     });
 
-    results.admin = await sendEmail({
-      to: adminEmail,
-      subject: `[Admin Alert] ${subject}`,
+    return await sendEmail({
+      to: recipient,
+      subject,
       html,
       text,
       orderId: order.id,
-      eventType: `admin_${eventType}`,
-      notificationType: `admin_${eventType}`,
-      payload: { status, trackingNumber, courierPartner, orderNum }
+      eventType,
+      notificationType: eventType,
+      payload: { status, trackingNumber, courierPartner },
+      forceResend
     });
-  } catch (adminErr) {
-    console.error('Error in sendOrderStatusUpdateEmail (Admin):', adminErr.message);
-    results.admin = { success: false, error: adminErr.message };
-  }
+  })();
+
+  const adminTask = (async () => {
+    const { subject, html, text } = renderOrderStatusUpdateEmail({
+      order,
+      newStatus: status,
+      previousStatus,
+      notes,
+      courierPartner,
+      trackingNumber,
+      trackingUrl
+    });
+
+    const adminDispatches = adminEmailList.map(adminEmail =>
+      sendEmail({
+        to: adminEmail,
+        subject: `[Admin Alert] ${subject}`,
+        html,
+        text,
+        orderId: order.id,
+        eventType: `admin_${eventType}`,
+        notificationType: `admin_${eventType}`,
+        payload: { status, trackingNumber, courierPartner },
+        forceResend
+      })
+    );
+
+    const adminResults = await Promise.allSettled(adminDispatches);
+    const firstSuccess = adminResults.find(r => r.status === 'fulfilled' && r.value.success);
+    return firstSuccess ? firstSuccess.value : (adminResults[0]?.status === 'fulfilled' ? adminResults[0].value : { success: false });
+  })();
+
+  const [custSettled, adminSettled] = await Promise.allSettled([customerTask, adminTask]);
+  results.customer = custSettled.status === 'fulfilled' ? custSettled.value : { success: false, error: custSettled.reason?.message };
+  results.admin = adminSettled.status === 'fulfilled' ? adminSettled.value : { success: false, error: adminSettled.reason?.message };
 
   return {
     success: results.customer?.success || results.admin?.success || false,
@@ -556,42 +583,39 @@ export async function sendOrderStatusUpdateEmail({
 /**
  * 2.D Order Cancellation Email
  * Trigger: Order is cancelled (by customer or admin).
- * Send to: BOTH Customer AND Admin
+ * Send to: BOTH Customer AND Admin at the same time
  */
-export async function sendOrderCancelledEmail({ order, reason, cancellationReason, refundStatus }) {
+export async function sendOrderCancelledEmail({ order, reason, cancellationReason, refundStatus, forceResend = false }) {
   const results = { customer: null, admin: null };
   const cancelReason = reason || cancellationReason || order.cancellation_reason || 'Order cancelled';
+  const customerRecipient = order.customer?.email || order.customer_email || order.email;
+  const adminEmailList = getAdminEmailList();
 
-  // 1. Send to Customer
-  try {
-    const customerRecipient = order.customer?.email || order.customer_email || order.email;
-    if (customerRecipient) {
-      const custRender = renderOrderCancelledEmail({
-        order,
-        reason: cancelReason,
-        refundStatus,
-        isAdmin: false
-      });
-
-      results.customer = await sendEmail({
-        to: customerRecipient,
-        subject: custRender.subject,
-        html: custRender.html,
-        text: custRender.text,
-        orderId: order.id,
-        eventType: 'order_cancelled_customer',
-        notificationType: 'order_cancelled_customer',
-        payload: { reason: cancelReason, refundStatus }
-      });
+  const customerTask = (async () => {
+    if (!customerRecipient) {
+      return { success: false, error: 'Customer email missing.' };
     }
-  } catch (custErr) {
-    console.error('Error sending customer cancellation email:', custErr.message);
-    results.customer = { success: false, error: custErr.message };
-  }
+    const custRender = renderOrderCancelledEmail({
+      order,
+      reason: cancelReason,
+      refundStatus,
+      isAdmin: false
+    });
 
-  // 2. Send to Admin
-  try {
-    const adminEmail = config.ADMIN_EMAIL || process.env.ADMIN_EMAIL || 'zebaofficial2013@gmail.com';
+    return await sendEmail({
+      to: customerRecipient,
+      subject: custRender.subject,
+      html: custRender.html,
+      text: custRender.text,
+      orderId: order.id,
+      eventType: 'order_cancelled_customer',
+      notificationType: 'order_cancelled_customer',
+      payload: { reason: cancelReason, refundStatus },
+      forceResend
+    });
+  })();
+
+  const adminTask = (async () => {
     const adminRender = renderOrderCancelledEmail({
       order,
       reason: cancelReason,
@@ -599,20 +623,28 @@ export async function sendOrderCancelledEmail({ order, reason, cancellationReaso
       isAdmin: true
     });
 
-    results.admin = await sendEmail({
-      to: adminEmail,
-      subject: adminRender.subject,
-      html: adminRender.html,
-      text: adminRender.text,
-      orderId: order.id,
-      eventType: 'order_cancelled_admin',
-      notificationType: 'order_cancelled_admin',
-      payload: { reason: cancelReason, refundStatus }
-    });
-  } catch (adminErr) {
-    console.error('Error sending admin cancellation email:', adminErr.message);
-    results.admin = { success: false, error: adminErr.message };
-  }
+    const adminDispatches = adminEmailList.map(adminEmail =>
+      sendEmail({
+        to: adminEmail,
+        subject: adminRender.subject,
+        html: adminRender.html,
+        text: adminRender.text,
+        orderId: order.id,
+        eventType: 'order_cancelled_admin',
+        notificationType: 'order_cancelled_admin',
+        payload: { reason: cancelReason, refundStatus },
+        forceResend
+      })
+    );
+
+    const adminResults = await Promise.allSettled(adminDispatches);
+    const firstSuccess = adminResults.find(r => r.status === 'fulfilled' && r.value.success);
+    return firstSuccess ? firstSuccess.value : (adminResults[0]?.status === 'fulfilled' ? adminResults[0].value : { success: false });
+  })();
+
+  const [custSettled, adminSettled] = await Promise.allSettled([customerTask, adminTask]);
+  results.customer = custSettled.status === 'fulfilled' ? custSettled.value : { success: false, error: custSettled.reason?.message };
+  results.admin = adminSettled.status === 'fulfilled' ? adminSettled.value : { success: false, error: adminSettled.reason?.message };
 
   return {
     success: results.customer?.success || results.admin?.success || false,
@@ -623,27 +655,34 @@ export async function sendOrderCancelledEmail({ order, reason, cancellationReaso
 /**
  * 3. Admin New Order Alert Email
  * Trigger: New order is successfully created.
- * Send to: Admin
+ * Send to: Admin (all configured admin emails)
  */
-export async function sendAdminNewOrderAlert({ order, razorpayPaymentId, razorpayOrderId }) {
+export async function sendAdminNewOrderAlert({ order, razorpayPaymentId, razorpayOrderId, forceResend = false }) {
   try {
-    const adminEmail = config.ADMIN_EMAIL || process.env.ADMIN_EMAIL || config.ADMIN_DEFAULT_EMAIL || 'zebaofficial2013@gmail.com';
+    const adminEmails = getAdminEmailList();
     const { subject, html, text } = renderAdminNewOrderEmail({
       order,
       razorpayPaymentId,
       razorpayOrderId
     });
 
-    return await sendEmail({
-      to: adminEmail,
-      subject,
-      html,
-      text,
-      orderId: order.id,
-      eventType: 'admin_new_order',
-      notificationType: 'admin_new_order',
-      payload: { razorpayPaymentId, razorpayOrderId }
-    });
+    const sendPromises = adminEmails.map(adminEmail =>
+      sendEmail({
+        to: adminEmail,
+        subject,
+        html,
+        text,
+        orderId: order.id,
+        eventType: 'admin_new_order',
+        notificationType: 'admin_new_order',
+        payload: { razorpayPaymentId, razorpayOrderId },
+        forceResend
+      })
+    );
+
+    const results = await Promise.allSettled(sendPromises);
+    const firstSuccess = results.find(r => r.status === 'fulfilled' && r.value.success);
+    return firstSuccess ? firstSuccess.value : (results[0]?.status === 'fulfilled' ? results[0].value : { success: false });
   } catch (err) {
     console.error('Error in sendAdminNewOrderAlert:', err.message);
     return { success: false, error: err.message };
@@ -675,53 +714,83 @@ export async function sendAdminNewOrderEmail(params) {
 
 /**
  * Payment Failed Notification
- * Send to: BOTH Customer AND Admin
+ * Send to: BOTH Customer AND Admin at the same time
  */
-export async function sendPaymentFailedEmail({ order, errorMessage, retryUrl }) {
+export async function sendPaymentFailedEmail({ order, errorMessage, retryUrl, forceResend = false }) {
   const results = { customer: null, admin: null };
   const errDesc = errorMessage || 'Payment capture failed';
+  const recipient = order.customer?.email || order.customer_email || order.email;
+  const adminEmailList = getAdminEmailList();
+  const orderNum = order.orderNumber || order.order_number || order.id;
 
-  try {
-    const recipient = order.customer?.email || order.customer_email || order.email;
-    if (recipient) {
-      const { subject, html, text } = renderPaymentFailedEmail({
-        order,
-        errorMessage: errDesc,
-        retryUrl
-      });
-
-      results.customer = await sendEmail({
-        to: recipient,
-        subject,
-        html,
-        text,
-        orderId: order.id,
-        eventType: 'payment_failed',
-        notificationType: 'payment_failed',
-        payload: { errorMessage: errDesc }
-      });
-    }
-  } catch (err) {
-    console.error('Error in sendPaymentFailedEmail (Customer):', err.message);
-    results.customer = { success: false, error: err.message };
-  }
-
-  try {
-    const adminEmail = config.ADMIN_EMAIL || process.env.ADMIN_EMAIL || 'zebaofficial2013@gmail.com';
-    const orderNum = order.orderNumber || order.order_number || order.id;
-    results.admin = await sendEmail({
-      to: adminEmail,
-      subject: `⚠️ [Admin Alert] Payment Failed for Order #${orderNum}`,
-      html: `<p>Payment failed for Order <strong>#${orderNum}</strong> from ${order.customer?.name || order.customer_name || 'Customer'}.</p><p><strong>Reason:</strong> ${errDesc}</p>`,
-      text: `Payment failed for Order #${orderNum}: ${errDesc}`,
-      orderId: order.id,
-      eventType: 'admin_payment_failed',
-      notificationType: 'admin_payment_failed',
-      payload: { errorMessage: errDesc }
+  const customerTask = (async () => {
+    if (!recipient) return { success: false, error: 'Customer email missing.' };
+    const { subject, html, text } = renderPaymentFailedEmail({
+      order,
+      errorMessage: errDesc,
+      retryUrl
     });
-  } catch (adminErr) {
-    results.admin = { success: false, error: adminErr.message };
-  }
+
+    return await sendEmail({
+      to: recipient,
+      subject,
+      html,
+      text,
+      orderId: order.id,
+      eventType: 'payment_failed',
+      notificationType: 'payment_failed',
+      payload: { errorMessage: errDesc },
+      forceResend
+    });
+  })();
+
+  const adminTask = (async () => {
+    const adminHtml = `
+      <div style="background-color: #FFF5F5; border-left: 4px solid #E53E3E; padding: 16px 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="color: #9B2C2C; margin: 0 0 8px 0; font-size: 16px;">⚠️ Payment Transaction Failed</h3>
+        <p style="margin: 0; color: #4A5568; font-size: 13px;">Payment attempt for Order <strong>#${orderNum}</strong> could not be completed.</p>
+      </div>
+      <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; font-size: 13px;">
+        <div style="margin-bottom: 6px;"><strong>Customer:</strong> ${order.customer?.name || order.customer_name || 'Customer'}</div>
+        <div style="margin-bottom: 6px;"><strong>Email:</strong> ${recipient || 'Not specified'}</div>
+        <div style="margin-bottom: 6px;"><strong>Amount:</strong> &#8377;${parseFloat(order.totalAmount || order.total_amount || 0).toFixed(2)}</div>
+        <div style="margin-bottom: 6px;"><strong>Failure Reason:</strong> ${errDesc}</div>
+        <div><strong>Time:</strong> ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</div>
+      </div>
+    `;
+
+    const adminRender = renderEmailLayout({
+      title: `[Admin Alert] Payment Failed for Order #${orderNum}`,
+      preheader: `Payment failed for Order #${orderNum}: ${errDesc}`,
+      badge: 'PAYMENT FAILED',
+      headerBg: 'linear-gradient(135deg, #742A2A 0%, #9B2C2C 100%)',
+      contentHtml: adminHtml,
+      ctaText: 'View Order in Admin',
+      ctaUrl: `${config.APP_URL || 'https://www.zebaofficial.in'}/admin/orders/${order.id}`
+    });
+
+    const adminDispatches = adminEmailList.map(adminEmail =>
+      sendEmail({
+        to: adminEmail,
+        subject: `⚠️ [Admin Alert] Payment Failed for Order #${orderNum}`,
+        html: adminRender,
+        text: `Payment failed for Order #${orderNum} (${errDesc}). Customer: ${recipient}`,
+        orderId: order.id,
+        eventType: 'admin_payment_failed',
+        notificationType: 'admin_payment_failed',
+        payload: { errorMessage: errDesc },
+        forceResend
+      })
+    );
+
+    const adminResults = await Promise.allSettled(adminDispatches);
+    const firstSuccess = adminResults.find(r => r.status === 'fulfilled' && r.value.success);
+    return firstSuccess ? firstSuccess.value : (adminResults[0]?.status === 'fulfilled' ? adminResults[0].value : { success: false });
+  })();
+
+  const [custSettled, adminSettled] = await Promise.allSettled([customerTask, adminTask]);
+  results.customer = custSettled.status === 'fulfilled' ? custSettled.value : { success: false, error: custSettled.reason?.message };
+  results.admin = adminSettled.status === 'fulfilled' ? adminSettled.value : { success: false, error: adminSettled.reason?.message };
 
   return {
     success: results.customer?.success || results.admin?.success || false,
@@ -731,69 +800,77 @@ export async function sendPaymentFailedEmail({ order, errorMessage, retryUrl }) 
 
 /**
  * Refund Status Email
- * Send to: BOTH Customer AND Admin
+ * Send to: BOTH Customer AND Admin at the same time
  */
 export async function sendRefundEmail({
   order,
   refundStatus = 'initiated',
   refundAmount,
   reason,
-  transactionId
+  transactionId,
+  forceResend = false
 }) {
   const results = { customer: null, admin: null };
   const eventType = `refund_${refundStatus.toLowerCase().trim()}`;
+  const recipient = order.customer?.email || order.customer_email || order.email;
+  const adminEmailList = getAdminEmailList();
+  const orderNum = order.orderNumber || order.order_number || order.id;
+  const amount = parseFloat(refundAmount || order.totalAmount || order.total_amount || 0).toFixed(2);
 
-  try {
-    const recipient = order.customer?.email || order.customer_email || order.email;
-    if (recipient) {
-      const { subject, html, text } = renderRefundEmail({
-        order,
-        refundStatus,
-        refundAmount,
-        reason,
-        transactionId
-      });
-
-      results.customer = await sendEmail({
-        to: recipient,
-        subject,
-        html,
-        text,
-        orderId: order.id,
-        eventType,
-        notificationType: eventType,
-        payload: { refundStatus, refundAmount, transactionId }
-      });
-    }
-  } catch (err) {
-    console.error('Error in sendRefundEmail (Customer):', err.message);
-    results.customer = { success: false, error: err.message };
-  }
-
-  try {
-    const adminEmail = config.ADMIN_EMAIL || process.env.ADMIN_EMAIL || 'zebaofficial2013@gmail.com';
-    const orderNum = order.orderNumber || order.order_number || order.id;
+  const customerTask = (async () => {
+    if (!recipient) return { success: false, error: 'Customer email missing.' };
     const { subject, html, text } = renderRefundEmail({
       order,
       refundStatus,
-      refundAmount,
+      refundAmount: amount,
       reason,
       transactionId
     });
 
-    results.admin = await sendEmail({
-      to: adminEmail,
-      subject: `[Admin Alert] Refund ${refundStatus.toUpperCase()} — #${orderNum}`,
+    return await sendEmail({
+      to: recipient,
+      subject,
       html,
       text,
       orderId: order.id,
-      eventType: `admin_${eventType}`,
-      notificationType: `admin_${eventType}`,
-      payload: { refundStatus, refundAmount, transactionId }
+      eventType,
+      notificationType: eventType,
+      payload: { refundStatus, refundAmount: amount, transactionId },
+      forceResend
     });
-  } catch (adminErr) {
-    results.admin = { success: false, error: adminErr.message };
-  }
+  })();
+
+  const adminTask = (async () => {
+    const { html, text } = renderRefundEmail({
+      order,
+      refundStatus,
+      refundAmount: amount,
+      reason,
+      transactionId
+    });
+
+    const adminDispatches = adminEmailList.map(adminEmail =>
+      sendEmail({
+        to: adminEmail,
+        subject: `💸 [Admin Alert] Refund ${refundStatus.toUpperCase()} — #${orderNum}`,
+        html,
+        text,
+        orderId: order.id,
+        eventType: `admin_${eventType}`,
+        notificationType: `admin_${eventType}`,
+        payload: { refundStatus, refundAmount: amount, transactionId },
+        forceResend
+      })
+    );
+
+    const adminResults = await Promise.allSettled(adminDispatches);
+    const firstSuccess = adminResults.find(r => r.status === 'fulfilled' && r.value.success);
+    return firstSuccess ? firstSuccess.value : (adminResults[0]?.status === 'fulfilled' ? adminResults[0].value : { success: false });
+  })();
+
+  const [custSettled, adminSettled] = await Promise.allSettled([customerTask, adminTask]);
+  results.customer = custSettled.status === 'fulfilled' ? custSettled.value : { success: false, error: custSettled.reason?.message };
+  results.admin = adminSettled.status === 'fulfilled' ? adminSettled.value : { success: false, error: adminSettled.reason?.message };
 
   return {
     success: results.customer?.success || results.admin?.success || false,
@@ -803,35 +880,72 @@ export async function sendRefundEmail({
 
 /**
  * Customer Welcome Email
-
+ * Send to: BOTH Customer AND Admin at the same time
  */
 export async function sendCustomerWelcomeEmail({ customerId, name, email, phone }) {
-  try {
-    if (!email) return { success: false, error: 'Email missing.' };
+  const results = { customer: null, admin: null };
+  const cleanEmail = (email || '').trim().toLowerCase();
+  const customerName = name || 'Customer';
+  const adminEmailList = getAdminEmailList();
 
-    const { subject, html, text } = renderWelcomeEmail({ name, email });
+  const customerTask = (async () => {
+    if (!cleanEmail) return { success: false, error: 'Email missing.' };
+    const { subject, html, text } = renderWelcomeEmail({ name: customerName, email: cleanEmail });
 
     try {
-      await query(
-        `INSERT INTO customer_notifications (customer_id, notification_type, recipient, subject, message)
-         VALUES ($1, 'email_welcome', $2, $3, $4)`,
-        [customerId, email, subject, html]
-      );
+      if (customerId) {
+        await query(
+          `INSERT INTO customer_notifications (customer_id, notification_type, recipient, subject, message)
+           VALUES ($1, 'email_welcome', $2, $3, $4)`,
+          [customerId, cleanEmail, subject, html]
+        );
+      }
     } catch (_) {}
 
     return await sendEmail({
-      to: email,
+      to: cleanEmail,
       subject,
       html,
       text,
       eventType: 'customer_welcome',
       notificationType: 'customer_welcome',
-      payload: { customerId, name }
+      payload: { customerId, name: customerName }
     });
-  } catch (err) {
-    console.error('Error in sendCustomerWelcomeEmail:', err.message);
-    return { success: false, error: err.message };
-  }
+  })();
+
+  const adminTask = (async () => {
+    const adminRender = renderAdminNewCustomerAlert({
+      name: customerName,
+      email: cleanEmail,
+      phone,
+      customerId
+    });
+
+    const adminDispatches = adminEmailList.map(adminEmail =>
+      sendEmail({
+        to: adminEmail,
+        subject: adminRender.subject,
+        html: adminRender.html,
+        text: adminRender.text,
+        eventType: 'admin_customer_registered',
+        notificationType: 'admin_customer_registered',
+        payload: { customerId, name: customerName, email: cleanEmail, phone }
+      })
+    );
+
+    const adminResults = await Promise.allSettled(adminDispatches);
+    const firstSuccess = adminResults.find(r => r.status === 'fulfilled' && r.value.success);
+    return firstSuccess ? firstSuccess.value : (adminResults[0]?.status === 'fulfilled' ? adminResults[0].value : { success: false });
+  })();
+
+  const [custSettled, adminSettled] = await Promise.allSettled([customerTask, adminTask]);
+  results.customer = custSettled.status === 'fulfilled' ? custSettled.value : { success: false, error: custSettled.reason?.message };
+  results.admin = adminSettled.status === 'fulfilled' ? adminSettled.value : { success: false, error: adminSettled.reason?.message };
+
+  return {
+    success: results.customer?.success || results.admin?.success || false,
+    ...results
+  };
 }
 
 /**
@@ -962,18 +1076,12 @@ export async function retryFailedEmails({ maxRetries = 3, limit = 10, orderId = 
  * Sends:
  *   - Admin Alert email with customer query, phone, email & direct WhatsApp/Reply link
  *   - Customer Confirmation acknowledgment auto-responder
+ * Sent to: BOTH Customer AND Admin at the same time
  */
 export async function sendContactInquiryEmails({ name, email, phone, inquiryType, message, inquiryId }) {
-  const adminRecipients = Array.from(new Set([
-    config.ADMIN_EMAIL,
-    config.CONTACT_EMAIL,
-    process.env.ADMIN_EMAIL,
-    process.env.OWNER_EMAIL
-  ].filter(e => e && isValidEmail(e))));
-
-  if (adminRecipients.length === 0) {
-    adminRecipients.push('zebaofficial2013@gmail.com');
-  }
+  const adminRecipients = getAdminEmailList();
+  const cleanEmail = (email || '').trim().toLowerCase();
+  const cleanName = name || 'Customer';
 
   const results = {
     adminAlertSent: false,
@@ -981,43 +1089,49 @@ export async function sendContactInquiryEmails({ name, email, phone, inquiryType
     errors: []
   };
 
-  // 1. Dispatch Admin Alert Email
-  try {
-    const adminTemplate = renderContactAdminAlert({
-      name,
-      email,
-      phone,
-      inquiryType,
-      message,
-      inquiryId,
-      createdAt: new Date()
-    });
-
-    for (const recipient of adminRecipients) {
-      const res = await sendEmail({
-        to: recipient,
-        replyTo: email, // Direct reply in inbox goes to the customer
-        subject: adminTemplate.subject,
-        html: adminTemplate.html,
-        text: adminTemplate.text,
-        notificationType: 'contact_admin_alert',
-        payload: { inquiryId, customerEmail: email, customerName: name }
+  // 1. Admin Alert Task
+  const adminTask = (async () => {
+    try {
+      const adminTemplate = renderContactAdminAlert({
+        name: cleanName,
+        email: cleanEmail,
+        phone,
+        inquiryType,
+        message,
+        inquiryId,
+        createdAt: new Date()
       });
-      if (res.success) {
+
+      const adminDispatches = adminRecipients.map(recipient =>
+        sendEmail({
+          to: recipient,
+          replyTo: cleanEmail, // Direct reply in inbox goes to the customer
+          subject: adminTemplate.subject,
+          html: adminTemplate.html,
+          text: adminTemplate.text,
+          notificationType: 'contact_admin_alert',
+          payload: { inquiryId, customerEmail: cleanEmail, customerName: cleanName }
+        })
+      );
+
+      const dResults = await Promise.allSettled(adminDispatches);
+      const anySuccess = dResults.some(r => r.status === 'fulfilled' && r.value.success);
+      if (anySuccess) {
         results.adminAlertSent = true;
       }
+    } catch (err) {
+      console.error('Failed to dispatch contact inquiry admin alert:', err.message);
+      results.errors.push(`Admin alert: ${err.message}`);
     }
-  } catch (err) {
-    console.error('Failed to dispatch contact inquiry admin alert:', err.message);
-    results.errors.push(`Admin alert: ${err.message}`);
-  }
+  })();
 
-  // 2. Dispatch Customer Confirmation Auto-responder
-  if (isValidEmail(email)) {
+  // 2. Customer Confirmation Task
+  const customerTask = (async () => {
+    if (!isValidEmail(cleanEmail)) return;
     try {
       const customerTemplate = renderContactCustomerConfirmation({
-        name,
-        email,
+        name: cleanName,
+        email: cleanEmail,
         phone,
         inquiryType,
         message,
@@ -1025,7 +1139,7 @@ export async function sendContactInquiryEmails({ name, email, phone, inquiryType
       });
 
       const res = await sendEmail({
-        to: email,
+        to: cleanEmail,
         replyTo: config.CONTACT_EMAIL || 'info@zebaofficial.in',
         subject: customerTemplate.subject,
         html: customerTemplate.html,
@@ -1041,7 +1155,10 @@ export async function sendContactInquiryEmails({ name, email, phone, inquiryType
       console.error('Failed to dispatch contact inquiry customer confirmation:', err.message);
       results.errors.push(`Customer confirmation: ${err.message}`);
     }
-  }
+  })();
+
+  // Dispatch both simultaneously at the same time
+  await Promise.allSettled([adminTask, customerTask]);
 
   return results;
 }
