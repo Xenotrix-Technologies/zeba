@@ -59,16 +59,34 @@ export function validateStatusTransition(currentStatus, targetStatus) {
  */
 export async function getDashboardMetrics(req, res, next) {
   try {
-    const { range = 'all' } = req.query; // 'day' | 'month' | 'year' | 'all'
+    const { range = 'all', sortBy = 'created_at', sortOrder = 'desc' } = req.query; // 'day' | 'month' | 'year' | 'all'
 
     let dateCondition = '';
+    let orderDateCondition = '';
     if (range === 'day') {
       dateCondition = 'WHERE created_at >= CURRENT_DATE';
+      orderDateCondition = 'WHERE o.created_at >= CURRENT_DATE';
     } else if (range === 'month') {
       dateCondition = "WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE)";
+      orderDateCondition = "WHERE o.created_at >= DATE_TRUNC('month', CURRENT_DATE)";
     } else if (range === 'year') {
       dateCondition = "WHERE created_at >= DATE_TRUNC('year', CURRENT_DATE)";
+      orderDateCondition = "WHERE o.created_at >= DATE_TRUNC('year', CURRENT_DATE)";
     }
+
+    // Sort column mapping for orders table
+    const sortFieldMap = {
+      created_at: 'o.created_at',
+      date: 'o.created_at',
+      total_amount: 'o.total_amount',
+      amount: 'o.total_amount',
+      status: 'o.status',
+      payment_status: 'o.payment_status',
+      order_number: 'o.order_number',
+      customer_name: 'c.name'
+    };
+    const orderCol = sortFieldMap[sortBy] || 'o.created_at';
+    const orderDir = (sortOrder && sortOrder.toUpperCase() === 'ASC') ? 'ASC' : 'DESC';
 
     // 1. Order Status Counts & Revenue filtered by selected range (day/month/year/all)
     const orderStatsRes = await query(`
@@ -146,6 +164,20 @@ export async function getDashboardMetrics(req, res, next) {
       ORDER BY day_key ASC
     `);
 
+    // 5b. Hourly Revenue Analytics (for Today)
+    const hourlyRevenueRes = await query(`
+      SELECT 
+        TO_CHAR(created_at, 'HH24') AS hour_key,
+        TO_CHAR(created_at, 'HH12 AM') AS hour_label,
+        COALESCE(SUM(total_amount) FILTER (WHERE payment_status = 'paid'), 0) AS paid_revenue,
+        COALESCE(SUM(total_amount), 0) AS total_revenue,
+        COUNT(*) AS total_orders
+      FROM orders
+      WHERE created_at >= CURRENT_DATE
+      GROUP BY TO_CHAR(created_at, 'HH24'), TO_CHAR(created_at, 'HH12 AM')
+      ORDER BY hour_key ASC
+    `);
+
     // 6. Yearly Revenue Analytics
     const yearlyRevenueRes = await query(`
       SELECT 
@@ -185,15 +217,15 @@ export async function getDashboardMetrics(req, res, next) {
       WHERE is_active = true
     `);
 
-    // 9. Recent Orders in selected period (falls back to all recent if 0 in period for "all")
+    // 9. Recent Orders in selected period (disambiguated with table alias o.)
     const recentOrdersRes = await query(`
       SELECT o.id, o.order_number, o.status, o.payment_status, o.total_amount, o.created_at,
              c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone
       FROM orders o
       LEFT JOIN customers c ON o.customer_id = c.id
-      ${dateCondition}
-      ORDER BY o.created_at DESC
-      LIMIT 8
+      ${orderDateCondition}
+      ORDER BY ${orderCol} ${orderDir}
+      LIMIT 15
     `);
 
     // 10. Contact Inquiries summary
@@ -212,6 +244,8 @@ export async function getDashboardMetrics(req, res, next) {
     res.json({
       success: true,
       range,
+      sortBy,
+      sortOrder,
       metrics: {
         totalRevenue: parseFloat(stats.total_revenue || 0),
         totalBookedRevenue: parseFloat(stats.total_booked_revenue || 0),
@@ -239,6 +273,14 @@ export async function getDashboardMetrics(req, res, next) {
         allTimeOrders: parseInt(allTimeStats.all_time_orders || 0, 10)
       },
       chartData: {
+        hourly: hourlyRevenueRes.rows.map(r => ({
+          key: r.hour_key,
+          label: r.hour_label,
+          shortLabel: r.hour_label,
+          totalRevenue: parseFloat(r.total_revenue || 0),
+          paidRevenue: parseFloat(r.paid_revenue || 0),
+          orders: parseInt(r.total_orders || 0, 10)
+        })),
         monthly: monthlyRevenueRes.rows.map(r => ({
           key: r.month_key,
           label: r.month_label,

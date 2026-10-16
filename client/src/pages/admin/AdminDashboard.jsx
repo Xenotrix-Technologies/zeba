@@ -14,7 +14,12 @@ import {
   TrendingUp,
   Sparkles,
   Layers,
-  ArrowUpDown
+  ArrowUpDown,
+  ChevronUp,
+  ChevronDown,
+  Filter,
+  Clock,
+  RotateCcw
 } from 'lucide-react';
 import api from '../../services/api';
 
@@ -22,14 +27,18 @@ export default function AdminDashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState('all'); // 'day' | 'month' | 'year' | 'all'
-  const [chartTab, setChartTab] = useState('monthly'); // 'monthly' | 'daily' | 'yearly'
+  const [chartTab, setChartTab] = useState('monthly'); // 'monthly' | 'daily' | 'yearly' | 'hourly'
   const [hoveredPoint, setHoveredPoint] = useState(null);
+
+  // Sorting state for Recent Orders table
+  const [orderSortBy, setOrderSortBy] = useState('created_at');
+  const [orderSortOrder, setOrderSortOrder] = useState('desc');
 
   const fetchDashboard = async (selectedRange = range) => {
     setLoading(true);
     try {
       const res = await api.get(`/admin/dashboard?range=${selectedRange}`);
-      if (res.success) {
+      if (res && res.success) {
         setData(res);
       }
     } catch (err) {
@@ -45,9 +54,105 @@ export default function AdminDashboard() {
 
   const { metrics = {}, chartData = {}, recentOrders = [] } = data || {};
 
+  // Sort Recent Orders dynamically
+  const sortedOrders = useMemo(() => {
+    if (!recentOrders || !recentOrders.length) return [];
+    return [...recentOrders].sort((a, b) => {
+      let valA, valB;
+      if (orderSortBy === 'created_at' || orderSortBy === 'date') {
+        valA = new Date(a.created_at).getTime();
+        valB = new Date(b.created_at).getTime();
+      } else if (orderSortBy === 'total_amount' || orderSortBy === 'amount') {
+        valA = parseFloat(a.total_amount || 0);
+        valB = parseFloat(b.total_amount || 0);
+      } else if (orderSortBy === 'status') {
+        valA = (a.status || '').toLowerCase();
+        valB = (b.status || '').toLowerCase();
+      } else if (orderSortBy === 'payment_status') {
+        valA = (a.payment_status || '').toLowerCase();
+        valB = (b.payment_status || '').toLowerCase();
+      } else if (orderSortBy === 'order_number') {
+        valA = (a.order_number || '').toLowerCase();
+        valB = (b.order_number || '').toLowerCase();
+      } else if (orderSortBy === 'customer_name') {
+        valA = (a.customer_name || '').toLowerCase();
+        valB = (b.customer_name || '').toLowerCase();
+      } else {
+        valA = new Date(a.created_at).getTime();
+        valB = new Date(b.created_at).getTime();
+      }
+
+      if (valA < valB) return orderSortOrder === 'asc' ? -1 : 1;
+      if (valA > valB) return orderSortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [recentOrders, orderSortBy, orderSortOrder]);
+
+  const handleSort = (field) => {
+    if (orderSortBy === field) {
+      setOrderSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setOrderSortBy(field);
+      setOrderSortOrder(field === 'created_at' || field === 'total_amount' ? 'desc' : 'asc');
+    }
+  };
+
+  const renderSortIcon = (field) => {
+    if (orderSortBy !== field) {
+      return <ArrowUpDown className="w-3 h-3 text-[#805A82]/40 group-hover:text-brand-deepPurple inline-block ml-1" />;
+    }
+    return orderSortOrder === 'asc' ? (
+      <ChevronUp className="w-3.5 h-3.5 text-brand-brightPink inline-block ml-1 font-bold" />
+    ) : (
+      <ChevronDown className="w-3.5 h-3.5 text-brand-brightPink inline-block ml-1 font-bold" />
+    );
+  };
+
   // Compute points for the Revenue Chart
   const chartPoints = useMemo(() => {
     const raw = (chartData && chartData[chartTab]) || [];
+
+    if (chartTab === 'hourly') {
+      const hourlyRaw = (chartData && chartData.hourly) || [];
+      const map = new Map();
+      hourlyRaw.forEach((item) => map.set(item.key, item));
+
+      // 8 time intervals across 24h: 12 AM, 3 AM, 6 AM, 9 AM, 12 PM, 3 PM, 6 PM, 9 PM
+      const buckets = [
+        { key: '00', shortLabel: '12 AM', label: '12:00 AM - 03:00 AM' },
+        { key: '03', shortLabel: '3 AM', label: '03:00 AM - 06:00 AM' },
+        { key: '06', shortLabel: '6 AM', label: '06:00 AM - 09:00 AM' },
+        { key: '09', shortLabel: '9 AM', label: '09:00 AM - 12:00 PM' },
+        { key: '12', shortLabel: '12 PM', label: '12:00 PM - 03:00 PM' },
+        { key: '15', shortLabel: '3 PM', label: '03:00 PM - 06:00 PM' },
+        { key: '18', shortLabel: '6 PM', label: '06:00 PM - 09:00 PM' },
+        { key: '21', shortLabel: '9 PM', label: '09:00 PM - 11:59 PM' }
+      ];
+
+      return buckets.map((b) => {
+        let totalRevenue = 0;
+        let paidRevenue = 0;
+        let orders = 0;
+        const startH = parseInt(b.key, 10);
+        for (let h = startH; h < startH + 3; h++) {
+          const hk = String(h).padStart(2, '0');
+          const entry = map.get(hk);
+          if (entry) {
+            totalRevenue += parseFloat(entry.totalRevenue || 0);
+            paidRevenue += parseFloat(entry.paidRevenue || 0);
+            orders += parseInt(entry.orders || 0, 10);
+          }
+        }
+        return {
+          key: b.key,
+          label: b.label,
+          shortLabel: b.shortLabel,
+          totalRevenue,
+          paidRevenue,
+          orders
+        };
+      });
+    }
 
     if (chartTab === 'monthly') {
       const map = new Map();
@@ -104,16 +209,6 @@ export default function AdminDashboard() {
     return maxVal > 0 ? Math.ceil(maxVal * 1.25 / 100) * 100 : 500;
   }, [chartPoints]);
 
-  const totalPeriodRevenue = useMemo(() => {
-    return chartPoints.reduce((acc, p) => acc + p.totalRevenue, 0);
-  }, [chartPoints]);
-
-  const totalPeriodOrders = useMemo(() => {
-    return chartPoints.reduce((acc, p) => acc + p.orders, 0);
-  }, [chartPoints]);
-
-  const avgOrderValue = totalPeriodOrders > 0 ? totalPeriodRevenue / totalPeriodOrders : 0;
-
   const rangeLabel = {
     day: 'Today',
     month: 'This Month',
@@ -131,9 +226,11 @@ export default function AdminDashboard() {
   const handleRangeChange = (newRange) => {
     setRange(newRange);
     if (newRange === 'day') {
+      setChartTab('hourly');
+    } else if (newRange === 'month') {
       setChartTab('daily');
     } else if (newRange === 'year') {
-      setChartTab('yearly');
+      setChartTab('monthly');
     } else {
       setChartTab('monthly');
     }
@@ -343,23 +440,23 @@ export default function AdminDashboard() {
                 </p>
               </div>
 
-              {/* Chart Granularity Switcher (Monthly, Daily, Yearly) */}
-              <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-[#FFF5FA] border border-brand-primaryPink/25 text-xs font-semibold">
+              {/* Chart Granularity Switcher (Hourly, Daily, Monthly, Yearly) */}
+              <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-2xl bg-[#FFF5FA] border border-brand-primaryPink/25 text-xs font-semibold">
                 <button
                   type="button"
-                  onClick={() => setChartTab('monthly')}
-                  className={`px-3 py-1.5 rounded-xl transition-all ${
-                    chartTab === 'monthly'
+                  onClick={() => setChartTab('hourly')}
+                  className={`px-2.5 py-1.5 rounded-xl transition-all ${
+                    chartTab === 'hourly'
                       ? 'bg-brand-brightPink text-white font-bold shadow-sm'
                       : 'text-[#805A82] hover:text-brand-deepPurple'
                   }`}
                 >
-                  Monthly View
+                  Today (Hourly)
                 </button>
                 <button
                   type="button"
                   onClick={() => setChartTab('daily')}
-                  className={`px-3 py-1.5 rounded-xl transition-all ${
+                  className={`px-2.5 py-1.5 rounded-xl transition-all ${
                     chartTab === 'daily'
                       ? 'bg-brand-brightPink text-white font-bold shadow-sm'
                       : 'text-[#805A82] hover:text-brand-deepPurple'
@@ -369,8 +466,19 @@ export default function AdminDashboard() {
                 </button>
                 <button
                   type="button"
+                  onClick={() => setChartTab('monthly')}
+                  className={`px-2.5 py-1.5 rounded-xl transition-all ${
+                    chartTab === 'monthly'
+                      ? 'bg-brand-brightPink text-white font-bold shadow-sm'
+                      : 'text-[#805A82] hover:text-brand-deepPurple'
+                  }`}
+                >
+                  Monthly View
+                </button>
+                <button
+                  type="button"
                   onClick={() => setChartTab('yearly')}
-                  className={`px-3 py-1.5 rounded-xl transition-all ${
+                  className={`px-2.5 py-1.5 rounded-xl transition-all ${
                     chartTab === 'yearly'
                       ? 'bg-brand-brightPink text-white font-bold shadow-sm'
                       : 'text-[#805A82] hover:text-brand-deepPurple'
@@ -381,32 +489,41 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Quick Chart KPI Summaries */}
+            {/* Quick Chart KPI Summaries - SCOPED TO SELECTED TIMEFRAME */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <div className="p-3.5 rounded-2xl bg-[#FFF5FA] border border-brand-primaryPink/20">
-                <span className="text-[11px] text-[#805A82] block font-semibold">
-                  Revenue In Period
-                </span>
+                <div className="flex items-center justify-between text-[11px] text-[#805A82] font-semibold">
+                  <span>Revenue In Period</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-brand-softPink text-brand-brightPink font-bold">
+                    {rangeLabel}
+                  </span>
+                </div>
                 <span className="font-display font-black text-lg sm:text-xl text-brand-deepPurple mt-0.5 block">
-                  ₹{totalPeriodRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  ₹{metrics.totalBookedRevenue?.toLocaleString('en-IN', { minimumFractionDigits: 2 }) ?? '0.00'}
                 </span>
               </div>
 
               <div className="p-3.5 rounded-2xl bg-[#FFF5FA] border border-brand-primaryPink/20">
-                <span className="text-[11px] text-[#805A82] block font-semibold">
-                  Total Orders
-                </span>
+                <div className="flex items-center justify-between text-[11px] text-[#805A82] font-semibold">
+                  <span>Total Orders</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-brand-softPink text-brand-brightPink font-bold">
+                    {rangeLabel}
+                  </span>
+                </div>
                 <span className="font-display font-black text-lg sm:text-xl text-brand-deepPurple mt-0.5 block">
-                  {totalPeriodOrders}
+                  {metrics.totalOrders ?? 0}
                 </span>
               </div>
 
               <div className="p-3.5 rounded-2xl bg-[#FFF5FA] border border-brand-primaryPink/20 col-span-2 sm:col-span-1">
-                <span className="text-[11px] text-[#805A82] block font-semibold">
-                  Avg Order Value (AOV)
-                </span>
+                <div className="flex items-center justify-between text-[11px] text-[#805A82] font-semibold">
+                  <span>Avg Order Value (AOV)</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-brand-softPink text-brand-brightPink font-bold">
+                    {rangeLabel}
+                  </span>
+                </div>
                 <span className="font-display font-black text-lg sm:text-xl text-brand-deepPurple mt-0.5 block">
-                  ₹{avgOrderValue.toFixed(2)}
+                  ₹{metrics.totalOrders > 0 ? (metrics.totalBookedRevenue / metrics.totalOrders).toFixed(2) : '0.00'}
                 </span>
               </div>
             </div>
@@ -491,7 +608,7 @@ export default function AdminDashboard() {
                         </div>
                       </div>
 
-                      {/* X-axis Month Label */}
+                      {/* X-axis Label */}
                       <span className={`text-[11px] font-bold mt-2 transition-colors ${
                         isHovered ? 'text-brand-brightPink' : 'text-[#805A82]'
                       }`}>
@@ -567,42 +684,152 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Recent Orders Table */}
+          {/* Recent Orders Table with Sort Controls */}
           <div className="bg-white rounded-3xl border border-brand-primaryPink/25 overflow-hidden shadow-sm space-y-4 p-6">
-            <div className="flex items-center justify-between pb-2 border-b border-brand-primaryPink/15">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-brand-primaryPink/15">
               <div>
-                <h2 className="font-display font-bold text-base text-brand-deepPurple">
-                  Recent Store Orders ({rangeLabel})
-                </h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-display font-bold text-base text-brand-deepPurple">
+                    Recent Store Orders ({rangeLabel})
+                  </h2>
+                  <span className="px-2 py-0.5 rounded-full bg-brand-softPink text-brand-brightPink text-[10px] font-bold">
+                    {sortedOrders.length} order{sortedOrders.length === 1 ? '' : 's'}
+                  </span>
+                </div>
                 <p className="text-xs text-[#805A82]">
-                  {range === 'day' ? "Orders placed today" : range === 'month' ? "Orders placed this month" : range === 'year' ? "Orders placed this year" : "Latest customer orders placed on storefront"}
+                  {range === 'day' 
+                    ? "Orders placed today" 
+                    : range === 'month' 
+                    ? "Orders placed this month" 
+                    : range === 'year' 
+                    ? "Orders placed this calendar year" 
+                    : "Latest customer orders placed on storefront"}
                 </p>
               </div>
-              <Link to="/admin/orders" className="text-xs text-brand-brightPink hover:underline font-bold">
-                View All Orders →
-              </Link>
+
+              {/* Sort controls */}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-1.5 text-xs text-[#805A82]">
+                  <ArrowUpDown className="w-3.5 h-3.5 text-brand-brightPink" />
+                  <span className="font-semibold hidden md:inline">Sort:</span>
+                  <select
+                    value={`${orderSortBy}-${orderSortOrder}`}
+                    onChange={(e) => {
+                      const [field, order] = e.target.value.split('-');
+                      setOrderSortBy(field);
+                      setOrderSortOrder(order);
+                    }}
+                    className="text-xs bg-[#FFF5FA] border border-brand-primaryPink/30 rounded-xl px-2.5 py-1.5 text-brand-deepPurple font-semibold focus:outline-none focus:ring-1 focus:ring-brand-brightPink cursor-pointer"
+                  >
+                    <option value="created_at-desc">Newest First (Date ↓)</option>
+                    <option value="created_at-asc">Oldest First (Date ↑)</option>
+                    <option value="total_amount-desc">Amount: High to Low (₹ ↓)</option>
+                    <option value="total_amount-asc">Amount: Low to High (₹ ↑)</option>
+                    <option value="status-asc">Status: A to Z</option>
+                    <option value="customer_name-asc">Customer: A to Z</option>
+                  </select>
+                </div>
+
+                <Link to="/admin/orders" className="text-xs text-brand-brightPink hover:underline font-bold whitespace-nowrap ml-1">
+                  View All Orders →
+                </Link>
+              </div>
             </div>
 
-            {recentOrders.length === 0 ? (
-              <div className="text-center py-12 text-[#805A82] text-xs">
-                No customer orders recorded for {rangeLabel.toLowerCase()} yet. As new orders are placed, they will appear here in real time.
+            {sortedOrders.length === 0 ? (
+              <div className="text-center py-12 px-4 space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-[#FFF5FA] border border-brand-primaryPink/30 flex items-center justify-center mx-auto text-brand-brightPink">
+                  <Calendar className="w-6 h-6" />
+                </div>
+                <div className="space-y-1">
+                  <p className="font-display font-bold text-sm text-brand-deepPurple">
+                    No orders recorded for {rangeLabel.toLowerCase()}
+                  </p>
+                  <p className="text-xs text-[#805A82] max-w-sm mx-auto">
+                    {range === 'day' 
+                      ? "There have been no orders placed today yet. New live customer orders will automatically appear here." 
+                      : `No orders found matching the ${rangeLabel.toLowerCase()} timeframe filter.`}
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                  <button
+                    onClick={() => handleRangeChange('all')}
+                    className="px-3.5 py-1.5 rounded-xl bg-brand-softPink hover:bg-brand-primaryPink/25 text-brand-deepPurple text-xs font-bold transition-colors shadow-sm"
+                  >
+                    View All-Time Orders
+                  </button>
+                  <button
+                    onClick={() => handleRangeChange('month')}
+                    className="px-3.5 py-1.5 rounded-xl bg-white border border-brand-primaryPink/30 hover:bg-brand-softPink text-[#805A82] hover:text-brand-deepPurple text-xs font-semibold transition-colors shadow-sm"
+                  >
+                    View This Month
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs text-brand-darkPurple">
-                  <thead className="bg-[#FFF5FA] text-[#805A82] uppercase font-bold text-[10px] tracking-wider border-b border-brand-primaryPink/20">
+                  <thead className="bg-[#FFF5FA] text-[#805A82] uppercase font-bold text-[10px] tracking-wider border-b border-brand-primaryPink/20 select-none">
                     <tr>
-                      <th className="p-3">Order Number</th>
-                      <th className="p-3">Customer</th>
-                      <th className="p-3">Total Amount</th>
-                      <th className="p-3">Payment</th>
-                      <th className="p-3">Order Status</th>
-                      <th className="p-3">Date</th>
+                      <th 
+                        className="p-3 cursor-pointer hover:text-brand-deepPurple transition-colors group"
+                        onClick={() => handleSort('order_number')}
+                      >
+                        <div className="flex items-center gap-1">
+                          <span>Order Number</span>
+                          {renderSortIcon('order_number')}
+                        </div>
+                      </th>
+                      <th 
+                        className="p-3 cursor-pointer hover:text-brand-deepPurple transition-colors group"
+                        onClick={() => handleSort('customer_name')}
+                      >
+                        <div className="flex items-center gap-1">
+                          <span>Customer</span>
+                          {renderSortIcon('customer_name')}
+                        </div>
+                      </th>
+                      <th 
+                        className="p-3 cursor-pointer hover:text-brand-deepPurple transition-colors group"
+                        onClick={() => handleSort('total_amount')}
+                      >
+                        <div className="flex items-center gap-1">
+                          <span>Total Amount</span>
+                          {renderSortIcon('total_amount')}
+                        </div>
+                      </th>
+                      <th 
+                        className="p-3 cursor-pointer hover:text-brand-deepPurple transition-colors group"
+                        onClick={() => handleSort('payment_status')}
+                      >
+                        <div className="flex items-center gap-1">
+                          <span>Payment</span>
+                          {renderSortIcon('payment_status')}
+                        </div>
+                      </th>
+                      <th 
+                        className="p-3 cursor-pointer hover:text-brand-deepPurple transition-colors group"
+                        onClick={() => handleSort('status')}
+                      >
+                        <div className="flex items-center gap-1">
+                          <span>Order Status</span>
+                          {renderSortIcon('status')}
+                        </div>
+                      </th>
+                      <th 
+                        className="p-3 cursor-pointer hover:text-brand-deepPurple transition-colors group"
+                        onClick={() => handleSort('created_at')}
+                      >
+                        <div className="flex items-center gap-1">
+                          <span>Date</span>
+                          {renderSortIcon('created_at')}
+                        </div>
+                      </th>
                       <th className="p-3 text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-brand-primaryPink/15">
-                    {recentOrders.map((order) => (
+                    {sortedOrders.map((order) => (
                       <tr key={order.id} className="hover:bg-brand-softPink/40 transition-colors">
                         <td className="p-3 font-mono font-bold text-brand-deepPurple">{order.order_number}</td>
                         <td className="p-3">
