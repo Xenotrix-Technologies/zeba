@@ -166,8 +166,8 @@ export default function Navbar() {
       <header
         className={`sticky top-0 z-40 transition-all duration-300 ${
           isScrolled
-            ? 'glass-nav shadow-lg py-3 border-b border-[#5F3F68]/40 bg-[#805A82]/95 backdrop-blur-md'
-            : 'bg-[#805A82] py-4 border-b border-[#5F3F68]/40 shadow-md'
+            ? 'glass-nav shadow-lg py-3 border-b border-[#5F3F68]/40 bg-[#38283D]/95 backdrop-blur-md'
+            : 'bg-[#38283D] py-4 border-b border-[#5F3F68]/40 shadow-md'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
@@ -308,7 +308,7 @@ export default function Navbar() {
 
         {/* Mobile Navigation Dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-white/20 bg-[#805A82]/98 backdrop-blur-lg px-4 pt-3 pb-6 space-y-3 animate-fade-in shadow-xl font-brand">
+          <div className="md:hidden border-t border-white/20 bg-[#38283D]/98 backdrop-blur-lg px-4 pt-3 pb-6 space-y-3 animate-fade-in shadow-xl font-brand">
             <Link
               to="/"
               className="block px-3 py-2 rounded-lg text-sm font-bold tracking-wider text-white hover:bg-white/15"
