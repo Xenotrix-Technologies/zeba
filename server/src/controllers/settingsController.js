@@ -119,9 +119,9 @@ export async function getPublicSettings(req, res, next) {
           secondaryText: offerBar.secondaryText !== undefined ? offerBar.secondaryText : '• 100% Safe Natural Minerals • Discreet Packaging',
           couponCode: offerBar.couponCode || '',
           linkUrl: offerBar.linkUrl || '',
-          bgColor: offerBar.bgColor || '#5F3F68',
+          bgColor: offerBar.bgColor || '#e60e8c',
           textColor: offerBar.textColor || '#FFFFFF',
-          accentColor: offerBar.accentColor || '#ECC695',
+          accentColor: offerBar.accentColor || '#FFFFFF',
           icon: offerBar.icon || 'Sparkles',
           pulseEffect: offerBar.pulseEffect !== undefined ? Boolean(offerBar.pulseEffect) : true,
           showSecondaryOnMobile: offerBar.showSecondaryOnMobile !== undefined ? Boolean(offerBar.showSecondaryOnMobile) : false

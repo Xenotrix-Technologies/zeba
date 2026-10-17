@@ -48,9 +48,9 @@ const DEFAULT_OFFER_BAR = {
   secondaryText: '• 100% Safe Natural Minerals • Discreet Packaging',
   couponCode: '',
   linkUrl: '',
-  bgColor: '#5F3F68',
+  bgColor: '#e60e8c',
   textColor: '#FFFFFF',
-  accentColor: '#ECC695',
+  accentColor: '#FFFFFF',
   icon: 'Sparkles',
   pulseEffect: true,
   showSecondaryOnMobile: false
@@ -84,9 +84,9 @@ export default function AdminOfferBar() {
               secondaryText: remoteOfferBar.secondaryText !== undefined ? remoteOfferBar.secondaryText : '• 100% Safe Natural Minerals • Discreet Packaging',
               couponCode: '',
               linkUrl: remoteOfferBar.linkUrl || '',
-              bgColor: '#5F3F68',
+              bgColor: '#e60e8c',
               textColor: '#FFFFFF',
-              accentColor: '#ECC695',
+              accentColor: '#FFFFFF',
               icon: remoteOfferBar.icon || 'Sparkles',
               pulseEffect: remoteOfferBar.pulseEffect !== undefined ? Boolean(remoteOfferBar.pulseEffect) : true,
               showSecondaryOnMobile: remoteOfferBar.showSecondaryOnMobile !== undefined ? Boolean(remoteOfferBar.showSecondaryOnMobile) : false
@@ -108,9 +108,9 @@ export default function AdminOfferBar() {
       const payload = {
         ...form,
         couponCode: '',
-        bgColor: '#5F3F68',
+        bgColor: '#e60e8c',
         textColor: '#FFFFFF',
-        accentColor: '#ECC695'
+        accentColor: '#FFFFFF'
       };
       const res = await api.put('/settings/offer_bar', {
         value: payload,
@@ -242,7 +242,7 @@ export default function AdminOfferBar() {
             {form.enabled ? (
               <div
                 style={{
-                  backgroundColor: form.bgColor || '#5F3F68',
+                  backgroundColor: form.bgColor || '#e60e8c',
                   color: form.textColor || '#FFFFFF'
                 }}
                 className={`py-2 px-4 text-xs md:text-sm font-brand font-medium tracking-wide text-center border-b border-white/10 flex items-center justify-center flex-wrap gap-x-2 gap-y-1 transition-all ${

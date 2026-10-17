@@ -88,10 +88,10 @@
 
 /* Glassmorphism & High-End Card Surfaces */
 .glass-nav {
-  background: rgba(230, 14, 140, 0.95);
+  background: rgba(128, 90, 130, 0.95);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(201, 10, 120, 0.4);
+  border-bottom: 1px solid rgba(95, 63, 104, 0.4);
 }
 
 .glass-card {

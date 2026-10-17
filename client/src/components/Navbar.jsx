@@ -29,9 +29,9 @@ export default function Navbar() {
     secondaryText: '• 100% Safe Natural Minerals • Discreet Packaging',
     couponCode: '',
     linkUrl: '',
-    bgColor: '#5F3F68',
+    bgColor: '#e60e8c',
     textColor: '#FFFFFF',
-    accentColor: '#ECC695',
+    accentColor: '#FFFFFF',
     icon: 'Sparkles',
     pulseEffect: true,
     showSecondaryOnMobile: false
@@ -104,7 +104,7 @@ export default function Navbar() {
         <div
           onClick={offerBar.linkUrl ? handleOfferBarClick : undefined}
           style={{
-            backgroundColor: offerBar.bgColor || '#5F3F68',
+            backgroundColor: offerBar.bgColor || '#e60e8c',
             color: offerBar.textColor || '#FFFFFF'
           }}
           className={`py-2 px-4 text-xs md:text-sm font-brand font-medium tracking-wide text-center border-b border-white/10 flex items-center justify-center flex-wrap gap-x-2 gap-y-1 shadow-sm transition-opacity select-none ${
@@ -166,8 +166,8 @@ export default function Navbar() {
       <header
         className={`sticky top-0 z-40 transition-all duration-300 ${
           isScrolled
-            ? 'glass-nav shadow-lg py-3 border-b border-[#c90a78]/40 bg-[#e60e8c]/95 backdrop-blur-md'
-            : 'bg-[#e60e8c] py-4 border-b border-[#c90a78]/40 shadow-md'
+            ? 'glass-nav shadow-lg py-3 border-b border-[#5F3F68]/40 bg-[#805A82]/95 backdrop-blur-md'
+            : 'bg-[#805A82] py-4 border-b border-[#5F3F68]/40 shadow-md'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
@@ -211,7 +211,7 @@ export default function Navbar() {
               }`}
             >
               Heating Pads
-              <span className="ml-1.5 px-2 py-0.5 text-[9px] font-black bg-[#5F3F68] text-white rounded-full shadow-sm tracking-normal border border-white/25">
+              <span className="ml-1.5 px-2 py-0.5 text-[9px] font-black bg-[#e60e8c] text-white rounded-full shadow-sm tracking-normal border border-white/25">
                 1 & 3 Packs
               </span>
             </Link>
@@ -285,7 +285,7 @@ export default function Navbar() {
             {/* Shop 3-Pack CTA */}
             <Link
               to="/products/zeba-heating-pad-3-pack"
-              className="hidden lg:inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-brand font-bold uppercase tracking-wider text-white bg-gradient-to-r from-[#5F3F68] to-[#4A2F52] hover:from-[#4A2F52] hover:to-[#5F3F68] border border-white/20 transition-all duration-200 shadow-md shadow-[#38283D]/30 hover:shadow-lg btn-tactile"
+              className="hidden lg:inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-brand font-bold uppercase tracking-wider text-white bg-[#e60e8c] hover:bg-[#c90a78] border border-white/20 transition-all duration-200 shadow-md shadow-[#e60e8c]/30 hover:shadow-lg btn-tactile"
             >
               Shop 3-Pack
             </Link>
@@ -298,7 +298,7 @@ export default function Navbar() {
             >
               <ShoppingBag className="w-5 h-5 text-[#5F3F68]" />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[#5F3F68] text-white text-[11px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center shadow-md animate-scale-up border border-white">
+                <span className="absolute -top-1 -right-1 bg-[#e60e8c] text-white text-[11px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center shadow-md animate-scale-up border border-white">
                   {cartCount}
                 </span>
               )}
@@ -308,7 +308,7 @@ export default function Navbar() {
 
         {/* Mobile Navigation Dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-white/20 bg-[#e60e8c]/98 backdrop-blur-lg px-4 pt-3 pb-6 space-y-3 animate-fade-in shadow-xl font-brand">
+          <div className="md:hidden border-t border-white/20 bg-[#805A82]/98 backdrop-blur-lg px-4 pt-3 pb-6 space-y-3 animate-fade-in shadow-xl font-brand">
             <Link
               to="/"
               className="block px-3 py-2 rounded-lg text-sm font-bold tracking-wider text-white hover:bg-white/15"
@@ -342,7 +342,7 @@ export default function Navbar() {
             <div className="pt-2 border-t border-white/20 flex flex-col gap-2">
               <Link
                 to="/products"
-                className="w-full text-center py-2.5 rounded-xl bg-gradient-to-r from-[#5F3F68] to-[#4A2F52] hover:from-[#4A2F52] hover:to-[#5F3F68] text-white font-brand font-bold text-sm tracking-wider uppercase shadow-md border border-white/20"
+                className="w-full text-center py-2.5 rounded-xl bg-[#e60e8c] hover:bg-[#c90a78] text-white font-brand font-bold text-sm tracking-wider uppercase shadow-md border border-white/20"
               >
                 Shop Heating Pads
               </Link>

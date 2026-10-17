@@ -286,9 +286,9 @@ export async function seedDatabase() {
         secondaryText: '• 100% Safe Natural Minerals • Discreet Packaging',
         couponCode: '',
         linkUrl: '',
-        bgColor: '#5F3F68',
+        bgColor: '#e60e8c',
         textColor: '#FFFFFF',
-        accentColor: '#ECC695',
+        accentColor: '#FFFFFF',
         icon: 'Sparkles',
         pulseEffect: true,
         showSecondaryOnMobile: false
