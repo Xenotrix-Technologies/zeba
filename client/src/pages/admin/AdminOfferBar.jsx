@@ -315,17 +315,14 @@ export default function AdminOfferBar() {
             )}
 
             {/* Simulated Mock Storefront Navbar */}
-            <div className="p-3 bg-[#FFF5FA] border-b border-brand-pink/20 flex items-center justify-between opacity-80 select-none">
+            <div className="p-3 bg-[#e60e8c] border-b border-[#c90a78]/40 flex items-center justify-between opacity-90 select-none">
               <div className="flex items-center space-x-2">
-                <div className="w-6 h-6 rounded-lg bg-brand-deepPurple text-white flex items-center justify-center font-black text-[10px]">
-                  Z
-                </div>
-                <span className="font-display font-black text-xs text-brand-dark">ZEBA Store</span>
+                <img src="/images/zeba-logo.png" alt="ZEBA Store" className="h-6 w-auto object-contain" />
               </div>
-              <div className="text-[11px] text-brand-plum/70 flex items-center space-x-3">
+              <div className="text-[11px] text-white/80 flex items-center space-x-3">
                 <span className="hidden sm:inline">Relief Pads</span>
                 <span className="hidden sm:inline">Track Order</span>
-                <span className="font-bold text-brand-brightPink">Cart (0)</span>
+                <span className="font-bold text-[#FDF2F8] bg-[#5F3F68] px-2 py-0.5 rounded-full text-[10px]">Cart (0)</span>
               </div>
             </div>
 

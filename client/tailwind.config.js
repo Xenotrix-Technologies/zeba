@@ -10,12 +10,12 @@ export default {
         zeba: {
           // Exact Packaging Feminine Pink + Purple Palette with Gold
           primaryPink: '#E58BC2',
-          brightPink: '#E84FA5',
-          deepPink: '#D94696',
-          pink: '#E58BC2',
-          hotPink: '#E84FA5',
-          magenta: '#E84FA5',
-          deepMagenta: '#D94696',
+          brightPink: '#e60e8c',
+          deepPink: '#c90a78',
+          pink: '#e60e8c',
+          hotPink: '#e60e8c',
+          magenta: '#e60e8c',
+          deepMagenta: '#c90a78',
           softPink: '#FFEAF4',
           blush: '#FFF5FA',
 
@@ -49,10 +49,10 @@ export default {
           surfaceWhite: '#FFFFFF'
         },
         brand: {
-          pink: '#E84FA5',
+          pink: '#e60e8c',
           primaryPink: '#E58BC2',
-          brightPink: '#E84FA5',
-          deepPink: '#D94696',
+          brightPink: '#e60e8c',
+          deepPink: '#c90a78',
           softPink: '#FFEAF4',
           blush: '#FFF5FA',
           roseBg: '#FFF5FA',

@@ -166,8 +166,8 @@ export default function Navbar() {
       <header
         className={`sticky top-0 z-40 transition-all duration-300 ${
           isScrolled
-            ? 'glass-nav shadow-md py-3 border-b border-brand-pink/20 bg-white/95'
-            : 'bg-[#FFF5FA]/95 py-4 border-b border-brand-pink/15 backdrop-blur-md'
+            ? 'glass-nav shadow-lg py-3 border-b border-[#c90a78]/40 bg-[#e60e8c]/95 backdrop-blur-md'
+            : 'bg-[#e60e8c] py-4 border-b border-[#c90a78]/40 shadow-md'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
@@ -176,7 +176,7 @@ export default function Navbar() {
           <div className="flex items-center md:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-brand-darkPurple hover:text-brand-pink transition-colors focus:outline-none"
+              className="p-2 text-white hover:text-white/80 transition-colors focus:outline-none"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -186,51 +186,47 @@ export default function Navbar() {
           {/* ZEBA Official Brand Logo */}
           <Link to="/" className="flex items-center space-x-2 group py-1">
             <img 
-              src="/images/zeba-logo.webp" 
+              src="/images/zeba-logo.png" 
               alt="ZEBA - Periods Pain Relief" 
               width="150"
               height="44"
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = '/images/zeba-logo.png';
-              }}
-              className="h-9 sm:h-10 md:h-11 w-auto object-contain group-hover:opacity-90 transition-opacity" 
+              className="h-9 sm:h-10 md:h-11 w-auto object-contain group-hover:opacity-95 transition-all drop-shadow-[0_1px_2px_rgba(180,130,20,0.2)]" 
             />
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-8 font-brand text-xs font-bold uppercase tracking-wider text-brand-darkPurple">
+          <nav className="hidden md:flex items-center space-x-8 font-brand text-xs font-bold uppercase tracking-wider text-white">
             <Link
               to="/"
-              className={`hover:text-brand-brightPink transition-colors relative py-1 ${
-                location.pathname === '/' ? 'text-brand-brightPink font-black' : ''
+              className={`hover:text-[#FDE7F3] transition-colors relative py-1 ${
+                location.pathname === '/' ? 'text-white font-black underline decoration-2 underline-offset-8 decoration-white/70' : 'text-white/95'
               }`}
             >
               Home
             </Link>
             <Link
               to="/products"
-              className={`hover:text-brand-brightPink transition-colors relative py-1 ${
-                location.pathname.startsWith('/products') ? 'text-brand-brightPink font-black' : ''
+              className={`hover:text-[#FDE7F3] transition-colors relative py-1 ${
+                location.pathname.startsWith('/products') ? 'text-white font-black underline decoration-2 underline-offset-8 decoration-white/70' : 'text-white/95'
               }`}
             >
               Heating Pads
-              <span className="ml-1.5 px-2 py-0.5 text-[9px] font-black bg-brand-brightPink text-white rounded-full shadow-sm tracking-normal">
+              <span className="ml-1.5 px-2 py-0.5 text-[9px] font-black bg-[#5F3F68] text-white rounded-full shadow-sm tracking-normal border border-white/25">
                 1 & 3 Packs
               </span>
             </Link>
             <Link
               to="/about"
-              className={`hover:text-brand-brightPink transition-colors relative py-1 ${
-                location.pathname === '/about' ? 'text-brand-brightPink font-black' : ''
+              className={`hover:text-[#FDE7F3] transition-colors relative py-1 ${
+                location.pathname === '/about' ? 'text-white font-black underline decoration-2 underline-offset-8 decoration-white/70' : 'text-white/95'
               }`}
             >
               About ZEBA
             </Link>
             <Link
               to="/contact"
-              className={`hover:text-brand-brightPink transition-colors relative py-1 ${
-                location.pathname === '/contact' ? 'text-brand-brightPink font-black' : ''
+              className={`hover:text-[#FDE7F3] transition-colors relative py-1 ${
+                location.pathname === '/contact' ? 'text-white font-black underline decoration-2 underline-offset-8 decoration-white/70' : 'text-white/95'
               }`}
             >
               Contact Us
@@ -245,12 +241,12 @@ export default function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                  className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-brand-softPink text-brand-deepPurple border border-brand-pink/20 transition-colors shadow-sm font-brand"
+                  className="flex items-center space-x-2 p-2 rounded-xl bg-white/95 hover:bg-white text-[#5F3F68] border border-white/30 transition-colors shadow-sm font-brand"
                 >
                   <div className="w-7 h-7 rounded-lg pack-purple-gradient text-brand-gold flex items-center justify-center font-bold text-xs border border-brand-gold/30">
                     {customer?.name?.charAt(0).toUpperCase()}
                   </div>
-                  <span className="hidden sm:inline text-xs font-bold text-brand-darkPurple tracking-wide">{customer?.name?.split(' ')[0]}</span>
+                  <span className="hidden sm:inline text-xs font-bold text-[#5F3F68] tracking-wide">{customer?.name?.split(' ')[0]}</span>
                 </button>
 
                 {userDropdownOpen && (
@@ -278,18 +274,18 @@ export default function Navbar() {
             ) : (
               <Link
                 to="/login"
-                className="flex items-center space-x-1.5 p-2.5 rounded-xl bg-white hover:bg-brand-softPink text-brand-deepPurple hover:text-brand-brightPink border border-brand-pink/20 transition-colors text-xs font-brand font-bold tracking-wide shadow-sm"
+                className="flex items-center space-x-1.5 p-2.5 rounded-xl bg-white/95 hover:bg-white text-[#5F3F68] hover:text-[#38283D] border border-white/30 transition-colors text-xs font-brand font-bold tracking-wide shadow-sm"
                 title="Customer Login"
               >
-                <User className="w-4 h-4 text-brand-deepPurple" />
-                <span className="hidden sm:inline text-brand-darkPurple">Sign In</span>
+                <User className="w-4 h-4 text-[#5F3F68]" />
+                <span className="hidden sm:inline text-[#5F3F68]">Sign In</span>
               </Link>
             )}
 
             {/* Shop 3-Pack CTA */}
             <Link
               to="/products/zeba-heating-pad-3-pack"
-              className="hidden lg:inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-brand font-bold uppercase tracking-wider text-white bg-gradient-to-r from-brand-brightPink to-brand-deepPink hover:from-brand-deepPink hover:to-brand-brightPink transition-all duration-200 shadow-md shadow-brand-pink/25 btn-tactile"
+              className="hidden lg:inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-brand font-bold uppercase tracking-wider text-white bg-gradient-to-r from-[#5F3F68] to-[#4A2F52] hover:from-[#4A2F52] hover:to-[#5F3F68] border border-white/20 transition-all duration-200 shadow-md shadow-[#38283D]/30 hover:shadow-lg btn-tactile"
             >
               Shop 3-Pack
             </Link>
@@ -297,12 +293,12 @@ export default function Navbar() {
             {/* Cart Button */}
             <button
               onClick={() => setIsCartOpen(true)}
-              className="relative p-2.5 rounded-xl bg-white hover:bg-brand-softPink text-brand-deepPurple hover:text-brand-brightPink border border-brand-pink/20 transition-all duration-200 focus:outline-none shadow-sm"
+              className="relative p-2.5 rounded-xl bg-white/95 hover:bg-white text-[#5F3F68] hover:text-[#38283D] border border-white/30 transition-all duration-200 focus:outline-none shadow-sm"
               aria-label="Open cart drawer"
             >
-              <ShoppingBag className="w-5 h-5 text-brand-deepPurple" />
+              <ShoppingBag className="w-5 h-5 text-[#5F3F68]" />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-brand-brightPink text-white text-[11px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center shadow-md animate-scale-up">
+                <span className="absolute -top-1 -right-1 bg-[#5F3F68] text-white text-[11px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center shadow-md animate-scale-up border border-white">
                   {cartCount}
                 </span>
               )}
@@ -312,41 +308,41 @@ export default function Navbar() {
 
         {/* Mobile Navigation Dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-brand-pink/20 bg-white/98 backdrop-blur-lg px-4 pt-3 pb-6 space-y-3 animate-fade-in shadow-xl font-brand">
+          <div className="md:hidden border-t border-white/20 bg-[#e60e8c]/98 backdrop-blur-lg px-4 pt-3 pb-6 space-y-3 animate-fade-in shadow-xl font-brand">
             <Link
               to="/"
-              className="block px-3 py-2 rounded-lg text-sm font-bold tracking-wider text-brand-darkPurple hover:bg-brand-softPink hover:text-brand-brightPink"
+              className="block px-3 py-2 rounded-lg text-sm font-bold tracking-wider text-white hover:bg-white/15"
             >
               Home
             </Link>
             <Link
               to="/products"
-              className="block px-3 py-2 rounded-lg text-sm font-bold tracking-wider text-brand-darkPurple hover:bg-brand-softPink hover:text-brand-brightPink"
+              className="block px-3 py-2 rounded-lg text-sm font-bold tracking-wider text-white hover:bg-white/15"
             >
               Heating Pads (1 Pack & 3 Pack)
             </Link>
             <Link
               to="/about"
-              className="block px-3 py-2 rounded-lg text-sm font-bold tracking-wider text-brand-darkPurple hover:bg-brand-softPink hover:text-brand-brightPink"
+              className="block px-3 py-2 rounded-lg text-sm font-bold tracking-wider text-white hover:bg-white/15"
             >
               About ZEBA
             </Link>
             <Link
               to="/contact"
-              className="block px-3 py-2 rounded-lg text-sm font-bold tracking-wider text-brand-darkPurple hover:bg-brand-softPink hover:text-brand-brightPink"
+              className="block px-3 py-2 rounded-lg text-sm font-bold tracking-wider text-white hover:bg-white/15"
             >
               Contact Us & Support
             </Link>
             <Link
               to={isCustomerAuthenticated ? "/account" : "/login"}
-              className="block px-3 py-2 rounded-lg text-sm font-bold tracking-wider text-brand-brightPink bg-brand-softPink"
+              className="block px-3 py-2 rounded-lg text-sm font-bold tracking-wider text-[#5F3F68] bg-white/95"
             >
               {isCustomerAuthenticated ? `My Account (${customer?.name?.split(' ')[0]})` : "Customer Sign In / Register"}
             </Link>
-            <div className="pt-2 border-t border-brand-pink/15 flex flex-col gap-2">
+            <div className="pt-2 border-t border-white/20 flex flex-col gap-2">
               <Link
                 to="/products"
-                className="w-full text-center py-2.5 rounded-xl bg-gradient-to-r from-brand-brightPink to-brand-deepPink text-white font-brand font-bold text-sm tracking-wider uppercase shadow-md"
+                className="w-full text-center py-2.5 rounded-xl bg-gradient-to-r from-[#5F3F68] to-[#4A2F52] hover:from-[#4A2F52] hover:to-[#5F3F68] text-white font-brand font-bold text-sm tracking-wider uppercase shadow-md border border-white/20"
               >
                 Shop Heating Pads
               </Link>

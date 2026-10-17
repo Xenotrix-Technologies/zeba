@@ -74,10 +74,14 @@ export function renderEmailLayout({
           <tr>
             <td>
               <div style="background: ${headerBg}; padding: 30px 24px; border-radius: 20px 20px 0 0; text-align: center; color: ${headerColor}; box-shadow: 0 4px 20px rgba(14, 27, 77, 0.15);">
-                <div style="display: inline-block; padding: 4px 16px; background-color: rgba(255, 255, 255, 0.12); border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255, 255, 255, 0.2);">
+                <div style="display: inline-block; padding: 4px 16px; background-color: rgba(255, 255, 255, 0.12); border-radius: 20px; margin-bottom: 16px; border: 1px solid rgba(255, 255, 255, 0.2);">
                   <span style="font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #FDF1C7;">${badge}</span>
                 </div>
-                <h1 style="margin: 0; font-size: 32px; font-weight: 900; letter-spacing: 4px; color: #E5C06E; font-family: Georgia, 'Times New Roman', serif;">${brandName}</h1>
+                <div style="margin-bottom: 12px;">
+                  <a href="${appUrl}" target="_blank" style="text-decoration: none; display: inline-block;">
+                    <img src="${appUrl}/images/zeba-logo.png" alt="${brandName}" width="140" style="max-height: 46px; width: auto; max-width: 150px; margin: 0 auto; display: block; border: 0;" />
+                  </a>
+                </div>
                 <p style="margin: 6px 0 0 0; font-size: 13px; color: #E2E8F0; letter-spacing: 0.5px;">Natural Soothing Heat Therapy for Menstrual Relief</p>
               </div>
             </td>
