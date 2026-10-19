@@ -113,8 +113,8 @@ export default function Navbar() {
         >
           {renderOfferIcon()}
 
-          {offerBar.mode === 'custom' && offerBar.customText ? (
-            <span className="font-semibold">{offerBar.customText}</span>
+          {offerBar.message || offerBar.customText ? (
+            <span className="font-semibold">{offerBar.message || offerBar.customText}</span>
           ) : (
             <span>
               {offerBar.badgeText && <span className="mr-1">{offerBar.badgeText}</span>}

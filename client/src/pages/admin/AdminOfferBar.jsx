@@ -39,14 +39,8 @@ const AVAILABLE_ICONS = [
 
 const DEFAULT_OFFER_BAR = {
   enabled: true,
-  mode: 'threshold', // 'threshold' or 'custom'
-  badgeText: 'Special Offer:',
-  boldText: 'Free Fast Shipping',
-  subText: '',
-  autoThreshold: true,
-  customText: '',
+  message: 'Special Offer: Free Fast Shipping on orders above ₹1000!',
   secondaryText: '• 100% Safe Natural Minerals • Discreet Packaging',
-  couponCode: '',
   linkUrl: '',
   bgColor: '#e60e8c',
   textColor: '#FFFFFF',
@@ -66,6 +60,9 @@ export default function AdminOfferBar() {
   const [previewMode, setPreviewMode] = useState('desktop'); // 'desktop' or 'mobile'
   const [copiedPreview, setCopiedPreview] = useState(false);
 
+  const currentThreshold = Number(settings.commerce?.freeShippingThreshold || 1000);
+  const thresholdSuffix = currentThreshold > 0 ? `on orders above ₹${currentThreshold}!` : 'on all orders!';
+
   useEffect(() => {
     async function loadSettings() {
       try {
@@ -73,16 +70,30 @@ export default function AdminOfferBar() {
         if (res.success && res.settings) {
           const remoteOfferBar = res.settings.offerBar || res.raw?.offer_bar;
           if (remoteOfferBar) {
+            let initialMessage = '';
+            if (remoteOfferBar.message) {
+              initialMessage = remoteOfferBar.message;
+            } else if (remoteOfferBar.customText) {
+              initialMessage = remoteOfferBar.customText;
+            } else {
+              const parts = [
+                remoteOfferBar.badgeText,
+                remoteOfferBar.boldText,
+                remoteOfferBar.autoThreshold
+                  ? (currentThreshold > 0 ? `on orders above ₹${currentThreshold}!` : 'on all orders!')
+                  : remoteOfferBar.subText
+              ].filter(Boolean);
+              initialMessage = parts.join(' ').replace(/\s+/g, ' ').trim();
+            }
+
+            if (!initialMessage) {
+              initialMessage = 'Special Offer: Free Fast Shipping on orders above ₹1000!';
+            }
+
             setForm({
               enabled: remoteOfferBar.enabled !== undefined ? Boolean(remoteOfferBar.enabled) : true,
-              mode: remoteOfferBar.mode || 'threshold',
-              badgeText: remoteOfferBar.badgeText !== undefined ? remoteOfferBar.badgeText : 'Special Offer:',
-              boldText: remoteOfferBar.boldText !== undefined ? remoteOfferBar.boldText : 'Free Fast Shipping',
-              subText: remoteOfferBar.subText !== undefined ? remoteOfferBar.subText : '',
-              autoThreshold: remoteOfferBar.autoThreshold !== undefined ? Boolean(remoteOfferBar.autoThreshold) : true,
-              customText: remoteOfferBar.customText || '',
+              message: initialMessage,
               secondaryText: remoteOfferBar.secondaryText !== undefined ? remoteOfferBar.secondaryText : '• 100% Safe Natural Minerals • Discreet Packaging',
-              couponCode: '',
               linkUrl: remoteOfferBar.linkUrl || '',
               bgColor: '#e60e8c',
               textColor: '#FFFFFF',
@@ -100,13 +111,25 @@ export default function AdminOfferBar() {
       }
     }
     loadSettings();
-  }, []);
+  }, [currentThreshold]);
 
   const handleSave = async () => {
     setSaving(true);
     try {
       const payload = {
-        ...form,
+        enabled: Boolean(form.enabled),
+        mode: 'custom',
+        message: form.message,
+        customText: form.message,
+        badgeText: '',
+        boldText: form.message,
+        subText: '',
+        autoThreshold: false,
+        secondaryText: form.secondaryText || '',
+        linkUrl: form.linkUrl || '',
+        icon: form.icon || 'Sparkles',
+        pulseEffect: Boolean(form.pulseEffect),
+        showSecondaryOnMobile: Boolean(form.showSecondaryOnMobile),
         couponCode: '',
         bgColor: '#e60e8c',
         textColor: '#FFFFFF',
@@ -141,9 +164,6 @@ export default function AdminOfferBar() {
     addToast(`Test Copied: Promo code "${code}"!`, 'success');
     setTimeout(() => setCopiedPreview(false), 2000);
   };
-
-  const currentThreshold = Number(settings.commerce?.freeShippingThreshold || 1000);
-  const thresholdSuffix = currentThreshold > 0 ? `on orders above ₹${currentThreshold}!` : 'on all orders!';
 
   const SelectedIconComponent = AVAILABLE_ICONS.find((i) => i.id === form.icon)?.icon;
 
@@ -236,7 +256,7 @@ export default function AdminOfferBar() {
 
         {/* The Preview Frame */}
         <div className="rounded-2xl border border-slate-200 overflow-hidden bg-slate-50 p-2 sm:p-4">
-          <div className={`mx-auto transition-all ${previewMode === 'mobile' ? 'max-w-sm border border-slate-300 rounded-2xl overflow-hidden shadow-md bg-white' : 'w-full'}`}>
+          <div className={`mx-auto transition-all ${previewMode === 'mobile' ? 'max-w-sm border border-slate-300 rounded-2xl overflow-hidden shadow-md bg-white' : 'w-full rounded-xl overflow-hidden shadow-sm'}`}>
             
             {/* The Actual Rendered Offer Bar */}
             {form.enabled ? (
@@ -261,34 +281,9 @@ export default function AdminOfferBar() {
                   />
                 )}
 
-                {form.mode === 'custom' && form.customText ? (
-                  <span className="font-semibold">{form.customText}</span>
-                ) : (
-                  <span>
-                    {form.badgeText && <span className="mr-1">{form.badgeText}</span>}
-                    {form.boldText && <strong>{form.boldText} </strong>}
-                    <span>
-                      {form.autoThreshold ? thresholdSuffix : (form.subText || '')}
-                    </span>
-                  </span>
-                )}
-
-                {form.couponCode && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleTestCopy(form.couponCode);
-                    }}
-                    className="inline-flex items-center space-x-1 px-2 py-0.5 rounded text-[11px] font-bold tracking-wider uppercase border border-white/20 bg-white/10 hover:bg-white/20 transition-colors shadow-sm ml-1"
-                    style={{ color: form.accentColor || '#ECC695' }}
-                    title="Click to test copy coupon code"
-                  >
-                    <Tag className="w-3 h-3 flex-shrink-0" />
-                    <span>CODE: {form.couponCode}</span>
-                    {copiedPreview ? <Check className="w-2.5 h-2.5 ml-0.5 text-emerald-300" /> : <Copy className="w-2.5 h-2.5 opacity-70 ml-0.5" />}
-                  </button>
-                )}
+                <span className="font-semibold">
+                  {form.message || 'Special Offer: Free Fast Shipping on orders above ₹1000!'}
+                </span>
 
                 {form.secondaryText && (
                   <span
@@ -314,18 +309,6 @@ export default function AdminOfferBar() {
               </div>
             )}
 
-            {/* Simulated Mock Storefront Navbar */}
-            <div className="p-3 bg-[#e60e8c] border-b border-[#c90a78]/40 flex items-center justify-between opacity-90 select-none">
-              <div className="flex items-center space-x-2">
-                <img src="/images/zeba-logo.png" alt="ZEBA Store" className="h-6 w-auto object-contain" />
-              </div>
-              <div className="text-[11px] text-white/80 flex items-center space-x-3">
-                <span className="hidden sm:inline">Relief Pads</span>
-                <span className="hidden sm:inline">Track Order</span>
-                <span className="font-bold text-[#FDF2F8] bg-[#5F3F68] px-2 py-0.5 rounded-full text-[10px]">Cart (0)</span>
-              </div>
-            </div>
-
           </div>
         </div>
       </div>
@@ -333,13 +316,110 @@ export default function AdminOfferBar() {
       {/* Main Settings Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        {/* 1. Visibility & Mode Panel */}
+        {/* 1. Announcement Message */}
+        <div className="bg-white border border-brand-primaryPink/20 rounded-3xl p-6 shadow-sm space-y-5">
+          <div className="flex items-center space-x-2.5 text-brand-deepPurple pb-3 border-b border-brand-primaryPink/15">
+            <Megaphone className="w-5 h-5 text-brand-brightPink" />
+            <div>
+              <h3 className="font-display font-bold text-base text-brand-dark">
+                Announcement Message
+              </h3>
+              <p className="text-[11px] text-brand-plum/70">
+                Write what customers see in the top announcement bar.
+              </p>
+            </div>
+          </div>
+
+          {/* Main Message Input */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-brand-dark block">
+              Offer / Announcement Text:
+            </label>
+            <textarea
+              rows={2}
+              value={form.message}
+              onChange={(e) => setForm({ ...form, message: e.target.value })}
+              placeholder="e.g. Special Offer: 1 pack 4% off • 3 packs 5% off!"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-brand-primaryPink/30 text-xs text-brand-dark focus:outline-none focus:border-brand-brightPink focus:ring-1 focus:ring-brand-brightPink font-medium leading-relaxed"
+            />
+          </div>
+
+          {/* Quick Presets */}
+          <div className="space-y-2">
+            <span className="text-[11px] font-bold text-brand-plum/70 block uppercase tracking-wider">
+              Quick Suggestions (Click to fill):
+            </span>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, message: `Special Offer: Free Fast Shipping on orders above ₹${currentThreshold}!` })}
+                className="px-2.5 py-1.5 rounded-lg bg-brand-softPink/60 hover:bg-brand-softPink border border-brand-primaryPink/25 text-[11px] font-semibold text-brand-deepPurple transition-all text-left"
+              >
+                ✨ Free Shipping (₹{currentThreshold}+)
+              </button>
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, message: 'Special Offer: 1 Pack 4% Off • 3 Packs 5% Off!' })}
+                className="px-2.5 py-1.5 rounded-lg bg-brand-softPink/60 hover:bg-brand-softPink border border-brand-primaryPink/25 text-[11px] font-semibold text-brand-deepPurple transition-all text-left"
+              >
+                🏷️ Pack Discounts (1 Pack 4% / 3 Pack 5%)
+              </button>
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, message: 'Limited Period Deal: Flat 10% OFF on all Period Care kits today!' })}
+                className="px-2.5 py-1.5 rounded-lg bg-brand-softPink/60 hover:bg-brand-softPink border border-brand-primaryPink/25 text-[11px] font-semibold text-brand-deepPurple transition-all text-left"
+              >
+                🔥 Flash Sale Deal
+              </button>
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, message: '100% Natural Heat Therapy • Up to 8 Hours Period Relief' })}
+                className="px-2.5 py-1.5 rounded-lg bg-brand-softPink/60 hover:bg-brand-softPink border border-brand-primaryPink/25 text-[11px] font-semibold text-brand-deepPurple transition-all text-left"
+              >
+                🌿 Natural Care Highlights
+              </button>
+            </div>
+          </div>
+
+          {/* Secondary Bullets / Highlights */}
+          <div className="space-y-2 pt-3 border-t border-brand-primaryPink/15">
+            <label className="text-xs font-bold text-brand-dark block">
+              Secondary Highlights / Perks (Optional):
+            </label>
+            <input
+              type="text"
+              value={form.secondaryText}
+              onChange={(e) => setForm({ ...form, secondaryText: e.target.value })}
+              placeholder="• 100% Safe Natural Minerals • Discreet Packaging"
+              className="w-full px-3.5 py-2 rounded-xl border border-brand-primaryPink/30 text-xs focus:outline-none focus:border-brand-brightPink"
+            />
+            <div className="flex items-center space-x-2 pt-1">
+              <input
+                type="checkbox"
+                id="showSecondaryOnMobile"
+                checked={form.showSecondaryOnMobile}
+                onChange={(e) => setForm({ ...form, showSecondaryOnMobile: e.target.checked })}
+                className="w-4 h-4 text-brand-brightPink rounded focus:ring-brand-brightPink cursor-pointer"
+              />
+              <label htmlFor="showSecondaryOnMobile" className="text-xs text-brand-plum/80 font-medium cursor-pointer">
+                Show secondary highlights on mobile phones
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* 2. Display & Settings */}
         <div className="bg-white border border-brand-primaryPink/20 rounded-3xl p-6 shadow-sm space-y-5">
           <div className="flex items-center space-x-2.5 text-brand-deepPurple pb-3 border-b border-brand-primaryPink/15">
             <Sliders className="w-5 h-5 text-brand-brightPink" />
-            <h3 className="font-display font-bold text-base text-brand-dark">
-              Visibility & Announcement Mode
-            </h3>
+            <div>
+              <h3 className="font-display font-bold text-base text-brand-dark">
+                Display & Settings
+              </h3>
+              <p className="text-[11px] text-brand-plum/70">
+                Manage banner visibility, click link, and icon animation.
+              </p>
+            </div>
           </div>
 
           {/* Master Enable Toggle */}
@@ -367,52 +447,8 @@ export default function AdminOfferBar() {
             </button>
           </div>
 
-          {/* Mode Switcher */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-brand-dark block">
-              Announcement Strategy:
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setForm({ ...form, mode: 'threshold' })}
-                className={`p-3.5 rounded-2xl text-left border transition-all ${
-                  form.mode === 'threshold'
-                    ? 'border-brand-brightPink bg-brand-softPink/40 ring-1 ring-brand-brightPink'
-                    : 'border-slate-200 hover:border-slate-300 bg-white'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-bold text-brand-dark">Free Shipping Mode</span>
-                  {form.mode === 'threshold' && <CheckCircle2 className="w-4 h-4 text-brand-brightPink" />}
-                </div>
-                <p className="text-[11px] text-brand-plum/70 leading-relaxed">
-                  Auto-syncs with your store shipping threshold (currently ₹{currentThreshold}) to drive cart values.
-                </p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setForm({ ...form, mode: 'custom' })}
-                className={`p-3.5 rounded-2xl text-left border transition-all ${
-                  form.mode === 'custom'
-                    ? 'border-brand-brightPink bg-brand-softPink/40 ring-1 ring-brand-brightPink'
-                    : 'border-slate-200 hover:border-slate-300 bg-white'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-bold text-brand-dark">Custom Promotion</span>
-                  {form.mode === 'custom' && <CheckCircle2 className="w-4 h-4 text-brand-brightPink" />}
-                </div>
-                <p className="text-[11px] text-brand-plum/70 leading-relaxed">
-                  Type any custom promotional announcement, flash sale alert, or festive notice.
-                </p>
-              </button>
-            </div>
-          </div>
-
           {/* Banner Clickable Link URL */}
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <label className="text-xs font-bold text-brand-dark block">
               Offer Link Destination (Optional):
             </label>
@@ -420,136 +456,59 @@ export default function AdminOfferBar() {
               type="text"
               value={form.linkUrl}
               onChange={(e) => setForm({ ...form, linkUrl: e.target.value })}
-              placeholder="e.g. /products or /cart or #order-now"
+              placeholder="e.g. /products or /cart"
               className="w-full px-3.5 py-2 rounded-xl border border-brand-primaryPink/30 text-xs focus:outline-none focus:border-brand-brightPink"
             />
             <span className="text-[10px] text-brand-plum/60 block">
-              If provided, clicking the offer bar redirects users to this page or section.
+              If provided, clicking the offer bar redirects customers to this link.
             </span>
           </div>
 
-
-        </div>
-
-        {/* 2. Message Content Formulation */}
-        <div className="bg-white border border-brand-primaryPink/20 rounded-3xl p-6 shadow-sm space-y-4">
-          <div className="flex items-center space-x-2.5 text-brand-deepPurple pb-3 border-b border-brand-primaryPink/15">
-            <Megaphone className="w-5 h-5 text-brand-gold" />
-            <h3 className="font-display font-bold text-base text-brand-dark">
-              Message Content Formulation
-            </h3>
-          </div>
-
-          {form.mode === 'custom' ? (
-            <div className="space-y-1">
+          {/* Icon Selector & Animation */}
+          <div className="space-y-3 pt-3 border-t border-brand-primaryPink/15">
+            <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-brand-dark block">
-                Custom Announcement Headline:
+                Offer Bar Icon:
               </label>
-              <textarea
-                rows={3}
-                value={form.customText}
-                onChange={(e) => setForm({ ...form, customText: e.target.value })}
-                placeholder="e.g. ✨ MEGA SALE: Flat 20% OFF on all Period Care kits today! Limited stock available."
-                className="w-full px-3.5 py-2 rounded-xl border border-brand-primaryPink/30 text-xs focus:outline-none focus:border-brand-brightPink"
-              />
-              <span className="text-[10px] text-brand-plum/60 block">
-                This exact text will replace the primary offer message on the top bar.
-              </span>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-bold text-brand-dark block mb-1">
-                    Prefix / Badge Text:
-                  </label>
-                  <input
-                    type="text"
-                    value={form.badgeText}
-                    onChange={(e) => setForm({ ...form, badgeText: e.target.value })}
-                    placeholder="Special Offer:"
-                    className="w-full px-3 py-2 rounded-xl border border-brand-primaryPink/30 text-xs focus:outline-none focus:border-brand-brightPink"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-brand-dark block mb-1">
-                    Bold Highlight Text:
-                  </label>
-                  <input
-                    type="text"
-                    value={form.boldText}
-                    onChange={(e) => setForm({ ...form, boldText: e.target.value })}
-                    placeholder="Free Fast Shipping"
-                    className="w-full px-3 py-2 rounded-xl border border-brand-primaryPink/30 text-xs font-bold focus:outline-none focus:border-brand-brightPink"
-                  />
-                </div>
-              </div>
-
-              {/* Threshold Suffix */}
-              <div className="space-y-2 p-3.5 rounded-2xl bg-brand-softPink/30 border border-brand-primaryPink/20">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-brand-dark">
-                    Auto-sync Free Shipping Threshold
-                  </span>
-                  <input
-                    type="checkbox"
-                    checked={form.autoThreshold}
-                    onChange={(e) => setForm({ ...form, autoThreshold: e.target.checked })}
-                    className="w-4 h-4 text-brand-brightPink rounded focus:ring-brand-brightPink"
-                  />
-                </div>
-                <p className="text-[11px] text-brand-plum/70">
-                  {form.autoThreshold
-                    ? `Currently displays: "${thresholdSuffix}" (based on Business Settings ₹${currentThreshold})`
-                    : 'Custom suffix input is active below.'}
-                </p>
-
-                {!form.autoThreshold && (
-                  <input
-                    type="text"
-                    value={form.subText}
-                    onChange={(e) => setForm({ ...form, subText: e.target.value })}
-                    placeholder="e.g. on orders above ₹1000! or on all prepaid orders!"
-                    className="w-full px-3 py-2 rounded-xl border border-brand-primaryPink/30 text-xs bg-white focus:outline-none focus:border-brand-brightPink mt-1"
-                  />
-                )}
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="pulseEffect"
+                  checked={form.pulseEffect}
+                  onChange={(e) => setForm({ ...form, pulseEffect: e.target.checked })}
+                  className="w-4 h-4 text-brand-brightPink rounded focus:ring-brand-brightPink cursor-pointer"
+                />
+                <label htmlFor="pulseEffect" className="text-xs text-brand-plum/80 font-medium cursor-pointer">
+                  Subtle pulse animation
+                </label>
               </div>
             </div>
-          )}
 
-          {/* Secondary Bullets / Highlights */}
-          <div className="space-y-2 pt-2 border-t border-brand-primaryPink/15">
-            <label className="text-xs font-bold text-brand-dark block">
-              Secondary Feature Badges / Bullets:
-            </label>
-            <input
-              type="text"
-              value={form.secondaryText}
-              onChange={(e) => setForm({ ...form, secondaryText: e.target.value })}
-              placeholder="• 100% Safe Natural Minerals • Discreet Packaging"
-              className="w-full px-3.5 py-2 rounded-xl border border-brand-primaryPink/30 text-xs focus:outline-none focus:border-brand-brightPink"
-            />
-            <span className="text-[10px] text-brand-plum/60 block">
-              Rendered in gold accent color after the primary offer message.
-            </span>
+            <div className="grid grid-cols-4 sm:grid-cols-4 gap-2">
+              {AVAILABLE_ICONS.map((item) => {
+                const Icon = item.icon;
+                const isSelected = form.icon === item.id;
 
-            <div className="flex items-center space-x-2 pt-1">
-              <input
-                type="checkbox"
-                id="showSecondaryOnMobile"
-                checked={form.showSecondaryOnMobile}
-                onChange={(e) => setForm({ ...form, showSecondaryOnMobile: e.target.checked })}
-                className="w-4 h-4 text-brand-brightPink rounded focus:ring-brand-brightPink"
-              />
-              <label htmlFor="showSecondaryOnMobile" className="text-xs text-brand-plum/80 font-medium">
-                Show secondary feature badges on mobile phones (may wrap lines)
-              </label>
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setForm({ ...form, icon: item.id })}
+                    className={`p-2 rounded-xl border text-center flex flex-col items-center justify-center space-y-1 transition-all ${
+                      isSelected
+                        ? 'border-brand-brightPink bg-brand-softPink/60 text-brand-deepPurple font-bold shadow-sm'
+                        : 'border-slate-200 hover:border-slate-300 text-slate-600 bg-white'
+                    }`}
+                  >
+                    {Icon ? <Icon className="w-4 h-4" /> : <span className="text-xs font-mono">—</span>}
+                    <span className="text-[10px] truncate max-w-full">{item.label.split(' ')[0]}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
         </div>
-
-
 
       </div>
 

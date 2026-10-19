@@ -435,39 +435,39 @@ export async function seedDatabase() {
   // 5. Seed / Upsert Frequently Asked Questions (FAQs)
   const initialFaqs = [
     {
-      question: 'Can teenagers and young girls use ZEBA Heating Pads?',
-      answer: 'Yes, absolutely! ZEBA is 100% drug-free, non-invasive, and contains pure natural minerals. It is ideal for teenagers and college students experiencing painful menstrual cycles without relying on oral painkillers.',
-      category: 'safety',
+      question: 'What is ZEBA Periods Pain Relief Pad?',
+      answer: 'ZEBA is a convenient, air-activated heating pad designed to provide soothing warmth during your period. It is designed to fit into your daily routine, helping you stay comfortable at home, at college, at work, or while travelling.',
+      category: 'About ZEBA',
       sort_order: 1
     },
     {
-      question: 'Will the heating pad be visible under tight clothing or leggings?',
-      answer: 'Not at all. ZEBA pads are engineered with an ultra-thin, flexible contour that adheres smoothly to undergarments. They remain completely invisible under gym leggings, jeans, formal workwear, and dresses.',
-      category: 'usage',
+      question: 'How does ZEBA Heating Pad work?',
+      answer: 'ZEBA uses an air-activated mineral heating technology. Once you open the sealed pouch, the ingredients react with oxygen in the air to generate warmth. Follow the instructions on the product packaging for proper use.',
+      category: 'Heat & Performance',
       sort_order: 2
     },
     {
-      question: 'How long does the soothing heat last?',
-      answer: 'Each ZEBA pad provides up to 8+ hours of continuous, steady therapeutic warmth between 50°C and 55°C, sustaining you throughout a full school or work day.',
-      category: 'performance',
+      question: 'How do I use the ZEBA pad correctly?',
+      answer: 'Open the sealed pouch when you are ready to use the pad. Remove the protective liner and attach the adhesive side to the OUTSIDE of your underwear or another suitable garment, following the product instructions. The pad should not be stuck directly onto your skin or placed inside the underwear against your body.',
+      category: 'How to Use',
       sort_order: 3
     },
     {
-      question: 'Do I stick the pad directly onto my skin?',
-      answer: 'No. For maximum safety and optimal heat diffusion, always stick the adhesive side to the OUTSIDE of your undergarments, never directly onto bare skin.',
-      category: 'safety',
+      question: 'Can I use ZEBA directly on my skin?',
+      answer: 'No. Do not apply the ZEBA heating pad directly to bare skin. Attach it to the outside of a suitable garment and follow all safety instructions on the packaging. If you experience excessive heat, discomfort, redness, or irritation, remove the pad immediately.',
+      category: 'Safety & Usage',
       sort_order: 4
     },
     {
-      question: 'How quickly does the pad heat up after opening?',
-      answer: 'ZEBA pads are air-activated. As soon as you open the sealed foil pouch, the mineral core begins reacting with ambient air and reaches soothing therapeutic temperature (50°C) within 5 to 15 minutes.',
-      category: 'usage',
+      question: 'How long does the ZEBA pad provide warmth?',
+      answer: 'The duration of warmth depends on the product specifications and usage conditions. Please check the product packaging for the stated heating duration and temperature. Always follow the recommended usage time and never use the pad longer than instructed.',
+      category: 'Heat & Performance',
       sort_order: 5
     },
     {
-      question: 'What is your satisfaction and return policy?',
-      answer: 'We stand 100% behind ZEBA products. If you receive a damaged product or have any concerns with your purchase, contact our customer support team within 7 days for prompt resolution.',
-      category: 'policy',
+      question: 'How long does ZEBA take to heat up?',
+      answer: 'ZEBA begins generating heat after the sealed pouch is opened and the heating ingredients are exposed to air. The time needed to reach the intended temperature may vary. Refer to the packaging for the expected activation and heating time.',
+      category: 'Heat & Performance',
       sort_order: 6
     }
   ];

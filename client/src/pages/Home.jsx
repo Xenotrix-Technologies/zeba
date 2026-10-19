@@ -15,8 +15,6 @@ import {
   Award,
   TrendingDown,
   Sun,
-  HelpCircle,
-  Search,
   CheckCircle2,
   Mail,
   ThumbsUp,
@@ -157,7 +155,7 @@ const DEFAULT_REVIEWS = [
   },
   {
     id: 4,
-    author_name: 'Ananya Sharma',
+    author_name: 'Ananya',
     rating: 5,
     title: 'Life Saver During Long Work Days!',
     comment: 'I usually have crippling cramps on day 1 and 2. ZEBA is so discreet under my formal pants and keeps warming for more than 8 hours straight. Completely replaced my bulky hot water bag.',
@@ -169,46 +167,46 @@ const DEFAULT_REVIEWS = [
 const DEFAULT_FAQS = [
   {
     id: 1,
-    q: 'Can teenagers and young girls use ZEBA Heating Pads?',
-    a: 'Yes, absolutely! ZEBA is 100% drug-free, non-invasive, and formulated with pure natural minerals (iron powder, vermiculite, carbon, and purified salt). It is completely safe and gentle for teenagers, college students, and young women experiencing painful menstrual cycles without having to rely on oral painkillers.',
-    category: 'Safety & Usage',
-    badge: '100% Drug-Free'
+    q: 'What is ZEBA Periods Pain Relief Pad?',
+    a: 'ZEBA is a convenient, air-activated heating pad designed to provide soothing warmth during your period. It is designed to fit into your daily routine, helping you stay comfortable at home, at college, at work, or while travelling.',
+    category: 'About ZEBA',
+    badge: 'Everyday Comfort'
   },
   {
     id: 2,
-    q: 'Will the heating pad be visible under tight clothing or leggings?',
-    a: 'Not at all. ZEBA pads are engineered with an ultra-thin (less than 2mm), flexible profile that sticks securely to underwear. They remain completely undetectable under gym leggings, high-waisted jeans, tight dresses, and formal work pants.',
-    category: 'How to Wear',
-    badge: 'Ultra-Discreet'
-  },
-  {
-    id: 3,
-    q: 'How long does the soothing heat last?',
-    a: 'Each ZEBA pad provides up to 8+ hours of continuous, steady therapeutic warmth between 50°C and 55°C — sustaining you through a full workday, college lectures, travel, or a restful night of sleep.',
-    category: 'Heat & Performance',
-    badge: '8+ Hours Relief'
-  },
-  {
-    id: 4,
-    q: 'Do I stick the pad directly onto my skin?',
-    a: 'No. For safety and optimum temperature distribution, always apply the adhesive side to the OUTSIDE of your undergarments (panties or inner camisole), never directly onto bare skin.',
-    category: 'Safety & Usage',
-    badge: 'Skin-Safe'
-  },
-  {
-    id: 5,
-    q: 'How quickly does the pad heat up after opening?',
-    a: 'ZEBA pads are rapid air-activated. As soon as you open the sealed protective foil pouch, the mineral thermal core starts reacting with ambient air, reaching a comforting temperature in 5 minutes and optimal warmth in 10-15 minutes.',
+    q: 'How does ZEBA Heating Pad work?',
+    a: 'ZEBA uses an air-activated mineral heating technology. Once you open the sealed pouch, the ingredients react with oxygen in the air to generate warmth. Follow the instructions on the product packaging for proper use.',
     category: 'Heat & Performance',
     badge: 'Air-Activated'
   },
   {
+    id: 3,
+    q: 'How do I use the ZEBA pad correctly?',
+    a: 'Open the sealed pouch when you are ready to use the pad. Remove the protective liner and attach the adhesive side to the OUTSIDE of your underwear or another suitable garment, following the product instructions. The pad should not be stuck directly onto your skin or placed inside the underwear against your body.',
+    category: 'How to Use',
+    badge: 'Easy Application'
+  },
+  {
+    id: 4,
+    q: 'Can I use ZEBA directly on my skin?',
+    a: 'No. Do not apply the ZEBA heating pad directly to bare skin. Attach it to the outside of a suitable garment and follow all safety instructions on the packaging. If you experience excessive heat, discomfort, redness, or irritation, remove the pad immediately.',
+    category: 'Safety & Usage',
+    badge: 'Skin Contact Safety'
+  },
+  {
+    id: 5,
+    q: 'How long does the ZEBA pad provide warmth?',
+    a: 'The duration of warmth depends on the product specifications and usage conditions. Please check the product packaging for the stated heating duration and temperature. Always follow the recommended usage time and never use the pad longer than instructed.',
+    category: 'Heat & Performance',
+    badge: 'Soothing Warmth'
+  },
+  {
     id: 6,
-    q: 'What is your satisfaction and return policy?',
-    a: 'We stand 100% behind ZEBA products. If you receive a damaged package or have any questions about your order, our dedicated customer support team is available on WhatsApp and email to resolve it promptly within 7 days.',
-    category: 'Orders & Support',
-    badge: '7-Day Guarantee'
-  }
+    q: 'How long does ZEBA take to heat up?',
+    a: 'ZEBA begins generating heat after the sealed pouch is opened and the heating ingredients are exposed to air. The time needed to reach the intended temperature may vary. Refer to the packaging for the expected activation and heating time.',
+    category: 'Heat & Performance',
+    badge: 'Quick Activation'
+  },
 ];
 
 export default function Home() {
@@ -222,8 +220,6 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [activeTimelineIdx, setActiveTimelineIdx] = useState(1);
   const [openFaqIdx, setOpenFaqIdx] = useState(0);
-  const [activeFaqCategory, setActiveFaqCategory] = useState('All');
-  const [faqSearchQuery, setFaqSearchQuery] = useState('');
   const [helpfulVotes, setHelpfulVotes] = useState({});
   const [videoInView, setVideoInView] = useState(false);
   const videoContainerRef = React.useRef(null);
@@ -278,27 +274,15 @@ export default function Home() {
         }
 
         if (faqRes.status === 'fulfilled' && faqRes.value?.success && faqRes.value.faqs?.length > 0) {
-          const categoryMap = {
-            safety: 'Safety & Usage',
-            usage: 'How to Wear',
-            performance: 'Heat & Performance',
-            policy: 'Orders & Support'
-          };
-          const badgeMap = {
-            safety: '100% Drug-Free',
-            usage: 'Ultra-Discreet',
-            performance: '8+ Hours Relief',
-            policy: '7-Day Guarantee'
-          };
+          const defaultFaqMap = new Map(DEFAULT_FAQS.map(df => [df.q.trim().toLowerCase(), df]));
           setFaqs(faqRes.value.faqs.map((f, i) => {
-            const mappedCat = categoryMap[f.category] || f.category || (i % 2 === 0 ? 'Safety & Usage' : 'Heat & Performance');
-            const mappedBadge = badgeMap[f.category] || 'Verified FAQ';
+            const matchedDefault = defaultFaqMap.get(f.question?.trim().toLowerCase()) || DEFAULT_FAQS[i];
             return {
               id: f.id || i + 1,
               q: f.question,
               a: f.answer,
-              category: mappedCat,
-              badge: mappedBadge
+              category: f.category || matchedDefault?.category || 'About ZEBA',
+              badge: matchedDefault?.badge || 'Verified FAQ'
             };
           }));
         }
@@ -766,172 +750,125 @@ export default function Home() {
       )}
 
       {/* 7. GOT QUESTIONS? WE GOT ANSWERS (Clean & Elevated Centered Layout) */}
-      {(() => {
-        const filteredFaqs = faqs.filter(faq => {
-          const matchesSearch = !faqSearchQuery.trim() || 
-            faq.q.toLowerCase().includes(faqSearchQuery.toLowerCase()) || 
-            faq.a.toLowerCase().includes(faqSearchQuery.toLowerCase());
-          return matchesSearch;
-        });
+      <section className="py-20 sm:py-24 bg-[#FFF5FA] border-t border-brand-primaryPink/20 relative overflow-hidden" id="faq">
+        {/* Ambient Lighting Accents */}
+        <div className="absolute top-1/3 -left-32 w-80 h-80 bg-brand-primaryPink/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-10 right-0 w-96 h-96 bg-brand-deepPurple/5 rounded-full blur-3xl pointer-events-none" />
 
-        return (
-          <section className="py-20 sm:py-24 bg-[#FFF5FA] border-t border-brand-primaryPink/20 relative overflow-hidden" id="faq">
-            {/* Ambient Lighting Accents */}
-            <div className="absolute top-1/3 -left-32 w-80 h-80 bg-brand-primaryPink/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute bottom-10 right-0 w-96 h-96 bg-brand-deepPurple/5 rounded-full blur-3xl pointer-events-none" />
-
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10">
-              
-              {/* Header */}
-              <div className="text-center max-w-2xl mx-auto space-y-3">
-                <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-white border border-brand-primaryPink/30 shadow-xs">
-                  <Sparkles className="w-3.5 h-3.5 text-brand-brightPink" />
-                  <span className="text-[11px] font-extrabold uppercase tracking-widest text-brand-brightPink">
-                    Support & Guidance
-                  </span>
-                </div>
-                
-                <h2 className="font-display font-black text-3xl sm:text-4xl md:text-5xl text-brand-deepPurple tracking-tight">
-                  Got Questions? We Got Answers.
-                </h2>
-                
-                <p className="text-sm sm:text-base text-[#805A82] max-w-xl mx-auto leading-relaxed">
-                  Everything you need to know about wearability, mineral safety, all-day heat therapy, and satisfaction guarantee.
-                </p>
-              </div>
-
-
-
-              {/* Search Bar */}
-              <div className="relative max-w-2xl mx-auto">
-                <Search className="w-4 h-4 text-brand-purple absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input
-                  type="text"
-                  value={faqSearchQuery}
-                  onChange={(e) => setFaqSearchQuery(e.target.value)}
-                  placeholder="Search questions (e.g. skin, travel, heat duration, teenagers)..."
-                  className="w-full pl-11 pr-16 py-3.5 rounded-2xl bg-white border border-brand-primaryPink/30 text-xs sm:text-sm text-brand-deepPurple placeholder:text-[#805A82]/60 focus:outline-none focus:ring-2 focus:ring-brand-brightPink/40 focus:border-brand-brightPink shadow-xs transition-all"
-                />
-                {faqSearchQuery && (
-                  <button
-                    onClick={() => setFaqSearchQuery('')}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-[#805A82] hover:text-brand-deepPurple bg-brand-softPink px-2 py-0.5 rounded-md font-bold"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
-
-              {/* Accordion Cards */}
-              {filteredFaqs.length === 0 ? (
-                <div className="bg-white rounded-3xl p-10 text-center border border-brand-primaryPink/25 space-y-3 max-w-2xl mx-auto">
-                  <HelpCircle className="w-8 h-8 text-brand-brightPink mx-auto" />
-                  <h4 className="font-display font-bold text-sm text-brand-deepPurple">No questions match your search</h4>
-                  <p className="text-xs text-[#805A82]">Try searching with a different keyword.</p>
-                  <button
-                    onClick={() => setFaqSearchQuery('')}
-                    className="px-4 py-2 rounded-xl bg-brand-softPink text-brand-brightPink text-xs font-bold hover:bg-brand-primaryPink/30 transition-colors"
-                  >
-                    Show All Questions
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-3.5">
-                  {filteredFaqs.map((faq, idx) => {
-                    const isOpen = openFaqIdx === idx;
-                    const hasVoted = helpfulVotes[faq.id || idx];
-
-                    return (
-                      <div
-                        key={faq.id || idx}
-                        className={`rounded-3xl bg-white border transition-all duration-300 overflow-hidden ${
-                          isOpen
-                            ? 'border-brand-brightPink/50 shadow-md ring-1 ring-brand-brightPink/20'
-                            : 'border-brand-primaryPink/25 hover:border-brand-primaryPink/60 shadow-xs'
-                        }`}
-                      >
-                        <button
-                          onClick={() => setOpenFaqIdx(isOpen ? null : idx)}
-                          className="w-full p-5 sm:p-6 text-left flex items-start justify-between gap-4 group focus:outline-none"
-                        >
-                          <div className="space-y-1.5 flex-1 min-w-0">
-                            {faq.badge && (
-                              <span className="inline-block text-[10px] font-bold text-brand-brightPink bg-brand-softPink px-2.5 py-0.5 rounded-full border border-brand-primaryPink/20">
-                                {faq.badge}
-                              </span>
-                            )}
-                            <h3 className={`font-display font-bold text-sm sm:text-base leading-snug transition-colors ${
-                              isOpen ? 'text-brand-brightPink' : 'text-brand-deepPurple group-hover:text-brand-brightPink'
-                            }`}>
-                              {faq.q}
-                            </h3>
-                          </div>
-
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
-                            isOpen
-                              ? 'bg-brand-brightPink text-white rotate-180 shadow-xs'
-                              : 'bg-brand-softPink text-brand-deepPurple group-hover:bg-brand-brightPink group-hover:text-white'
-                          }`}>
-                            <ChevronDown className="w-4 h-4" />
-                          </div>
-                        </button>
-
-                        {isOpen && (
-                          <div className="px-5 sm:px-6 pb-6 pt-1 space-y-4 border-t border-brand-primaryPink/15 bg-gradient-to-b from-brand-softPink/20 to-transparent">
-                            <p className="text-xs sm:text-sm text-[#5C3D61] leading-relaxed font-normal">
-                              {faq.a}
-                            </p>
-
-                            <div className="pt-3 border-t border-brand-primaryPink/10 flex flex-wrap items-center justify-between gap-3 text-xs text-[#805A82]">
-                              <span className="text-[11px] font-medium flex items-center space-x-1">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                <span>Verified by ZEBA Medical Advisory</span>
-                              </span>
-
-                              <div className="flex items-center space-x-2">
-                                <span className="text-[11px]">Was this helpful?</span>
-                                {hasVoted ? (
-                                  <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
-                                    Thanks for your feedback!
-                                  </span>
-                                ) : (
-                                  <div className="flex items-center space-x-1">
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setHelpfulVotes(prev => ({ ...prev, [faq.id || idx]: 'yes' }));
-                                      }}
-                                      className="p-1 rounded-md hover:bg-emerald-100 text-[#805A82] hover:text-emerald-700 transition-colors"
-                                      aria-label="Helpful"
-                                    >
-                                      <ThumbsUp className="w-3.5 h-3.5" />
-                                    </button>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setHelpfulVotes(prev => ({ ...prev, [faq.id || idx]: 'no' }));
-                                      }}
-                                      className="p-1 rounded-md hover:bg-rose-100 text-[#805A82] hover:text-rose-700 transition-colors"
-                                      aria-label="Not helpful"
-                                    >
-                                      <ThumbsDown className="w-3.5 h-3.5" />
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-10">
+          
+          {/* Header */}
+          <div className="text-center max-w-2xl mx-auto space-y-3">
+            <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-white border border-brand-primaryPink/30 shadow-xs">
+              <Sparkles className="w-3.5 h-3.5 text-brand-brightPink" />
+              <span className="text-[11px] font-extrabold uppercase tracking-widest text-brand-brightPink">
+                Support & Guidance
+              </span>
             </div>
-          </section>
-        );
-      })()}
+            
+            <h2 className="font-display font-black text-3xl sm:text-4xl md:text-5xl text-brand-deepPurple tracking-tight">
+              Got Questions? We Got Answers.
+            </h2>
+            
+            <p className="text-sm sm:text-base text-[#805A82] max-w-xl mx-auto leading-relaxed">
+              Everything you need to know about wearability, mineral safety, all-day heat therapy, and satisfaction guarantee.
+            </p>
+          </div>
+
+          {/* Accordion Cards */}
+          <div className="space-y-3.5">
+            {faqs.map((faq, idx) => {
+              const isOpen = openFaqIdx === idx;
+              const hasVoted = helpfulVotes[faq.id || idx];
+
+              return (
+                <div
+                  key={faq.id || idx}
+                  className={`rounded-3xl bg-white border transition-all duration-300 overflow-hidden ${
+                    isOpen
+                      ? 'border-brand-brightPink/50 shadow-md ring-1 ring-brand-brightPink/20'
+                      : 'border-brand-primaryPink/25 hover:border-brand-primaryPink/60 shadow-xs'
+                  }`}
+                >
+                  <button
+                    onClick={() => setOpenFaqIdx(isOpen ? null : idx)}
+                    className="w-full p-5 sm:p-6 text-left flex items-start justify-between gap-4 group focus:outline-none"
+                  >
+                    <div className="space-y-1.5 flex-1 min-w-0">
+                      {faq.badge && (
+                        <span className="inline-block text-[10px] font-bold text-brand-brightPink bg-brand-softPink px-2.5 py-0.5 rounded-full border border-brand-primaryPink/20">
+                          {faq.badge}
+                        </span>
+                      )}
+                      <h3 className={`font-display font-bold text-sm sm:text-base leading-snug transition-colors ${
+                        isOpen ? 'text-brand-brightPink' : 'text-brand-deepPurple group-hover:text-brand-brightPink'
+                      }`}>
+                        {faq.q}
+                      </h3>
+                    </div>
+
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                      isOpen
+                        ? 'bg-brand-brightPink text-white rotate-180 shadow-xs'
+                        : 'bg-brand-softPink text-brand-deepPurple group-hover:bg-brand-brightPink group-hover:text-white'
+                    }`}>
+                      <ChevronDown className="w-4 h-4" />
+                    </div>
+                  </button>
+
+                  {isOpen && (
+                    <div className="px-5 sm:px-6 pb-6 pt-1 space-y-4 border-t border-brand-primaryPink/15 bg-gradient-to-b from-brand-softPink/20 to-transparent">
+                      <p className="text-xs sm:text-sm text-[#5C3D61] leading-relaxed font-normal">
+                        {faq.a}
+                      </p>
+
+                      <div className="pt-3 border-t border-brand-primaryPink/10 flex flex-wrap items-center justify-between gap-3 text-xs text-[#805A82]">
+                        <span className="text-[11px] font-medium flex items-center space-x-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Verified by ZEBA Medical Advisory</span>
+                        </span>
+
+                        <div className="flex items-center space-x-2">
+                          <span className="text-[11px]">Was this helpful?</span>
+                          {hasVoted ? (
+                            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+                              Thanks for your feedback!
+                            </span>
+                          ) : (
+                            <div className="flex items-center space-x-1">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setHelpfulVotes(prev => ({ ...prev, [faq.id || idx]: 'yes' }));
+                                }}
+                                className="p-1 rounded-md hover:bg-emerald-100 text-[#805A82] hover:text-emerald-700 transition-colors"
+                                aria-label="Helpful"
+                              >
+                                <ThumbsUp className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setHelpfulVotes(prev => ({ ...prev, [faq.id || idx]: 'no' }));
+                                }}
+                                className="p-1 rounded-md hover:bg-rose-100 text-[#805A82] hover:text-rose-700 transition-colors"
+                                aria-label="Not helpful"
+                              >
+                                <ThumbsDown className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+        </div>
+      </section>
 
       {/* 8. FINAL HIGH-CONVERTING CTA BANNER WITH FULL BACKGROUND VIDEO */}
       <section className="py-24 sm:py-28 text-white text-center relative overflow-hidden border-t border-brand-gold/30 bg-[#2A1D2E]">
