@@ -382,31 +382,24 @@ export async function seedDatabase() {
       content: [
         {
           step: '01',
-          title: 'Peel & Stick',
-          subtitle: 'Apply to underwear exterior',
-          desc: 'Peel the protective backing and press firmly onto the outside of your underwear.',
+          title: 'Remove from packaging',
+          subtitle: 'Heats up within 5 mins',
+          desc: 'Simple and convenient to use, the ZEBA Pain Relief Heating Pad heats up within 5 minutes when exposed to air. The pad should feel soft when it is working.',
           badge: 'Zero Skin Irritation'
         },
         {
           step: '02',
-          title: 'Air-Activated Heat',
-          subtitle: 'Reaches 50–55°C in 5 mins',
-          desc: 'Exposed to air, the 100% natural mineral thermal core activates rapidly without microwaves or cords.',
+          title: 'Stick it on',
+          subtitle: 'Apply to underwear exterior',
+          desc: 'Stick the pad securely to your underwear and enjoy soothing warmth and relief. Every hour, remove it for 5 minutes to give your skin a short break, then reattach it.',
           badge: 'Instant Thermal Core'
         },
         {
           step: '03',
-          title: '8+ Hours Relief',
+          title: 'Go forth, worry-free',
           subtitle: 'Continuous muscle relaxation',
-          desc: 'Continuous therapeutic heat dilates blood vessels, increasing oxygen flow to soothe pelvic cramps.',
+          desc: 'Designed for life on the go, the ZEBA Period Pain Relief Heating Pad provides discreet, soothing relief from cramps, so you can stay comfortable and carry on with your day.',
           badge: 'Clinically Proven Heat'
-        },
-        {
-          step: '04',
-          title: 'Conquer Your Day',
-          subtitle: 'Ultra-thin and invisible',
-          desc: 'Slip into tight jeans, formal wear, or workout clothes with complete discretion and zero bulk.',
-          badge: 'All-Day Mobility'
         }
       ]
     },

@@ -543,24 +543,20 @@ export default function ProductDetail() {
                   </div>
                   <div className="w-full lg:w-1/2 space-y-4">
                     <h3 className="font-display font-extrabold text-xl text-brand-deepPurple">
-                      4 Simple Steps to Period Relief
+                      3 Simple Steps to Period Relief
                     </h3>
                     <div className="space-y-3 text-xs">
                       <div className="p-3.5 rounded-xl bg-brand-softPink border border-brand-primaryPink/30">
-                        <strong className="text-brand-brightPink font-bold block mb-0.5">Step 1: Peel & Stick</strong>
-                        <span className="text-brand-darkPurple">Apply to underwear, NOT skin. Stick adhesive backing to undergarments.</span>
+                        <strong className="text-brand-brightPink font-bold block mb-0.5">Step 1: Remove from packaging</strong>
+                        <span className="text-brand-darkPurple">Simple and convenient to use, the ZEBA Pain Relief Heating Pad heats up within 5 minutes when exposed to air. The pad should feel soft when working.</span>
                       </div>
                       <div className="p-3.5 rounded-xl bg-[#FDF5D6] border border-brand-gold/40">
-                        <strong className="text-brand-darkPurple font-bold block mb-0.5">Step 2: It Warms Up</strong>
-                        <span className="text-brand-darkPurple">Starts heating in 10-15 minutes upon air contact.</span>
+                        <strong className="text-brand-darkPurple font-bold block mb-0.5">Step 2: Stick it on</strong>
+                        <span className="text-brand-darkPurple">Stick the pad securely to your underwear and enjoy soothing warmth. Every hour, remove it for 5 minutes to give your skin a short break, then reattach it.</span>
                       </div>
                       <div className="p-3.5 rounded-xl bg-brand-softPink border border-brand-primaryPink/30">
-                        <strong className="text-brand-deepPurple font-bold block mb-0.5">Step 3: Enjoy Relief</strong>
-                        <span className="text-brand-darkPurple">Soothes for up to 8 continuous hours of uninterrupted comfort.</span>
-                      </div>
-                      <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200">
-                        <strong className="text-emerald-800 font-bold block mb-0.5">Step 4: Live Your Day</strong>
-                        <span className="text-slate-700">Forget the pain and get on with your work, study, and life.</span>
+                        <strong className="text-brand-deepPurple font-bold block mb-0.5">Step 3: Go forth, worry-free</strong>
+                        <span className="text-brand-darkPurple">Designed for life on the go, providing discreet, soothing relief from cramps so you can stay comfortable and carry on with your day.</span>
                       </div>
                     </div>
                   </div>
