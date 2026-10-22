@@ -2,9 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Phone, Mail, MessageCircle, Instagram, Facebook, MapPin } from 'lucide-react';
 import { useStoreSettings } from '../context/StoreSettingsContext';
+import { useCookieConsent } from '../context/CookieConsentContext';
 
 export default function Footer() {
   const { settings, getWhatsAppUrl } = useStoreSettings();
+  const { openConsentModal } = useCookieConsent();
   return (
     <footer className="bg-[#38283D] text-slate-200 pt-12 pb-24 md:pb-12 border-t border-[#5F3F68]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -122,6 +124,15 @@ export default function Footer() {
                 <Link to="/refund-return-policy" className="hover:text-brand-primaryPink transition-colors text-pink-100/80">
                   Refund & Return Policy
                 </Link>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={openConsentModal}
+                  className="hover:text-brand-primaryPink transition-colors text-pink-100/80 text-left cursor-pointer"
+                >
+                  Cookie & Cache Settings
+                </button>
               </li>
             </ul>
           </div>

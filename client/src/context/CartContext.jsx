@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from './ToastContext';
 import { useStoreSettings } from './StoreSettingsContext';
+import { useCookieConsent } from './CookieConsentContext';
 import { getProductMainImage } from '../utils/imageUtils';
 
 const CartContext = createContext(null);
@@ -8,8 +9,13 @@ const CartContext = createContext(null);
 export function CartProvider({ children }) {
   const { addToast } = useToast();
   const { settings } = useStoreSettings();
+  const { isConsentGiven, isConsentDenied } = useCookieConsent();
   const [cart, setCart] = useState(() => {
     try {
+      const consent = localStorage.getItem('zeba_cookie_consent') || sessionStorage.getItem('zeba_cookie_consent');
+      if (consent === 'denied') {
+        return [];
+      }
       const saved = localStorage.getItem('zeba_cart');
       return saved ? JSON.parse(saved) : [];
     } catch {
@@ -79,12 +85,23 @@ export function CartProvider({ children }) {
   };
 
   useEffect(() => {
-    try {
-      localStorage.setItem('zeba_cart', JSON.stringify(cart));
-    } catch (e) {
-      console.error('Failed to save cart to localStorage', e);
+    if (isConsentDenied) {
+      try {
+        localStorage.removeItem('zeba_cart');
+      } catch (e) {
+        console.error('Failed to remove cart from localStorage', e);
+      }
+      return;
     }
-  }, [cart]);
+
+    if (isConsentGiven) {
+      try {
+        localStorage.setItem('zeba_cart', JSON.stringify(cart));
+      } catch (e) {
+        console.error('Failed to save cart to localStorage', e);
+      }
+    }
+  }, [cart, isConsentGiven, isConsentDenied]);
 
   const addToCart = (product, quantity = 1, openDrawer = true) => {
     setCart(prev => {

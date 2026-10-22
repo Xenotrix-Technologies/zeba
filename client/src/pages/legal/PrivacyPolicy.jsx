@@ -32,7 +32,14 @@ export default function PrivacyPolicy() {
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-bold text-base text-brand-deepPurple">4. Corporate & Legal Inquiries</h2>
+          <h2 className="font-bold text-base text-brand-deepPurple">4. Cookies & Browser Cache Storage</h2>
+          <p>
+            We respect your privacy choices. Visitors are asked for explicit consent before non-essential cookies, browser cache, or persistent local storage are saved on their devices. If consent is denied, we strictly do not store cookies or persistent cache, and your cart is kept only in active tab memory. You can adjust your cookie and storage preferences at any time by clicking "Cookie & Cache Settings" in the website footer.
+          </p>
+        </section>
+
+        <section className="space-y-2">
+          <h2 className="font-bold text-base text-brand-deepPurple">5. Corporate & Legal Inquiries</h2>
           <p>
             If you have questions about our privacy practices, contact our Data Grievance Officer at <strong>{businessConfig.supportEmail}</strong> or by writing to our registered office:
           </p>
