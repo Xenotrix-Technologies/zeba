@@ -33,7 +33,6 @@ api.interceptors.request.use((config) => {
       url.includes('/auth/') ||
       url === '/auth/me' ||
       url === '/auth/change-password' ||
-      url.includes('/clear-test-data') ||
       (isAdminPath && (url.includes('/settings') || url.startsWith('/settings')))
     );
     const isCustomerEndpoint = (

@@ -11,7 +11,6 @@ import {
   updateAdminProduct,
   getAdminMessages,
   updateAdminMessageStatus,
-  clearAllTestData,
   getAdminEmailEvents,
   retryAdminFailedEmails,
   testAdminSmtp,
@@ -22,10 +21,6 @@ const router = Router();
 
 // Protect all admin endpoints with requireAdminAuth
 router.use(requireAdminAuth);
-
-// Clean Dummy Data
-router.post('/clear-test-data', clearAllTestData);
-router.delete('/clear-test-data', clearAllTestData);
 
 // Dashboard & Metrics
 router.get('/dashboard', getDashboardMetrics);

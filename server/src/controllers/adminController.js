@@ -1204,42 +1204,6 @@ export async function updateAdminMessageStatus(req, res, next) {
   }
 }
 
-/**
- * POST /api/admin/clear-test-data
- * Clears test orders, status history, payment events, and notifications
- */
-export async function clearAllTestData(req, res, next) {
-  try {
-    try { await query('DELETE FROM email_notifications'); } catch (_) {}
-    try { await query('DELETE FROM email_events'); } catch (_) {}
-    try { await query('DELETE FROM payment_events'); } catch (_) {}
-    try { await query('DELETE FROM order_status_history'); } catch (_) {}
-    try { await query('DELETE FROM order_notifications'); } catch (_) {}
-    await query('DELETE FROM payments');
-    await query('DELETE FROM order_items');
-    await query('DELETE FROM orders');
-    await query('DELETE FROM addresses');
-    await query('DELETE FROM customers');
-    await query('DELETE FROM contact_messages');
-
-    try {
-      await query('ALTER SEQUENCE orders_id_seq RESTART WITH 1');
-      await query('ALTER SEQUENCE order_items_id_seq RESTART WITH 1');
-      await query('ALTER SEQUENCE customers_id_seq RESTART WITH 1');
-      await query('ALTER SEQUENCE addresses_id_seq RESTART WITH 1');
-      await query('ALTER SEQUENCE payments_id_seq RESTART WITH 1');
-      await query('ALTER SEQUENCE email_events_id_seq RESTART WITH 1');
-      await query('ALTER SEQUENCE email_notifications_id_seq RESTART WITH 1');
-    } catch (_) {}
-
-    res.json({
-      success: true,
-      message: 'All dummy test data and email logs have been completely wiped from the database.'
-    });
-  } catch (err) {
-    next(err);
-  }
-}
 
 /**
  * GET /api/admin/emails

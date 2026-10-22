@@ -13,7 +13,6 @@ import {
   ExternalLink,
   Sparkles,
   Info,
-  Trash2,
   Save,
   RefreshCw
 } from 'lucide-react';
@@ -25,7 +24,6 @@ export default function AdminSettings() {
   const { addToast } = useToast();
   const { refreshSettings } = useStoreSettings();
   const [copiedSection, setCopiedSection] = useState(null);
-  const [clearing, setClearing] = useState(false);
   const [savingKey, setSavingKey] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -131,23 +129,6 @@ export default function AdminSettings() {
     }
   };
 
-  const handleClearTestData = async () => {
-    if (!window.confirm('Are you sure you want to purge all dummy/test orders and customers? This will reset store metrics to zero.')) {
-      return;
-    }
-    setClearing(true);
-    try {
-      const res = await api.post('/admin/clear-test-data');
-      if (res.success) {
-        addToast('All dummy test data and orders purged successfully!', 'success');
-      }
-    } catch (err) {
-      addToast(err.message || 'Failed to clear dummy data', 'error');
-    } finally {
-      setClearing(false);
-    }
-  };
-
   return (
     <div className="space-y-8 max-w-6xl pb-16">
       {/* Header */}
@@ -163,17 +144,6 @@ export default function AdminSettings() {
           <p className="text-xs text-brand-plum/70 mt-1">
             Configure your official brand identity, contact channels, delivery rules, and store information in real time.
           </p>
-        </div>
-
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={handleClearTestData}
-            disabled={clearing}
-            className="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs flex items-center space-x-2 transition-all border border-rose-200 shadow-sm disabled:opacity-50"
-          >
-            <Trash2 className="w-4 h-4 text-rose-600" />
-            <span>{clearing ? 'Purging...' : 'Purge Dummy Orders'}</span>
-          </button>
         </div>
       </div>
 
