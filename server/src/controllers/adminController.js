@@ -19,9 +19,9 @@ import {
  * Valid state transitions for order lifecycle
  */
 export const VALID_ORDER_TRANSITIONS = {
-  pending: ['confirmed', 'cancelled'],
-  confirmed: ['processing', 'cancelled'],
-  processing: ['shipped', 'cancelled'],
+  pending: ['confirmed', 'processing', 'cancelled'],
+  confirmed: ['processing', 'shipped', 'cancelled'],
+  processing: ['confirmed', 'shipped', 'cancelled'],
   shipped: ['out_for_delivery', 'delivered', 'cancelled'],
   out_for_delivery: ['delivered', 'cancelled'],
   delivered: [], // Terminal state

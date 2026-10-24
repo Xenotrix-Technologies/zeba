@@ -55,6 +55,23 @@ export default function AdminOrders() {
     setSelectedOrders([]);
   };
 
+  const handleInlineStatusChange = async (orderId, newStatus) => {
+    try {
+      const res = await api.patch(`/admin/orders/${orderId}/status`, {
+        status: newStatus
+      });
+      if (res.success) {
+        addToast(`Order status updated to "${newStatus}"`, 'success');
+        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+        setSelectedOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+      } else {
+        addToast(res.message || 'Failed to update order status', 'error');
+      }
+    } catch (err) {
+      addToast(err.message || 'Failed to update order status', 'error');
+    }
+  };
+
   const fetchOrders = async () => {
     setLoading(true);
     try {
@@ -490,13 +507,22 @@ export default function AdminOrders() {
               <tbody className="divide-y divide-brand-primaryPink/15">
                 {orders.map((order) => {
                   const isSelected = selectedOrders.some(so => so.id === order.id);
+                  const isPaymentCancelled = (order.payment_status || '').toLowerCase() === 'cancelled';
+                  const isProcessing = (order.status || '').toLowerCase() === 'processing';
+                  const isConfirmed = (order.status || '').toLowerCase() === 'confirmed';
                   return (
                     <tr
                       key={order.id}
-                      className={`transition-colors ${
+                      className={`transition-colors border-b border-brand-primaryPink/15 ${
                         isSelected
-                          ? 'bg-brand-softPink/60 hover:bg-brand-softPink/80'
-                          : 'hover:bg-brand-softPink/30'
+                          ? 'bg-brand-softPink/80 hover:bg-brand-softPink'
+                          : isPaymentCancelled
+                          ? 'bg-[#FFF1F2] hover:bg-[#FFE4E6] border-l-4 border-l-rose-500'
+                          : isProcessing
+                          ? 'bg-[#FFE9F2] hover:bg-[#FFDFEE] border-l-4 border-l-brand-brightPink'
+                          : isConfirmed
+                          ? 'bg-[#F0FDF4] hover:bg-[#DCFCE7] border-l-4 border-l-emerald-500'
+                          : 'bg-white hover:bg-brand-softPink/30'
                       }`}
                     >
                       <td className="p-4 w-10 text-center" onClick={(e) => e.stopPropagation()}>
@@ -523,15 +549,42 @@ export default function AdminOrders() {
                         <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
                           order.payment_status === 'paid'
                             ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                            : isPaymentCancelled
+                            ? 'bg-rose-50 text-rose-800 border border-rose-200 ring-1 ring-rose-200'
                             : 'bg-amber-50 text-amber-800 border border-amber-200'
                         }`}>
                           {order.payment_status}
                         </span>
                       </td>
-                      <td className="p-4">
-                        <span className="capitalize px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-softPink text-brand-deepPurple border border-brand-primaryPink/30">
-                          {order.status}
-                        </span>
+                      <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                        <select
+                          value={order.status}
+                          onChange={(e) => handleInlineStatusChange(order.id, e.target.value)}
+                          className={`capitalize px-2.5 py-1 rounded-full text-[10px] font-bold border outline-none cursor-pointer transition-all ${
+                            isProcessing
+                              ? 'bg-[#FFE4EE] text-brand-deepPurple border-brand-brightPink/50 font-black ring-1 ring-brand-brightPink/30 shadow-xs'
+                              : isConfirmed
+                              ? 'bg-emerald-50 text-emerald-800 border-emerald-300 font-bold ring-1 ring-emerald-200 shadow-xs'
+                              : order.status === 'pending'
+                              ? 'bg-amber-50 text-amber-800 border-amber-200'
+                              : order.status === 'shipped'
+                              ? 'bg-sky-50 text-sky-800 border-sky-200'
+                              : order.status === 'delivered'
+                              ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                              : order.status === 'cancelled'
+                              ? 'bg-rose-50 text-rose-800 border-rose-200'
+                              : 'bg-brand-softPink text-brand-deepPurple border-brand-primaryPink/30'
+                          }`}
+                          title="Click to change order status"
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="confirmed">Confirmed</option>
+                          <option value="processing">Processing</option>
+                          <option value="shipped">Shipped</option>
+                          <option value="out_for_delivery">Out for Delivery</option>
+                          <option value="delivered">Delivered</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
                       </td>
                       <td className="p-4 text-[#805A82] whitespace-nowrap">
                         {new Date(order.created_at).toLocaleDateString('en-IN', {
