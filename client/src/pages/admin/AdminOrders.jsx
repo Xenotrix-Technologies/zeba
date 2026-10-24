@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Eye, Calendar, ArrowUpDown, X, FileSpreadsheet, Loader2 } from 'lucide-react';
+import { Search, Eye, Calendar, ArrowUpDown, X, FileSpreadsheet, Loader2, Printer, CheckSquare, Trash2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import api from '../../services/api';
 import Pagination from '../../components/Pagination';
+import BatchShippingSlipsModal from '../../components/BatchShippingSlipsModal';
 import { useToast } from '../../context/ToastContext';
 
 export default function AdminOrders() {
@@ -19,8 +20,40 @@ export default function AdminOrders() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [selectedOrders, setSelectedOrders] = useState([]);
+  const [showBatchPrintModal, setShowBatchPrintModal] = useState(false);
 
   const { addToast } = useToast();
+
+  const isAllPageSelected = orders.length > 0 && orders.every(o => selectedOrders.some(so => so.id === o.id));
+
+  const toggleSelectOrder = (order) => {
+    setSelectedOrders(prev => {
+      const exists = prev.some(o => o.id === order.id);
+      if (exists) {
+        return prev.filter(o => o.id !== order.id);
+      } else {
+        return [...prev, order];
+      }
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (isAllPageSelected) {
+      const pageIds = new Set(orders.map(o => o.id));
+      setSelectedOrders(prev => prev.filter(o => !pageIds.has(o.id)));
+    } else {
+      setSelectedOrders(prev => {
+        const existingIds = new Set(prev.map(o => o.id));
+        const additions = orders.filter(o => !existingIds.has(o.id));
+        return [...prev, ...additions];
+      });
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedOrders([]);
+  };
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -214,6 +247,30 @@ export default function AdminOrders() {
             </button>
           )}
 
+          {/* Print Slip Button (4 Slips in 1 A4 Page) */}
+          <button
+            onClick={() => {
+              if (selectedOrders.length === 0) {
+                addToast('Please select at least 1 order using the checkboxes to print slips.', 'warning');
+                return;
+              }
+              setShowBatchPrintModal(true);
+            }}
+            className={`inline-flex items-center space-x-1.5 text-xs font-bold px-3.5 py-1.5 rounded-full border shadow-sm transition-all cursor-pointer ${
+              selectedOrders.length > 0
+                ? 'bg-brand-deepPurple hover:bg-brand-plum text-white border-brand-deepPurple hover:shadow-md active:scale-95 ring-2 ring-brand-brightPink/30'
+                : 'bg-white hover:bg-brand-softPink text-brand-deepPurple border-brand-primaryPink/30 hover:border-brand-brightPink'
+            }`}
+            title={
+              selectedOrders.length === 0
+                ? 'Select orders with the checkboxes to print 4 slips per A4 page'
+                : `Print shipping slips for ${selectedOrders.length} selected order(s) (4 slips per A4 page)`
+            }
+          >
+            <Printer className={`w-3.5 h-3.5 ${selectedOrders.length > 0 ? 'text-amber-400' : 'text-brand-brightPink'}`} />
+            <span>Print Slip{selectedOrders.length > 0 ? ` (${selectedOrders.length})` : ''}</span>
+          </button>
+
           {/* Export to Excel Button (positioned right next to Total Orders) */}
           <button
             onClick={handleExportExcel}
@@ -342,6 +399,39 @@ export default function AdminOrders() {
 
       </div>
 
+      {/* Selected Orders Action Banner (when orders are checked) */}
+      {selectedOrders.length > 0 && (
+        <div className="bg-brand-deepPurple text-white px-4 py-3 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-lg animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="flex items-center space-x-2.5 text-xs">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+            <span className="font-extrabold text-white text-sm">
+              {selectedOrders.length} order{selectedOrders.length > 1 ? 's' : ''} selected
+            </span>
+            <span className="text-brand-softPink/90 font-medium">
+              ({Math.ceil(selectedOrders.length / 4)} A4 sheet{Math.ceil(selectedOrders.length / 4) > 1 ? 's' : ''} • 4 slips/page)
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <button
+              type="button"
+              onClick={() => setShowBatchPrintModal(true)}
+              className="inline-flex items-center space-x-1.5 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-brand-deepPurple font-black px-4 py-1.5 rounded-xl text-xs shadow-md hover:shadow-lg transition-transform active:scale-95 cursor-pointer"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>Print {selectedOrders.length} Slip{selectedOrders.length > 1 ? 's' : ''} Now</span>
+            </button>
+            <button
+              type="button"
+              onClick={clearSelection}
+              className="text-xs text-brand-softPink hover:text-white px-3 py-1.5 rounded-xl hover:bg-white/10 transition-colors font-semibold cursor-pointer"
+            >
+              Clear Selection
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Orders Table */}
       <div className="bg-white rounded-3xl border border-brand-primaryPink/25 overflow-hidden shadow-sm">
         {loading ? (
@@ -368,6 +458,15 @@ export default function AdminOrders() {
             <table className="w-full text-left text-xs text-brand-darkPurple">
               <thead className="bg-[#FFF5FA] text-[#805A82] uppercase font-bold text-[10px] tracking-wider border-b border-brand-primaryPink/20">
                 <tr>
+                  <th className="p-4 w-10 text-center">
+                    <input
+                      type="checkbox"
+                      checked={isAllPageSelected}
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4 rounded border-gray-300 text-brand-brightPink focus:ring-brand-brightPink cursor-pointer accent-brand-brightPink"
+                      title="Select or deselect all orders on this page"
+                    />
+                  </th>
                   <th className="p-4">Order Number</th>
                   <th className="p-4">Customer</th>
                   <th className="p-4">Phone</th>
@@ -389,51 +488,70 @@ export default function AdminOrders() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-brand-primaryPink/15">
-                {orders.map((order) => (
-                  <tr key={order.id} className="hover:bg-brand-softPink/40 transition-colors">
-                    <td className="p-4 font-mono font-bold text-brand-deepPurple">
-                      <Link to={`/admin/orders/${order.id}`} className="hover:text-brand-brightPink transition-colors">
-                        {order.order_number}
-                      </Link>
-                    </td>
-                    <td className="p-4 font-bold text-brand-deepPurple">{order.customer_name}</td>
-                    <td className="p-4 text-[#805A82]">{order.customer_phone}</td>
-                    <td className="p-4 max-w-xs truncate text-brand-darkPurple">
-                      {order.products_summary || `${order.total_items} item(s)`}
-                    </td>
-                    <td className="p-4 font-extrabold text-brand-deepPurple">₹{parseFloat(order.total_amount).toFixed(2)}</td>
-                    <td className="p-4">
-                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
-                        order.payment_status === 'paid'
-                          ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                          : 'bg-amber-50 text-amber-800 border border-amber-200'
-                      }`}>
-                        {order.payment_status}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <span className="capitalize px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-softPink text-brand-deepPurple border border-brand-primaryPink/30">
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="p-4 text-[#805A82] whitespace-nowrap">
-                      {new Date(order.created_at).toLocaleDateString('en-IN', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric'
-                      })}
-                    </td>
-                    <td className="p-4 text-right">
-                      <Link
-                        to={`/admin/orders/${order.id}`}
-                        className="inline-flex items-center space-x-1 text-xs font-bold text-brand-brightPink hover:text-white px-3 py-1.5 rounded-xl bg-brand-softPink hover:bg-brand-brightPink transition-colors border border-brand-primaryPink/25"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>Manage</span>
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
+                {orders.map((order) => {
+                  const isSelected = selectedOrders.some(so => so.id === order.id);
+                  return (
+                    <tr
+                      key={order.id}
+                      className={`transition-colors ${
+                        isSelected
+                          ? 'bg-brand-softPink/60 hover:bg-brand-softPink/80'
+                          : 'hover:bg-brand-softPink/30'
+                      }`}
+                    >
+                      <td className="p-4 w-10 text-center" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelectOrder(order)}
+                          className="w-4 h-4 rounded border-gray-300 text-brand-brightPink focus:ring-brand-brightPink cursor-pointer accent-brand-brightPink"
+                          title={`Select order ${order.order_number}`}
+                        />
+                      </td>
+                      <td className="p-4 font-mono font-bold text-brand-deepPurple">
+                        <Link to={`/admin/orders/${order.id}`} className="hover:text-brand-brightPink transition-colors">
+                          {order.order_number}
+                        </Link>
+                      </td>
+                      <td className="p-4 font-bold text-brand-deepPurple">{order.customer_name}</td>
+                      <td className="p-4 text-[#805A82]">{order.customer_phone}</td>
+                      <td className="p-4 max-w-xs truncate text-brand-darkPurple">
+                        {order.products_summary || `${order.total_items} item(s)`}
+                      </td>
+                      <td className="p-4 font-extrabold text-brand-deepPurple">₹{parseFloat(order.total_amount).toFixed(2)}</td>
+                      <td className="p-4">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
+                          order.payment_status === 'paid'
+                            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                            : 'bg-amber-50 text-amber-800 border border-amber-200'
+                        }`}>
+                          {order.payment_status}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <span className="capitalize px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-softPink text-brand-deepPurple border border-brand-primaryPink/30">
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="p-4 text-[#805A82] whitespace-nowrap">
+                        {new Date(order.created_at).toLocaleDateString('en-IN', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric'
+                        })}
+                      </td>
+                      <td className="p-4 text-right">
+                        <Link
+                          to={`/admin/orders/${order.id}`}
+                          className="inline-flex items-center space-x-1 text-xs font-bold text-brand-brightPink hover:text-white px-3 py-1.5 rounded-xl bg-brand-softPink hover:bg-brand-brightPink transition-colors border border-brand-primaryPink/25"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Manage</span>
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -453,6 +571,13 @@ export default function AdminOrders() {
           label="orders"
         />
       </div>
+
+      {/* Batch Shipping Slips Modal (4 slips in 1 A4 Page) */}
+      <BatchShippingSlipsModal
+        isOpen={showBatchPrintModal}
+        orders={selectedOrders}
+        onClose={() => setShowBatchPrintModal(false)}
+      />
 
     </div>
   );
