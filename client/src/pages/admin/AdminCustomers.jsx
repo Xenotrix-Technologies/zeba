@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Users, Search, Phone, Mail, ShoppingBag, DollarSign, Calendar, Eye, X, RefreshCw } from 'lucide-react';
+import { Users, Search, Phone, Mail, ShoppingBag, DollarSign, Calendar, Eye, X, RefreshCw, FileSpreadsheet, Loader2 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import api from '../../services/api';
 import Pagination from '../../components/Pagination';
+import { useToast } from '../../context/ToastContext';
 
 export default function AdminCustomers() {
   const [customers, setCustomers] = useState([]);
@@ -12,8 +14,11 @@ export default function AdminCustomers() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [customerDetailLoading, setCustomerDetailLoading] = useState(false);
+
+  const { addToast } = useToast();
 
   const fetchCustomers = useCallback(async (isSilent = false) => {
     if (!isSilent) setLoading(true);
@@ -50,6 +55,106 @@ export default function AdminCustomers() {
     fetchCustomers();
   };
 
+  /**
+   * Export customers matching current filters directly to an Excel (.xlsx) file
+   */
+  const handleExportExcel = async () => {
+    if (exporting) return;
+    setExporting(true);
+
+    try {
+      const params = new URLSearchParams({
+        page: '1',
+        limit: '10000',
+        export: 'true'
+      });
+      if (search.trim()) {
+        params.append('search', search.trim());
+      }
+
+      const res = await api.get(`/admin/customers?${params.toString()}`);
+      const rawCustomers = (res.success && Array.isArray(res.customers)) ? res.customers : customers;
+
+      if (!rawCustomers || rawCustomers.length === 0) {
+        if (addToast) addToast('No customers found to export', 'error');
+        return;
+      }
+
+      // Format data cleanly for spreadsheet columns
+      const excelData = rawCustomers.map((c, idx) => {
+        const joinedDate = c.created_at ? new Date(c.created_at) : new Date();
+        const formattedJoined = joinedDate.toLocaleDateString('en-IN', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric'
+        });
+
+        const latestOrder = c.latest_order_date
+          ? new Date(c.latest_order_date).toLocaleDateString('en-IN', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric'
+            })
+          : 'No orders yet';
+
+        return {
+          '#': idx + 1,
+          'Customer ID': c.id,
+          'Customer Name': c.name || 'N/A',
+          'Phone': c.phone || 'N/A',
+          'Email': c.email || 'N/A',
+          'Primary Address': c.primary_address || 'N/A',
+          'City': c.city || 'N/A',
+          'State': c.state || 'N/A',
+          'Pincode': c.pincode || 'N/A',
+          'Total Orders': Number(c.total_orders) || 0,
+          'Total Spent (₹)': Number(c.total_spent) || 0,
+          'Latest Order Date': latestOrder,
+          'Joined Date': formattedJoined
+        };
+      });
+
+      // Build worksheet and set column widths
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      worksheet['!cols'] = [
+        { wch: 5 },  // #
+        { wch: 14 }, // Customer ID
+        { wch: 24 }, // Customer Name
+        { wch: 16 }, // Phone
+        { wch: 28 }, // Email
+        { wch: 42 }, // Primary Address
+        { wch: 16 }, // City
+        { wch: 16 }, // State
+        { wch: 12 }, // Pincode
+        { wch: 14 }, // Total Orders
+        { wch: 16 }, // Total Spent (₹)
+        { wch: 18 }, // Latest Order Date
+        { wch: 16 }  // Joined Date
+      ];
+
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Customers');
+
+      const nowStr = new Date().toISOString().slice(0, 10);
+      const filename = search.trim()
+        ? `Zeba_Customers_${search.trim()}_${nowStr}.xlsx`
+        : `Zeba_Customers_Export_${nowStr}.xlsx`;
+
+      XLSX.writeFile(workbook, filename);
+
+      if (addToast) {
+        addToast(`Successfully exported ${excelData.length} customer${excelData.length === 1 ? '' : 's'} to Excel!`, 'success');
+      }
+    } catch (err) {
+      console.error('Failed to export customers to excel:', err);
+      if (addToast) {
+        addToast('Export failed: ' + (err.message || 'Unknown error'), 'error');
+      }
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const handleViewCustomer = async (id) => {
     setCustomerDetailLoading(true);
     try {
@@ -72,17 +177,39 @@ export default function AdminCustomers() {
           <h1 className="font-display font-black text-2xl text-brand-dark">Customer Directory</h1>
           <p className="text-xs text-brand-plum/70 mt-0.5">Verified buyers and registered accounts</p>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2.5 flex-wrap sm:flex-nowrap">
+          {/* Export to Excel Button */}
+          <button
+            onClick={handleExportExcel}
+            disabled={exporting || total === 0}
+            className={`inline-flex items-center space-x-1.5 text-xs font-bold px-3.5 py-1.5 rounded-full border shadow-sm transition-all cursor-pointer ${
+              exporting
+                ? 'bg-emerald-50 border-emerald-300 text-emerald-700 opacity-80 cursor-wait'
+                : total === 0
+                ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
+                : 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white border-emerald-600 hover:shadow-md active:scale-95'
+            }`}
+            title={total === 0 ? 'No customers to export' : 'Export customer directory to Excel (.xlsx)'}
+          >
+            {exporting ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+            )}
+            <span>{exporting ? 'Exporting...' : 'Export Excel'}</span>
+          </button>
+
           <button
             onClick={() => fetchCustomers()}
             disabled={refreshing || loading}
-            className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-white hover:bg-brand-softPink text-brand-deepPurple text-xs font-bold border border-brand-primaryPink/30 transition-colors shadow-sm disabled:opacity-50"
+            className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-white hover:bg-brand-softPink text-brand-deepPurple text-xs font-bold border border-brand-primaryPink/30 transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
             title="Refresh customer list"
           >
             <RefreshCw className={`w-3.5 h-3.5 text-brand-brightPink ${refreshing ? 'animate-spin' : ''}`} />
             <span>{refreshing ? 'Syncing...' : 'Refresh'}</span>
           </button>
-          <span className="text-xs font-bold text-brand-deepPurple bg-brand-softPink border border-brand-primaryPink/30 px-3.5 py-1.5 rounded-full">
+
+          <span className="text-xs font-bold text-brand-deepPurple bg-brand-softPink border border-brand-primaryPink/30 px-3.5 py-1.5 rounded-full shadow-sm">
             Total Customers: {total}
           </span>
         </div>

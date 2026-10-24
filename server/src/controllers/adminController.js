@@ -335,8 +335,10 @@ export async function getAdminOrders(req, res, next) {
       limit = 15
     } = req.query;
 
+    const isExport = req.query.export === 'true' || req.query.isExport === 'true';
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
-    const limitNum = Math.max(1, Math.min(100, parseInt(limit, 10) || 15));
+    const maxLimit = isExport ? 10000 : 100;
+    const limitNum = Math.max(1, Math.min(maxLimit, parseInt(limit, 10) || 15));
     const offset = (pageNum - 1) * limitNum;
     const conditions = [];
     const params = [];
@@ -436,14 +438,17 @@ export async function getAdminOrders(req, res, next) {
 
     const ordersQuery = `
       SELECT o.id, o.order_number, o.status, o.payment_status, o.refund_status, o.subtotal,
-             o.shipping_fee, o.total_amount, o.currency, o.tracking_number, o.courier_partner,
+             o.shipping_fee, o.discount_amount, o.total_amount, o.currency, o.tracking_number, o.courier_partner,
              o.estimated_delivery_date, o.delivered_at, o.cancelled_at, o.notes,
              o.created_at, o.updated_at,
              c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone,
+             a.house_building, a.street, a.area, a.city, a.state, a.pincode,
+             (SELECT payment_method FROM payments WHERE order_id = o.id ORDER BY id DESC LIMIT 1) AS payment_method,
              (SELECT COUNT(*) FROM order_items WHERE order_id = o.id) AS total_items,
-             (SELECT string_agg(product_name, ', ') FROM order_items WHERE order_id = o.id) AS products_summary
+             (SELECT string_agg(product_name || ' (' || pack_size || ' x ' || quantity || ')', '; ') FROM order_items WHERE order_id = o.id) AS products_summary
       FROM orders o
       LEFT JOIN customers c ON o.customer_id = c.id
+      LEFT JOIN addresses a ON o.address_id = a.id
       ${whereClause}
       ORDER BY ${sortCol} ${orderDirection}
       LIMIT $${paramIndex++} OFFSET $${paramIndex++}
@@ -945,8 +950,10 @@ export async function getAdminCustomers(req, res, next) {
   try {
     const { search, page = 1, limit = 15 } = req.query;
 
+    const isExport = req.query.export === 'true' || req.query.isExport === 'true';
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
-    const limitNum = Math.max(1, Math.min(100, parseInt(limit, 10) || 15));
+    const maxLimit = isExport ? 10000 : 100;
+    const limitNum = Math.max(1, Math.min(maxLimit, parseInt(limit, 10) || 15));
     const offset = (pageNum - 1) * limitNum;
 
     let whereClause = '';
@@ -973,7 +980,11 @@ export async function getAdminCustomers(req, res, next) {
       SELECT c.id, c.name, c.email, c.phone, c.created_at,
              COUNT(o.id) AS total_orders,
              COALESCE(SUM(o.total_amount) FILTER (WHERE o.payment_status = 'paid'), 0) AS total_spent,
-             MAX(o.created_at) AS latest_order_date
+             MAX(o.created_at) AS latest_order_date,
+             (SELECT house_building || ', ' || street || ', ' || area || ', ' || city || ', ' || state || ' - ' || pincode FROM addresses WHERE customer_id = c.id ORDER BY id DESC LIMIT 1) AS primary_address,
+             (SELECT city FROM addresses WHERE customer_id = c.id ORDER BY id DESC LIMIT 1) AS city,
+             (SELECT state FROM addresses WHERE customer_id = c.id ORDER BY id DESC LIMIT 1) AS state,
+             (SELECT pincode FROM addresses WHERE customer_id = c.id ORDER BY id DESC LIMIT 1) AS pincode
       FROM customers c
       LEFT JOIN orders o ON c.id = o.customer_id
       ${whereClause}

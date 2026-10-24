@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Eye, Calendar, ArrowUpDown, X } from 'lucide-react';
+import { Search, Eye, Calendar, ArrowUpDown, X, FileSpreadsheet, Loader2 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import api from '../../services/api';
 import Pagination from '../../components/Pagination';
+import { useToast } from '../../context/ToastContext';
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
@@ -16,6 +18,9 @@ export default function AdminOrders() {
   const [paymentFilter, setPaymentFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
+
+  const { addToast } = useToast();
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -57,6 +62,137 @@ export default function AdminOrders() {
     fetchOrders();
   };
 
+  /**
+   * Export orders matching current filters directly to an Excel (.xlsx) file
+   */
+  const handleExportExcel = async () => {
+    if (exporting) return;
+    setExporting(true);
+
+    try {
+      // Request all matching orders (with export=true flag and high limit)
+      const params = new URLSearchParams({
+        page: '1',
+        limit: '10000',
+        export: 'true',
+        status: statusFilter,
+        payment_status: paymentFilter,
+        search,
+        sortBy: 'created_at',
+        sortOrder
+      });
+
+      if (dateFilter && dateFilter.trim() !== '') {
+        params.append('date', dateFilter);
+      }
+
+      const res = await api.get(`/admin/orders?${params.toString()}`);
+      const rawOrders = (res.success && Array.isArray(res.orders)) ? res.orders : orders;
+
+      if (!rawOrders || rawOrders.length === 0) {
+        if (addToast) addToast('No orders found to export', 'error');
+        return;
+      }
+
+      // Format data neatly for spreadsheet columns
+      const excelData = rawOrders.map((o, idx) => {
+        const orderDate = o.created_at ? new Date(o.created_at) : new Date();
+        const formattedDate = orderDate.toLocaleDateString('en-IN', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric'
+        });
+        const formattedTime = orderDate.toLocaleTimeString('en-IN', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        });
+
+        const addressParts = [
+          o.house_building,
+          o.street,
+          o.area,
+          o.city,
+          o.state,
+          o.pincode
+        ].filter(Boolean);
+
+        return {
+          '#': idx + 1,
+          'Order Number': o.order_number || `ZEBA-${o.id}`,
+          'Date': `${formattedDate} ${formattedTime}`,
+          'Customer Name': o.customer_name || 'Customer',
+          'Phone': o.customer_phone || 'N/A',
+          'Email': o.customer_email || 'N/A',
+          'Shipping Address': addressParts.join(', ') || 'N/A',
+          'City': o.city || 'N/A',
+          'State': o.state || 'N/A',
+          'Pincode': o.pincode || 'N/A',
+          'Products Ordered': o.products_summary || 'N/A',
+          'Total Items': Number(o.total_items) || 1,
+          'Subtotal (₹)': Number(o.subtotal || o.total_amount || 0),
+          'Discount (₹)': Number(o.discount_amount || 0),
+          'Shipping Fee (₹)': Number(o.shipping_fee || 0),
+          'Total Amount (₹)': Number(o.total_amount || 0),
+          'Payment Status': (o.payment_status || 'PENDING').toUpperCase(),
+          'Payment Mode': o.payment_method || (o.payment_status === 'paid' ? 'Online / UPI' : 'COD'),
+          'Order Status': (o.status || 'pending').toUpperCase(),
+          'Courier Partner': o.courier_partner || 'N/A',
+          'Tracking Number': o.tracking_number || 'N/A',
+          'Customer Notes': o.notes || ''
+        };
+      });
+
+      // Build worksheet and apply optimal column widths
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      worksheet['!cols'] = [
+        { wch: 5 },  // #
+        { wch: 20 }, // Order Number
+        { wch: 22 }, // Date
+        { wch: 22 }, // Customer Name
+        { wch: 15 }, // Phone
+        { wch: 26 }, // Email
+        { wch: 40 }, // Shipping Address
+        { wch: 16 }, // City
+        { wch: 16 }, // State
+        { wch: 10 }, // Pincode
+        { wch: 48 }, // Products Ordered
+        { wch: 12 }, // Total Items
+        { wch: 14 }, // Subtotal
+        { wch: 14 }, // Discount
+        { wch: 14 }, // Shipping Fee
+        { wch: 16 }, // Total Amount
+        { wch: 16 }, // Payment Status
+        { wch: 16 }, // Payment Mode
+        { wch: 16 }, // Order Status
+        { wch: 18 }, // Courier Partner
+        { wch: 22 }, // Tracking Number
+        { wch: 25 }  // Notes
+      ];
+
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Orders');
+
+      const nowStr = new Date().toISOString().slice(0, 10);
+      const filename = dateFilter 
+        ? `Zeba_Orders_${dateFilter}.xlsx`
+        : `Zeba_Orders_Export_${nowStr}.xlsx`;
+
+      XLSX.writeFile(workbook, filename);
+
+      if (addToast) {
+        addToast(`Successfully exported ${excelData.length} order${excelData.length === 1 ? '' : 's'} to Excel!`, 'success');
+      }
+    } catch (err) {
+      console.error('Failed to export orders to excel:', err);
+      if (addToast) {
+        addToast('Export failed: ' + (err.message || 'Unknown error'), 'error');
+      }
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       
@@ -65,11 +201,11 @@ export default function AdminOrders() {
           <h1 className="font-display font-black text-2xl sm:text-3xl text-brand-deepPurple">Order Management</h1>
           <p className="text-xs text-[#805A82] mt-0.5">Manage customer orders, track shipments, and review payments</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
           {dateFilter && (
             <button
               onClick={() => { setDateFilter(''); setPage(1); }}
-              className="inline-flex items-center space-x-1.5 text-xs font-bold text-brand-brightPink bg-brand-softPink px-3 py-1.5 rounded-full border border-brand-primaryPink/30 hover:bg-brand-brightPink hover:text-white transition-colors"
+              className="inline-flex items-center space-x-1.5 text-xs font-bold text-brand-brightPink bg-brand-softPink px-3 py-1.5 rounded-full border border-brand-primaryPink/30 hover:bg-brand-brightPink hover:text-white transition-colors cursor-pointer"
               title="Click to clear date filter"
             >
               <Calendar className="w-3.5 h-3.5" />
@@ -77,6 +213,28 @@ export default function AdminOrders() {
               <X className="w-3.5 h-3.5" />
             </button>
           )}
+
+          {/* Export to Excel Button (positioned right next to Total Orders) */}
+          <button
+            onClick={handleExportExcel}
+            disabled={exporting || total === 0}
+            className={`inline-flex items-center space-x-1.5 text-xs font-bold px-3.5 py-1.5 rounded-full border shadow-sm transition-all cursor-pointer ${
+              exporting
+                ? 'bg-emerald-50 border-emerald-300 text-emerald-700 opacity-80 cursor-wait'
+                : total === 0
+                ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
+                : 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white border-emerald-600 hover:shadow-md active:scale-95'
+            }`}
+            title={total === 0 ? 'No orders to export' : 'Export order data to Excel spreadsheet (.xlsx)'}
+          >
+            {exporting ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+            )}
+            <span>{exporting ? 'Exporting...' : 'Export Excel'}</span>
+          </button>
+
           <span className="text-xs font-bold text-brand-deepPurple bg-white border border-brand-primaryPink/30 px-3.5 py-1.5 rounded-full shadow-sm">
             Total Orders: {total}
           </span>
