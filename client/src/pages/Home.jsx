@@ -23,6 +23,7 @@ import {
 import api from '../services/api';
 import ProductCard from '../components/ProductCard';
 import { useStoreSettings } from '../context/StoreSettingsContext';
+import { DEFAULT_PRODUCTS } from '../utils/defaultProducts';
 
 const DEFAULT_TIMELINE = [
   {
@@ -202,13 +203,13 @@ const DEFAULT_FAQS = [
 
 export default function Home() {
   const { settings, getWhatsAppUrl } = useStoreSettings();
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState(DEFAULT_PRODUCTS);
   const [timelineStages, setTimelineStages] = useState(DEFAULT_TIMELINE);
   const [howToUseSteps, setHowToUseSteps] = useState(DEFAULT_STEPS);
   const [naturalIngredients, setNaturalIngredients] = useState(DEFAULT_INGREDIENTS);
   const [faqs, setFaqs] = useState(DEFAULT_FAQS);
   const [reviews, setReviews] = useState(DEFAULT_REVIEWS);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [activeTimelineIdx, setActiveTimelineIdx] = useState(1);
   const [openFaqIdx, setOpenFaqIdx] = useState(0);
   const [helpfulVotes, setHelpfulVotes] = useState({});
@@ -231,21 +232,27 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    async function loadAllDatabaseData() {
-      try {
-        const [prodRes, contentRes, faqRes, revRes] = await Promise.allSettled([
-          api.get('/products'),
-          api.get('/content'),
-          api.get('/faqs'),
-          api.get('/reviews')
-        ]);
+    const controller = new AbortController();
 
-        if (prodRes.status === 'fulfilled' && prodRes.value?.success && prodRes.value.products?.length > 0) {
-          setProducts(prodRes.value.products);
+    // 1. Fetch products independently and release loading immediately
+    api.get('/products', { signal: controller.signal })
+      .then((prodRes) => {
+        if (prodRes?.success && prodRes.products?.length > 0) {
+          setProducts(prodRes.products);
         }
+      })
+      .catch((err) => {
+        if (!controller.signal.aborted) console.warn('Product load note:', err.message);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
 
-        if (contentRes.status === 'fulfilled' && contentRes.value?.success && contentRes.value.content) {
-          const c = contentRes.value.content;
+    // 2. Fetch site content asynchronously in background
+    api.get('/content', { signal: controller.signal })
+      .then((contentRes) => {
+        if (contentRes?.success && contentRes.content) {
+          const c = contentRes.content;
           if (c.timeline_stages?.items) setTimelineStages(c.timeline_stages.items);
           if (c.natural_ingredients?.items) setNaturalIngredients(c.natural_ingredients.items);
           if (c.how_to_use_steps?.items) {
@@ -262,10 +269,15 @@ export default function Home() {
             })));
           }
         }
+      })
+      .catch(() => {});
 
-        if (faqRes.status === 'fulfilled' && faqRes.value?.success && faqRes.value.faqs?.length > 0) {
+    // 3. Fetch FAQs asynchronously in background
+    api.get('/faqs', { signal: controller.signal })
+      .then((faqRes) => {
+        if (faqRes?.success && faqRes.faqs?.length > 0) {
           const defaultFaqMap = new Map(DEFAULT_FAQS.map(df => [df.q.trim().toLowerCase(), df]));
-          setFaqs(faqRes.value.faqs.map((f, i) => {
+          setFaqs(faqRes.faqs.map((f, i) => {
             const matchedDefault = defaultFaqMap.get(f.question?.trim().toLowerCase()) || DEFAULT_FAQS[i];
             return {
               id: f.id || i + 1,
@@ -276,18 +288,19 @@ export default function Home() {
             };
           }));
         }
+      })
+      .catch(() => {});
 
-        if (revRes.status === 'fulfilled' && revRes.value?.success && revRes.value.reviews?.length > 0) {
-          setReviews(revRes.value.reviews);
+    // 4. Fetch Reviews asynchronously in background
+    api.get('/reviews', { signal: controller.signal })
+      .then((revRes) => {
+        if (revRes?.success && revRes.reviews?.length > 0) {
+          setReviews(revRes.reviews);
         }
-      } catch (err) {
-        console.error('Failed to load database content', err);
-      } finally {
-        setLoading(false);
-      }
-    }
+      })
+      .catch(() => {});
 
-    loadAllDatabaseData();
+    return () => controller.abort();
   }, []);
 
   return (

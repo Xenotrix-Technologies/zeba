@@ -73,8 +73,25 @@ api.interceptors.request.use((config) => {
 
 // Response interceptor
 api.interceptors.response.use(
-  (response) => response.data,
+  (response) => {
+    // Invalidate caches when mutations occur
+    const method = response.config?.method?.toLowerCase();
+    const url = response.config?.url || '';
+    if (['post', 'put', 'patch', 'delete'].includes(method)) {
+      if (url.includes('/reviews')) api.invalidateCache('/reviews');
+      if (url.includes('/products')) api.invalidateCache('/products');
+      if (url.includes('/settings')) api.invalidateCache('/settings');
+      if (url.includes('/faqs')) api.invalidateCache('/faqs');
+      if (url.includes('/content')) api.invalidateCache('/content');
+    }
+    return response.data;
+  },
   (error) => {
+    // Pass through aborted requests cleanly
+    if (axios.isCancel(error) || error.name === 'CanceledError' || error.code === 'ERR_CANCELED') {
+      return Promise.reject(error);
+    }
+
     let message = error.response?.data?.message;
     if (!message) {
       if (error.response?.status === 404) {
@@ -90,5 +107,106 @@ api.interceptors.response.use(
     return Promise.reject(new Error(message));
   }
 );
+
+// In-Flight Request Deduplication & In-Memory Response Caching
+const inFlightRequests = new Map();
+const responseCache = new Map();
+
+function isCacheable(url, config = {}) {
+  if (config.cache === false || config.noCache) return false;
+  const cleanUrl = url.split('?')[0];
+  // Strictly public storefront read endpoints only
+  return (
+    cleanUrl === '/products' ||
+    cleanUrl.startsWith('/products/') ||
+    cleanUrl === '/faqs' ||
+    cleanUrl === '/content' ||
+    cleanUrl === '/settings' ||
+    cleanUrl === '/reviews'
+  );
+}
+
+function getTtl(url) {
+  const cleanUrl = url.split('?')[0];
+  if (cleanUrl === '/settings' || cleanUrl === '/content' || cleanUrl === '/faqs') {
+    return 5 * 60 * 1000; // 5 minutes
+  }
+  if (cleanUrl === '/reviews') {
+    return 30 * 1000; // 30 seconds
+  }
+  return 60 * 1000; // 1 minute for products
+}
+
+const originalGet = api.get.bind(api);
+
+api.get = function (url, config = {}) {
+  const paramsKey = config.params ? JSON.stringify(config.params) : '';
+  const cacheKey = `${url}__${paramsKey}`;
+  const now = Date.now();
+
+  // 1. In-memory Cache check
+  if (isCacheable(url, config)) {
+    const cached = responseCache.get(cacheKey);
+    if (cached && now - cached.timestamp < cached.ttl) {
+      return Promise.resolve(cached.data);
+    }
+  }
+
+  // 2. In-flight request deduplication
+  if (inFlightRequests.has(cacheKey)) {
+    return inFlightRequests.get(cacheKey);
+  }
+
+  // 3. Network Request
+  const requestPromise = originalGet(url, config)
+    .then((data) => {
+      if (isCacheable(url, config)) {
+        responseCache.set(cacheKey, {
+          data,
+          timestamp: Date.now(),
+          ttl: config.ttl || getTtl(url)
+        });
+      }
+      return data;
+    })
+    .finally(() => {
+      inFlightRequests.delete(cacheKey);
+    });
+
+  inFlightRequests.set(cacheKey, requestPromise);
+  return requestPromise;
+};
+
+api.invalidateCache = function (prefix) {
+  if (!prefix) {
+    responseCache.clear();
+    return;
+  }
+  for (const key of responseCache.keys()) {
+    if (key.startsWith(prefix)) {
+      responseCache.delete(key);
+    }
+  }
+};
+
+api.getCachedData = function (url, params) {
+  const paramsKey = params ? JSON.stringify(params) : '';
+  const cacheKey = `${url}__${paramsKey}`;
+  const cached = responseCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < cached.ttl) {
+    return cached.data;
+  }
+  return null;
+};
+
+api.setCachedData = function (url, data, ttl = 60000, params) {
+  const paramsKey = params ? JSON.stringify(params) : '';
+  const cacheKey = `${url}__${paramsKey}`;
+  responseCache.set(cacheKey, {
+    data,
+    timestamp: Date.now(),
+    ttl
+  });
+};
 
 export default api;

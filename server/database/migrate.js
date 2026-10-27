@@ -394,6 +394,14 @@ const INLINE_MIGRATIONS = [
     sql: `
       ALTER TABLE products ADD COLUMN IF NOT EXISTS barcode_image TEXT DEFAULT NULL;
     `
+  },
+  {
+    name: '012_performance_indexes.sql',
+    sql: `
+      CREATE INDEX IF NOT EXISTS idx_products_active_pack ON products (is_active, pack_count);
+      CREATE INDEX IF NOT EXISTS idx_reviews_approved_featured_created ON reviews (is_approved, is_featured DESC, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_faqs_active_sort ON faqs (is_active, sort_order ASC, id ASC);
+    `
   }
 ];
 

@@ -5,7 +5,6 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import CartDrawer from './components/CartDrawer';
 import StickyMobileBar from './components/StickyMobileBar';
-import CookieConsentBanner from './components/CookieConsentBanner';
 
 // Public Storefront Pages (Home loaded eagerly for immediate LCP, others lazy-loaded)
 import Home from './pages/Home';
@@ -57,7 +56,6 @@ function StorefrontLayout() {
       <Footer />
       <CartDrawer />
       <StickyMobileBar />
-      <CookieConsentBanner />
     </div>
   );
 }

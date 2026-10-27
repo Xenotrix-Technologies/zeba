@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingBag, Zap, Star, Flame, Clock } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { getProductMainImage } from '../utils/imageUtils';
+import { getProductThumbnail } from '../utils/imageUtils';
 
 export default function ProductCard({ product, isFeatured = false }) {
   const { addToCart, startBuyNow } = useCart();
@@ -14,7 +14,7 @@ export default function ProductCard({ product, isFeatured = false }) {
     navigate('/checkout', { state: { buyNow: true } });
   };
 
-  const mainImage = getProductMainImage(product.images);
+  const thumbnailImage = getProductThumbnail(product.images);
   const currentPrice = parseFloat(product.price) || 0;
   const originalPrice = parseFloat(product.original_price) || 0;
   const isOriginalPriceActive = product.show_original_price !== false && originalPrice > currentPrice;
@@ -61,7 +61,7 @@ export default function ProductCard({ product, isFeatured = false }) {
         className="relative block bg-gradient-to-b from-[#FFF5FA] to-white overflow-hidden aspect-square flex items-center justify-center p-6"
       >
         <img
-          src={mainImage}
+          src={thumbnailImage}
           alt={product.name}
           width="400"
           height="400"

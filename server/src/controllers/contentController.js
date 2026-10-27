@@ -20,6 +20,7 @@ export async function getSiteContent(req, res, next) {
       };
     }
 
+    res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=600, stale-while-revalidate=1200');
     res.json({
       success: true,
       content: contentMap
@@ -42,6 +43,7 @@ export async function getFaqs(req, res, next) {
        ORDER BY sort_order ASC, id ASC`
     );
 
+    res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=600, stale-while-revalidate=1200');
     res.json({
       success: true,
       count: result.rows.length,
@@ -54,7 +56,7 @@ export async function getFaqs(req, res, next) {
 
 /**
  * GET /api/reviews
- * Returns approved reviews for storefront
+ * Returns approved reviews for storefront (parallelized queries for reviews list and aggregate rating)
  */
 export async function getReviews(req, res, next) {
   try {
@@ -71,26 +73,28 @@ export async function getReviews(req, res, next) {
       conditions.push('is_featured = true');
     }
 
-    const result = await query(
-      `SELECT r.id, r.product_id, r.author_name, r.rating, r.title, r.comment,
-              r.location, r.is_verified_purchase, r.is_featured, r.created_at,
-              p.name AS product_name
-       FROM reviews r
-       LEFT JOIN products p ON r.product_id = p.id
-       WHERE ${conditions.join(' AND ')}
-       ORDER BY r.is_featured DESC, r.created_at DESC`,
-      params
-    );
+    // Parallelize reviews retrieval and rating aggregation queries
+    const [result, aggResult] = await Promise.all([
+      query(
+        `SELECT r.id, r.product_id, r.author_name, r.rating, r.title, r.comment,
+                r.location, r.is_verified_purchase, r.is_featured, r.created_at,
+                p.name AS product_name
+         FROM reviews r
+         LEFT JOIN products p ON r.product_id = p.id
+         WHERE ${conditions.join(' AND ')}
+         ORDER BY r.is_featured DESC, r.created_at DESC`,
+        params
+      ),
+      query(
+        `SELECT 
+           COUNT(*) AS total_reviews,
+           COALESCE(AVG(rating), 5.0) AS average_rating
+         FROM reviews
+         WHERE is_approved = true`
+      )
+    ]);
 
-    // Calculate rating aggregation
-    const aggResult = await query(
-      `SELECT 
-         COUNT(*) AS total_reviews,
-         COALESCE(AVG(rating), 5.0) AS average_rating
-       FROM reviews
-       WHERE is_approved = true`
-    );
-
+    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
     res.json({
       success: true,
       count: result.rows.length,

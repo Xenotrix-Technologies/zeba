@@ -7,7 +7,6 @@ import { AuthProvider } from './context/AuthContext';
 import { CustomerAuthProvider } from './context/CustomerAuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { StoreSettingsProvider } from './context/StoreSettingsContext';
-import { CookieConsentProvider } from './context/CookieConsentContext';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -15,15 +14,13 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <StoreSettingsProvider>
         <ToastProvider>
-          <CookieConsentProvider>
-            <AuthProvider>
-              <CustomerAuthProvider>
-                <CartProvider>
-                  <App />
-                </CartProvider>
-              </CustomerAuthProvider>
-            </AuthProvider>
-          </CookieConsentProvider>
+          <AuthProvider>
+            <CustomerAuthProvider>
+              <CartProvider>
+                <App />
+              </CartProvider>
+            </CustomerAuthProvider>
+          </AuthProvider>
         </ToastProvider>
       </StoreSettingsProvider>
     </BrowserRouter>

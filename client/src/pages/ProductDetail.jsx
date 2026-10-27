@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
 import {
   Star,
   Truck,
@@ -12,16 +12,19 @@ import {
   Zap,
   MessageCircle,
   CheckCircle,
-  User,
-  Send
+  Send,
+  RefreshCw,
+  AlertCircle,
+  ArrowLeft
 } from 'lucide-react';
 import api from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useStoreSettings } from '../context/StoreSettingsContext';
 import { useToast } from '../context/ToastContext';
-import { parseProductImages, DEFAULT_PRODUCT_IMAGE } from '../utils/imageUtils';
+import { parseProductImages, DEFAULT_PRODUCT_IMAGE, DEFAULT_DETAIL_IMAGE } from '../utils/imageUtils';
+import { DEFAULT_PRODUCTS, DEFAULT_PRODUCT_REVIEWS, DEFAULT_PRODUCT_FAQS } from '../utils/defaultProducts';
 
-function resolveProduct(prods, targetSlug, searchParams) {
+export function resolveProduct(prods, targetSlug, searchParams) {
   if (!prods || prods.length === 0) return null;
 
   // 1. By slug in URL path (/products/:slug)
@@ -48,22 +51,89 @@ function resolveProduct(prods, targetSlug, searchParams) {
   return prods.find(p => p.pack_count > 1) || prods[0];
 }
 
+/**
+ * High-performance loading skeleton matching product layout to prevent CLS
+ */
+function ProductDetailSkeleton() {
+  return (
+    <div className="bg-[#FFF5FA] py-8 sm:py-12 animate-pulse">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
+          {/* Gallery Skeleton */}
+          <div className="lg:col-span-6 space-y-4">
+            <div className="rounded-3xl bg-white/80 border-2 border-brand-primaryPink/20 aspect-square shadow-md" />
+            <div className="grid grid-cols-6 gap-2.5">
+              {[1, 2, 3, 4, 5, 6].map(i => (
+                <div key={i} className="aspect-square rounded-2xl bg-white/70 border border-brand-primaryPink/20" />
+              ))}
+            </div>
+            <div className="h-14 rounded-2xl bg-white/70 border border-brand-primaryPink/20" />
+          </div>
+
+          {/* Details Skeleton */}
+          <div className="lg:col-span-6 space-y-6">
+            <div className="flex justify-between items-center">
+              <div className="h-5 w-40 bg-brand-primaryPink/20 rounded-full" />
+              <div className="h-6 w-32 bg-emerald-100 rounded-full" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-9 w-4/5 bg-brand-primaryPink/25 rounded-2xl" />
+              <div className="h-4 w-full bg-brand-primaryPink/15 rounded-md" />
+              <div className="h-4 w-3/4 bg-brand-primaryPink/15 rounded-md" />
+            </div>
+            <div className="h-24 bg-white/80 rounded-2xl border-2 border-brand-primaryPink/20" />
+            <div className="space-y-3">
+              <div className="h-4 w-28 bg-brand-primaryPink/20 rounded-md" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="h-24 bg-white/80 rounded-2xl border border-brand-primaryPink/20" />
+                <div className="h-24 bg-white/80 rounded-2xl border border-brand-primaryPink/20" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <div className="h-14 bg-white/80 rounded-2xl border-2 border-brand-primaryPink/30" />
+              <div className="h-14 bg-brand-brightPink/30 rounded-2xl" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ProductDetail() {
   const { slug } = useParams();
   const [searchParams] = useSearchParams();
   const { settings, getWhatsAppUrl } = useStoreSettings();
   const { addToast } = useToast();
-  const [products, setProducts] = useState([]);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  const navigate = useNavigate();
+
+  // Core Product State with Immediate Authentic Fallback
+  const [products, setProducts] = useState(DEFAULT_PRODUCTS);
+  const [selectedProduct, setSelectedProduct] = useState(() => {
+    return resolveProduct(DEFAULT_PRODUCTS, slug, searchParams) || DEFAULT_PRODUCTS[1] || DEFAULT_PRODUCTS[0];
+  });
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [notFound, setNotFound] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
+
+  // Tab & Form State
   const [activeTab, setActiveTab] = useState('how_to_use');
-  const [reviews, setReviews] = useState([]);
-  const [reviewStats, setReviewStats] = useState({ count: 0, average: 5.0 });
-  const [faqs, setFaqs] = useState([]);
-  
-  // Review form state
+
+  // Independent Reviews State (Non-blocking with authentic defaults)
+  const [reviews, setReviews] = useState(DEFAULT_PRODUCT_REVIEWS);
+  const [reviewStats, setReviewStats] = useState({
+    count: DEFAULT_PRODUCT_REVIEWS.length,
+    average: 4.95
+  });
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+
+  // Independent FAQs State (Non-blocking with authentic defaults)
+  const [faqs, setFaqs] = useState(DEFAULT_PRODUCT_FAQS);
+  const [faqsLoading, setFaqsLoading] = useState(false);
+
+  // Review Form
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewForm, setReviewForm] = useState({
@@ -75,55 +145,197 @@ export default function ProductDetail() {
   });
 
   const { addToCart, startBuyNow } = useCart();
-  const navigate = useNavigate();
+  const activeControllerRef = useRef(null);
 
+  /**
+   * 1. Primary Product Loader
+   * Immediately resolves product from defaults/cache so user NEVER sees a network error card.
+   * Then silently fetches live database updates in background.
+   */
   useEffect(() => {
-    async function loadProductAndReviews() {
-      try {
-        const [prodRes, revRes, faqRes] = await Promise.allSettled([
-          api.get('/products'),
-          api.get('/reviews'),
-          api.get('/faqs')
-        ]);
-
-        if (prodRes.status === 'fulfilled' && prodRes.value?.success && prodRes.value.products?.length > 0) {
-          const prods = prodRes.value.products;
-          setProducts(prods);
-
-          const initialProd = resolveProduct(prods, slug, searchParams);
-          setSelectedProduct(initialProd);
-        }
-
-        if (revRes.status === 'fulfilled' && revRes.value?.success) {
-          setReviews(revRes.value.reviews || []);
-          setReviewStats({
-            count: revRes.value.totalReviews || revRes.value.count || 0,
-            average: revRes.value.averageRating || '5.0'
-          });
-        }
-
-        if (faqRes.status === 'fulfilled' && faqRes.value?.success) {
-          setFaqs(faqRes.value.faqs || []);
-        }
-      } catch (err) {
-        console.error('Failed to load product details from database', err);
-      } finally {
-        setLoading(false);
+    // 1. Immediately ensure active product matches current URL path without blocking
+    if (slug) {
+      const immediateMatch = (products.length > 0 ? products : DEFAULT_PRODUCTS).find(p => p.slug === slug) ||
+                             DEFAULT_PRODUCTS.find(p => p.slug === slug);
+      if (immediateMatch && (!selectedProduct || selectedProduct.slug !== slug)) {
+        setSelectedProduct(immediateMatch);
+        setActiveImageIndex(0);
+      }
+    } else {
+      const immediateMatch = resolveProduct(products.length > 0 ? products : DEFAULT_PRODUCTS, null, searchParams);
+      if (immediateMatch && (!selectedProduct || selectedProduct.id !== immediateMatch.id)) {
+        setSelectedProduct(immediateMatch);
+        setActiveImageIndex(0);
       }
     }
 
-    loadProductAndReviews();
-  }, [slug]);
-
-  // Synchronize selected variant if URL slug or searchParams change while staying on the page
-  useEffect(() => {
-    if (!products || products.length === 0) return;
-    const targetProd = resolveProduct(products, slug, searchParams);
-    if (targetProd && targetProd.id !== selectedProduct?.id) {
-      setSelectedProduct(targetProd);
-      setActiveImageIndex(0);
+    // Cancel any previous in-flight product request
+    if (activeControllerRef.current) {
+      activeControllerRef.current.abort();
     }
-  }, [slug, searchParams, products]);
+
+    const controller = new AbortController();
+    activeControllerRef.current = controller;
+    setNotFound(false);
+
+    async function fetchProductData() {
+      try {
+        if (slug) {
+          // Direct product lookup by slug from server
+          const res = await api.get(`/products/${encodeURIComponent(slug)}`, {
+            signal: controller.signal
+          });
+
+          if (res?.success && res.product) {
+            setSelectedProduct(res.product);
+            setActiveImageIndex(0);
+
+            // Sibling variants returned by optimized endpoint or fallback to self
+            if (res.variants && Array.isArray(res.variants) && res.variants.length > 0) {
+              setProducts(res.variants);
+            } else if (res.product.variants && Array.isArray(res.product.variants)) {
+              setProducts(res.product.variants);
+            } else {
+              setProducts([res.product]);
+            }
+          } else {
+            // Check default products before flagging not found
+            const fallbackMatch = DEFAULT_PRODUCTS.find(p => p.slug === slug);
+            if (fallbackMatch) {
+              setSelectedProduct(fallbackMatch);
+            } else {
+              setNotFound(true);
+            }
+          }
+        } else {
+          // Collection-based fallback for /products, /products?pack=3, /products?id=1
+          const res = await api.get('/products?full=true', {
+            signal: controller.signal
+          });
+
+          if (res?.success && res.products?.length > 0) {
+            setProducts(res.products);
+            const resolved = resolveProduct(res.products, null, searchParams);
+            if (resolved) {
+              setSelectedProduct(resolved);
+              setActiveImageIndex(0);
+            }
+          } else {
+            // Keep default products active
+            const resolved = resolveProduct(DEFAULT_PRODUCTS, null, searchParams);
+            if (resolved) {
+              setSelectedProduct(resolved);
+            }
+          }
+        }
+      } catch (err) {
+        if (err.name === 'CanceledError' || err.code === 'ERR_CANCELED' || controller.signal.aborted) {
+          return;
+        }
+
+        // On network error or server hiccup, gracefully keep the authentic product active
+        const fallbackMatch = resolveProduct(DEFAULT_PRODUCTS, slug, searchParams);
+        if (fallbackMatch) {
+          setSelectedProduct(prev => prev || fallbackMatch);
+          console.warn('Product API note (serving local catalog):', err.message);
+        } else if (err.message && err.message.includes('404')) {
+          setNotFound(true);
+        } else {
+          setSelectedProduct(prev => prev || DEFAULT_PRODUCTS[1] || DEFAULT_PRODUCTS[0]);
+          console.warn('Product API error handled gracefully:', err.message);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    fetchProductData();
+
+    return () => {
+      controller.abort();
+    };
+  }, [slug, retryKey]);
+
+  /**
+   * 2. Synchronize selected variant when query params change while on fallback route (/products?pack=...)
+   */
+  useEffect(() => {
+    if (!slug) {
+      const targetProd = resolveProduct(products && products.length > 0 ? products : DEFAULT_PRODUCTS, null, searchParams);
+      if (targetProd && targetProd.id !== selectedProduct?.id) {
+        setSelectedProduct(targetProd);
+        setActiveImageIndex(0);
+      }
+    }
+  }, [slug, searchParams, products, selectedProduct?.id]);
+
+  /**
+   * 3. Independent Reviews Loader (Non-blocking: does not delay product hero)
+   */
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadReviews() {
+      try {
+        const queryParams = selectedProduct?.id ? { productId: selectedProduct.id } : {};
+        const revRes = await api.get('/reviews', {
+          params: queryParams,
+          signal: controller.signal
+        });
+
+        if (revRes?.success && revRes.reviews?.length > 0) {
+          setReviews(revRes.reviews);
+          setReviewStats({
+            count: revRes.totalReviews || revRes.count || revRes.reviews.length,
+            average: revRes.averageRating || '4.95'
+          });
+        }
+      } catch (err) {
+        if (err.name === 'CanceledError' || controller.signal.aborted) return;
+        // Keep DEFAULT_PRODUCT_REVIEWS
+      } finally {
+        if (!controller.signal.aborted) {
+          setReviewsLoading(false);
+        }
+      }
+    }
+
+    loadReviews();
+
+    return () => controller.abort();
+  }, [selectedProduct?.id]);
+
+  /**
+   * 4. Independent FAQs Loader (Non-blocking)
+   */
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadFaqs() {
+      try {
+        const faqRes = await api.get('/faqs', {
+          signal: controller.signal
+        });
+
+        if (faqRes?.success && Array.isArray(faqRes.faqs) && faqRes.faqs.length > 0) {
+          setFaqs(faqRes.faqs);
+        }
+      } catch (err) {
+        if (err.name === 'CanceledError' || controller.signal.aborted) return;
+        // Keep DEFAULT_PRODUCT_FAQS
+      } finally {
+        if (!controller.signal.aborted) {
+          setFaqsLoading(false);
+        }
+      }
+    }
+
+    loadFaqs();
+
+    return () => controller.abort();
+  }, []);
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
@@ -138,7 +350,7 @@ export default function ProductDetail() {
         ...reviewForm,
         product_id: selectedProduct?.id
       });
-      if (res.success) {
+      if (res?.success) {
         addToast('Thank you! Your review has been submitted successfully.', 'success');
         if (res.review) {
           setReviews(prev => [res.review, ...prev]);
@@ -153,46 +365,73 @@ export default function ProductDetail() {
     }
   };
 
-  const handleVariantSelect = (product) => {
+  /**
+   * Instant Variant Selection
+   * Updates state immediately without white flash, then syncs URL path
+   */
+  const handleVariantSelect = useCallback((product) => {
+    if (!product || product.id === selectedProduct?.id) return;
     setSelectedProduct(product);
     setActiveImageIndex(0);
-    if (product?.slug) {
+    if (product.slug) {
       navigate(`/products/${product.slug}`, { replace: true });
     }
-  };
+  }, [navigate, selectedProduct?.id]);
+
+  const currentProduct = selectedProduct || resolveProduct(DEFAULT_PRODUCTS, slug, searchParams) || DEFAULT_PRODUCTS[1] || DEFAULT_PRODUCTS[0];
 
   const handleAddToCart = () => {
-    if (!selectedProduct) return;
-    addToCart(selectedProduct, quantity, true);
+    if (!currentProduct) return;
+    addToCart(currentProduct, quantity, true);
   };
 
   const handleBuyNow = () => {
-    if (!selectedProduct) return;
-    startBuyNow(selectedProduct, quantity);
+    if (!currentProduct) return;
+    startBuyNow(currentProduct, quantity);
     navigate('/checkout', { state: { buyNow: true } });
   };
 
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-        <div className="w-12 h-12 border-4 border-brand-brightPink border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-sm font-semibold text-[#805A82]">Loading ZEBA Heating Pads...</p>
-      </div>
-    );
+  // Loading skeleton screen - only shown if neither server nor fallback product is available
+  if (loading && !currentProduct) {
+    return <ProductDetailSkeleton />;
   }
 
-  if (!selectedProduct) {
+  // Not Found State - only for truly unknown slugs not matching any known product
+  if (notFound && !currentProduct) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-        <h2 className="text-xl font-bold text-brand-deepPurple">Product not found.</h2>
+      <div className="min-h-[60vh] bg-[#FFF5FA] flex flex-col items-center justify-center px-4 py-20 text-center">
+        <div className="w-16 h-16 rounded-full bg-brand-softPink flex items-center justify-center mb-4 text-brand-brightPink">
+          <AlertCircle className="w-8 h-8" />
+        </div>
+        <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-brand-deepPurple">
+          Product Not Found
+        </h1>
+        <p className="text-xs sm:text-sm text-[#805A82] mt-2 max-w-md">
+          The requested ZEBA heating pad was not found or is currently unavailable.
+        </p>
+        <div className="flex items-center gap-3 mt-6">
+          <Link
+            to="/products"
+            className="px-6 py-2.5 rounded-xl bg-brand-deepPurple text-white text-xs font-bold hover:bg-brand-brightPink transition-colors flex items-center space-x-1.5"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Browse All Packs</span>
+          </Link>
+          <Link
+            to="/"
+            className="px-6 py-2.5 rounded-xl border border-brand-primaryPink/40 text-brand-deepPurple text-xs font-bold hover:bg-white transition-colors"
+          >
+            Go to Homepage
+          </Link>
+        </div>
       </div>
     );
   }
 
   // Curate product gallery with primary product shots, lifestyle photo, how-to-use guide, ingredients, and thermal heat relief timeline
-  const productImages = parseProductImages(selectedProduct.images);
+  const productImages = parseProductImages(currentProduct.images);
   const infoImages = [
-    '/images/zeba-1pack.webp',
+    DEFAULT_DETAIL_IMAGE,
     '/images/zeba-hero-lifestyle.webp',
     '/images/zeba-how-to-use-guide.webp',
     '/images/zeba-whats-inside-ingredients.webp',
@@ -200,9 +439,9 @@ export default function ProductDetail() {
   ];
   const allImages = [...productImages, ...infoImages].filter((img, idx, arr) => arr.indexOf(img) === idx);
 
-  const currentPrice = parseFloat(selectedProduct.price) || 0;
-  const originalPrice = parseFloat(selectedProduct.original_price) || 0;
-  const isOriginalPriceActive = selectedProduct.show_original_price !== false && originalPrice > currentPrice;
+  const currentPrice = parseFloat(currentProduct.price) || 0;
+  const originalPrice = parseFloat(currentProduct.original_price) || 0;
+  const isOriginalPriceActive = currentProduct.show_original_price !== false && originalPrice > currentPrice;
   const discountPercent = isOriginalPriceActive
     ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100)
     : 0;
@@ -210,35 +449,36 @@ export default function ProductDetail() {
   return (
     <div className="bg-[#FFF5FA] py-8 sm:py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-        
+
         {/* Product Hero Top Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
-          
+
           {/* Left Column: Image Gallery */}
           <div className="lg:col-span-6 space-y-4">
-            
-            {/* Main Image View */}
+
+            {/* Main Image View with High Priority LCP */}
             {(() => {
-              const currentImg = allImages[activeImageIndex] || allImages[0];
+              const currentImg = allImages[activeImageIndex] || allImages[0] || DEFAULT_PRODUCT_IMAGE;
               const isInfographic = currentImg.includes('guide') || currentImg.includes('how-to') || currentImg.includes('infographic') || currentImg.includes('ingredient') || currentImg.includes('whats-inside') || currentImg.includes('Timeline') || currentImg.includes('Thermal');
 
               return (
                 <div className={`rounded-3xl bg-white border-2 border-brand-primaryPink/30 shadow-lg relative overflow-hidden aspect-square flex items-center justify-center ${
                   isInfographic ? 'p-2 sm:p-3' : ''
                 }`}>
-                  {!isInfographic && selectedProduct.badge_text && (
+                  {!isInfographic && currentProduct.badge_text && (
                     <div className="absolute top-4 left-4 z-10">
                       <span className="px-3.5 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider pack-pink-gradient text-white shadow-md">
-                        {selectedProduct.badge_text}
+                        {currentProduct.badge_text}
                       </span>
                     </div>
                   )}
                   <img
                     src={currentImg}
-                    alt={selectedProduct.name}
+                    alt={currentProduct.name}
                     width="600"
                     height="600"
                     fetchPriority="high"
+                    decoding="async"
                     onError={(e) => {
                       e.currentTarget.onerror = null;
                       e.currentTarget.src = DEFAULT_PRODUCT_IMAGE;
@@ -256,6 +496,7 @@ export default function ProductDetail() {
               {allImages.slice(0, 6).map((img, idx) => (
                 <button
                   key={idx}
+                  type="button"
                   onClick={() => setActiveImageIndex(idx)}
                   className={`rounded-2xl p-1 bg-white border transition-all aspect-square flex items-center justify-center overflow-hidden ${
                     activeImageIndex === idx
@@ -293,7 +534,7 @@ export default function ProductDetail() {
 
           {/* Right Column: Product Selector & Purchase Controls */}
           <div className="lg:col-span-6 space-y-6">
-            
+
             {/* Reviews & Stock */}
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-1.5 text-brand-gold text-sm font-bold">
@@ -302,8 +543,10 @@ export default function ProductDetail() {
                     <Star key={i} className="w-4 h-4 fill-brand-gold text-brand-gold" />
                   ))}
                 </div>
-                <span className="text-brand-darkPurple">4.9 / 5.0</span>
-                <span className="text-[#805A82] font-normal text-xs">(520+ Reviews)</span>
+                <span className="text-brand-darkPurple">{reviewStats.average || '4.9'} / 5.0</span>
+                <span className="text-[#805A82] font-normal text-xs">
+                  ({reviewStats.count > 0 ? `${reviewStats.count}+ Reviews` : 'Verified Reviews'})
+                </span>
               </div>
 
               <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
@@ -314,10 +557,10 @@ export default function ProductDetail() {
             {/* Product Title */}
             <div>
               <h1 className="font-display font-extrabold text-2xl sm:text-3xl lg:text-4xl text-brand-deepPurple">
-                {selectedProduct.name}
+                {currentProduct.name}
               </h1>
               <p className="text-xs sm:text-sm text-[#805A82] mt-2 leading-relaxed">
-                {selectedProduct.short_description}
+                {currentProduct.short_description}
               </p>
             </div>
 
@@ -326,12 +569,12 @@ export default function ProductDetail() {
               <div>
                 <div className="flex items-baseline space-x-3">
                   <span className="font-display font-black text-3xl sm:text-4xl text-brand-deepPurple">
-                    ₹{parseFloat(selectedProduct.price).toFixed(0)}
+                    ₹{currentPrice.toFixed(0)}
                   </span>
                   {isOriginalPriceActive && (
                     <>
                       <span className="text-base text-slate-400 line-through">
-                        ₹{parseFloat(selectedProduct.original_price).toFixed(0)}
+                        ₹{originalPrice.toFixed(0)}
                       </span>
                       <span className="text-xs font-extrabold text-white bg-brand-brightPink px-2.5 py-0.5 rounded-full shadow-sm">
                         Save {discountPercent}%
@@ -340,7 +583,7 @@ export default function ProductDetail() {
                   )}
                 </div>
                 <p className="text-[11px] text-[#805A82] mt-1">
-                  Inclusive of all taxes. {(Number(settings.commerce?.freeShippingThreshold) > 0) ? `Free shipping on orders above ₹${settings.commerce.freeShippingThreshold}.` : 'Free shipping on all orders.'}
+                  Inclusive of all taxes. {(Number(settings?.commerce?.freeShippingThreshold) > 0) ? `Free shipping on orders above ₹${settings.commerce.freeShippingThreshold}.` : 'Free shipping on all orders.'}
                 </p>
               </div>
             </div>
@@ -353,19 +596,19 @@ export default function ProductDetail() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {products.map(prod => {
-                  const isSelected = selectedProduct.id === prod.id;
+                  const isSelected = (selectedProduct?.id || currentProduct.id) === prod.id;
                   const pPrice = parseFloat(prod.price) || 0;
                   const pOrigPrice = parseFloat(prod.original_price) || 0;
                   const isPOrigActive = prod.show_original_price !== false && pOrigPrice > pPrice;
                   const savings = isPOrigActive ? (pOrigPrice - pPrice) : 0;
                   const pDiscount = isPOrigActive && pOrigPrice > 0 ? Math.round((savings / pOrigPrice) * 100) : 0;
-                  
+
                   return (
                     <button
                       key={prod.id}
                       type="button"
                       onClick={() => handleVariantSelect(prod)}
-                      className={`relative p-4 rounded-2xl border text-left transition-all duration-200 ${
+                      className={`relative p-4 rounded-2xl border text-left transition-all duration-200 btn-tactile ${
                         isSelected
                           ? 'border-brand-brightPink bg-brand-softPink ring-2 ring-brand-brightPink/40 shadow-md'
                           : 'border-brand-primaryPink/20 bg-white hover:border-brand-primaryPink'
@@ -405,6 +648,7 @@ export default function ProductDetail() {
                 <span className="text-xs font-bold uppercase tracking-wider text-brand-deepPurple">Quantity:</span>
                 <div className="flex items-center border border-brand-primaryPink/30 rounded-xl bg-white p-1">
                   <button
+                    type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     className="p-1.5 text-brand-deepPurple hover:text-brand-brightPink rounded-lg hover:bg-brand-softPink transition-colors"
                   >
@@ -412,6 +656,7 @@ export default function ProductDetail() {
                   </button>
                   <span className="px-4 text-sm font-bold text-brand-deepPurple">{quantity}</span>
                   <button
+                    type="button"
                     onClick={() => setQuantity(quantity + 1)}
                     className="p-1.5 text-brand-deepPurple hover:text-brand-brightPink rounded-lg hover:bg-brand-softPink transition-colors"
                   >
@@ -423,6 +668,7 @@ export default function ProductDetail() {
               {/* Action Buttons */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 <button
+                  type="button"
                   onClick={handleAddToCart}
                   className="w-full py-4 px-6 rounded-2xl border-2 border-brand-brightPink text-brand-brightPink hover:bg-brand-softPink font-bold text-sm flex items-center justify-center space-x-2 transition-all btn-tactile"
                 >
@@ -431,17 +677,18 @@ export default function ProductDetail() {
                 </button>
 
                 <button
+                  type="button"
                   onClick={handleBuyNow}
                   className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-brand-brightPink to-brand-deepPink hover:from-brand-deepPink hover:to-brand-brightPink text-white font-bold text-sm shadow-xl shadow-brand-pink/30 flex items-center justify-center space-x-2 transition-all transform hover:-translate-y-0.5 btn-tactile"
                 >
                   <Zap className="w-4 h-4 fill-white" />
-                  <span>Buy Now • ₹{(selectedProduct.price * quantity).toFixed(0)}</span>
+                  <span>Buy Now • ₹{(currentPrice * quantity).toFixed(0)}</span>
                 </button>
               </div>
 
               {/* WhatsApp Support Button */}
               <a
-                href={getWhatsAppUrl(`Hi ZEBA Team, I have a question about the ${selectedProduct.name}`)}
+                href={getWhatsAppUrl(`Hi ZEBA Team, I have a question about the ${currentProduct.name}`)}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full py-3 px-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 font-bold text-xs flex items-center justify-center space-x-2 transition-colors"
@@ -474,6 +721,7 @@ export default function ProductDetail() {
         <div className="bg-white rounded-3xl p-6 sm:p-10 border border-brand-primaryPink/25 shadow-md space-y-8">
           <div className="flex border-b border-brand-primaryPink/20 space-x-4 sm:space-x-8 overflow-x-auto">
             <button
+              type="button"
               onClick={() => setActiveTab('how_to_use')}
               className={`pb-4 text-xs sm:text-sm font-bold whitespace-nowrap transition-colors border-b-2 -mb-px ${
                 activeTab === 'how_to_use'
@@ -484,6 +732,7 @@ export default function ProductDetail() {
               How to Use (4 Steps)
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab('reviews')}
               className={`pb-4 text-xs sm:text-sm font-bold whitespace-nowrap transition-colors border-b-2 -mb-px ${
                 activeTab === 'reviews'
@@ -494,6 +743,7 @@ export default function ProductDetail() {
               Customer Reviews ({reviews.length})
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab('timeline')}
               className={`pb-4 text-xs sm:text-sm font-bold whitespace-nowrap transition-colors border-b-2 -mb-px ${
                 activeTab === 'timeline'
@@ -504,6 +754,7 @@ export default function ProductDetail() {
               How It Works Over Time
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab('ingredients')}
               className={`pb-4 text-xs sm:text-sm font-bold whitespace-nowrap transition-colors border-b-2 -mb-px ${
                 activeTab === 'ingredients'
@@ -514,6 +765,7 @@ export default function ProductDetail() {
               What's Inside (Ingredients)
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab('faq')}
               className={`pb-4 text-xs sm:text-sm font-bold whitespace-nowrap transition-colors border-b-2 -mb-px ${
                 activeTab === 'faq'
@@ -564,7 +816,7 @@ export default function ProductDetail() {
               </div>
             )}
 
-            {/* TAB: REVIEWS (Live Database Powered) */}
+            {/* TAB: REVIEWS (Live Database Powered with non-blocking loader) */}
             {activeTab === 'reviews' && (
               <div className="space-y-8 animate-fade-in">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-6 bg-[#FFF5FA] rounded-2xl border border-brand-primaryPink/25">
@@ -585,6 +837,7 @@ export default function ProductDetail() {
                   </div>
 
                   <button
+                    type="button"
                     onClick={() => setShowReviewForm(!showReviewForm)}
                     className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand-brightPink to-brand-deepPink text-white font-bold text-xs shadow-md hover:opacity-95 transition-all"
                   >
@@ -673,41 +926,57 @@ export default function ProductDetail() {
                   </form>
                 )}
 
-                {/* Reviews List */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {reviews.map((rev) => (
-                    <div key={rev.id} className="p-5 rounded-2xl bg-[#FFF5FA] border border-brand-primaryPink/20 space-y-2.5">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-1 text-brand-gold">
-                          {[...Array(rev.rating || 5)].map((_, i) => (
-                            <Star key={i} className="w-3.5 h-3.5 fill-brand-gold text-brand-gold" />
-                          ))}
+                {/* Reviews List & Skeleton State */}
+                {reviewsLoading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {[1, 2].map(n => (
+                      <div key={n} className="h-32 rounded-2xl bg-brand-softPink/50 animate-pulse border border-brand-pink/20" />
+                    ))}
+                  </div>
+                ) : reviewsError ? (
+                  <div className="p-4 rounded-xl bg-rose-50 text-rose-700 text-xs border border-rose-200 text-center">
+                    {reviewsError}
+                  </div>
+                ) : reviews.length === 0 ? (
+                  <p className="text-xs text-[#805A82] text-center py-6">
+                    No customer reviews yet. Be the first to share your thoughts!
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {reviews.map((rev) => (
+                      <div key={rev.id} className="p-5 rounded-2xl bg-[#FFF5FA] border border-brand-primaryPink/20 space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-1 text-brand-gold">
+                            {[...Array(rev.rating || 5)].map((_, i) => (
+                              <Star key={i} className="w-3.5 h-3.5 fill-brand-gold text-brand-gold" />
+                            ))}
+                          </div>
+                          <span className="text-[10px] text-[#805A82]">
+                            {new Date(rev.created_at || Date.now()).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </span>
                         </div>
-                        <span className="text-[10px] text-[#805A82]">
-                          {new Date(rev.created_at || Date.now()).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </span>
+
+                        {rev.title && (
+                          <h5 className="font-display font-bold text-sm text-brand-deepPurple">
+                            "{rev.title}"
+                          </h5>
+                        )}
+
+                        <p className="text-xs text-[#805A82] leading-relaxed">
+                          {rev.comment}
+                        </p>
+
+                        <div className="pt-2 border-t border-brand-primaryPink/15 flex items-center justify-between text-[11px]">
+                          <span className="font-bold text-brand-deepPurple">{rev.author_name}</span>
+                          <span className="text-emerald-700 font-semibold flex items-center space-x-1">
+                            <CheckCircle className="w-3 h-3 text-emerald-600" />
+                            <span>Verified Buyer</span>
+                          </span>
+                        </div>
                       </div>
-
-                      {rev.title && (
-                        <h5 className="font-display font-bold text-sm text-brand-deepPurple">
-                          "{rev.title}"
-                        </h5>
-                      )}
-
-                      <p className="text-xs text-[#805A82] leading-relaxed">
-                        {rev.comment}
-                      </p>
-
-                      <div className="pt-2 border-t border-brand-primaryPink/15 flex items-center justify-between text-[11px]">
-                        <span className="font-bold text-brand-deepPurple">{rev.author_name}</span>
-                        <span className="text-emerald-700 font-semibold flex items-center space-x-1">
-                          <CheckCircle className="w-3 h-3 text-emerald-600" />
-                          <span>Verified Buyer</span>
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -750,7 +1019,7 @@ export default function ProductDetail() {
                       Peak Soothing Comfort
                     </h4>
                     <p className="text-xs text-[#805A82] leading-relaxed">
-                      Maximum heat intensity reached for deep muscle relief. Significant reduction in cramp discomfort and a feeling of calm.
+                      Maximum heat intensity reached for deep muscle relief. Significant reduction in cramp discomfort.
                     </p>
                   </div>
 
@@ -765,7 +1034,7 @@ export default function ProductDetail() {
                       Continuous Warmth
                     </h4>
                     <p className="text-xs text-[#805A82] leading-relaxed">
-                      Consistent, gentle warmth maintained for up to 8 hours. Prolonged comfort and continuous relief from period cramps.
+                      Consistent, gentle warmth maintained for up to 8 hours. Prolonged comfort and continuous relief.
                     </p>
                   </div>
                 </div>
@@ -817,17 +1086,29 @@ export default function ProductDetail() {
               </div>
             )}
 
-            {/* TAB 4: FAQ (Dynamic from Database) */}
+            {/* TAB 4: FAQ (Dynamic from Database with independent non-blocking loader) */}
             {activeTab === 'faq' && (
               <div className="space-y-6 animate-fade-in">
-                <div className="space-y-3 text-xs">
-                  {faqs.map((f, i) => (
-                    <div key={f.id || i} className="p-4 rounded-xl bg-[#FFF5FA] border border-brand-primaryPink/25 space-y-1">
-                      <strong className="text-brand-deepPurple font-bold text-sm block">Q: {f.question}</strong>
-                      <p className="text-[#805A82] leading-relaxed">A: {f.answer}</p>
-                    </div>
-                  ))}
-                </div>
+                {faqsLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map(n => (
+                      <div key={n} className="h-16 rounded-xl bg-brand-softPink/40 animate-pulse border border-brand-pink/20" />
+                    ))}
+                  </div>
+                ) : faqs.length === 0 ? (
+                  <p className="text-xs text-[#805A82] text-center py-6">
+                    Got questions? Chat with our team directly on WhatsApp.
+                  </p>
+                ) : (
+                  <div className="space-y-3 text-xs">
+                    {faqs.map((f, i) => (
+                      <div key={f.id || i} className="p-4 rounded-xl bg-[#FFF5FA] border border-brand-primaryPink/25 space-y-1">
+                        <strong className="text-brand-deepPurple font-bold text-sm block">Q: {f.question}</strong>
+                        <p className="text-[#805A82] leading-relaxed">A: {f.answer}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
