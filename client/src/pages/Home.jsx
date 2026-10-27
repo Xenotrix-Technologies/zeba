@@ -885,7 +885,7 @@ export default function Home() {
               muted
               playsInline
               poster="/videos/zeba-video-poster.webp"
-              className="w-full h-full object-cover scale-105 filter brightness-75"
+              className="w-full h-full object-cover scale-105"
             >
               <source src="/videos/zeba-comfort-video.mp4" type="video/mp4" />
             </video>
@@ -897,24 +897,21 @@ export default function Home() {
               height="1080"
               loading="lazy"
               decoding="async"
-              className="w-full h-full object-cover scale-105 filter brightness-75"
+              className="w-full h-full object-cover scale-105"
             />
           )}
-          {/* Deep plum & dark purple gradient overlays for contrast and brand harmony */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#2A1730]/95 via-[#38283D]/80 to-[#5F3F68]/85 mix-blend-multiply" />
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
+          {/* Subtle balanced gradient overlay for brand harmony while keeping the video clear and visible */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#1A0B1E]/80 via-[#2A1332]/35 to-[#1A0B1E]/70" />
+          <div className="absolute inset-0 bg-black/15" />
         </div>
-
-        {/* Floating Brand Glows */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-brightPink/15 rounded-full blur-3xl pointer-events-none z-0" />
 
         {/* Content Container */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-6">
-          <h2 className="font-display font-black text-3xl sm:text-5xl lg:text-6xl text-white tracking-tight leading-[1.1] drop-shadow-md">
+          <h2 className="font-display font-black text-3xl sm:text-5xl lg:text-6xl text-white tracking-tight leading-[1.1] drop-shadow-[0_4px_16px_rgba(0,0,0,0.7)]">
             Ready for Worry-Free Period Comfort?
           </h2>
 
-          <p className="text-pink-100/90 text-sm sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-medium drop-shadow-sm">
+          <p className="text-white text-sm sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-medium drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
             Order your ZEBA Periods Pain Relief Heating Pads today and experience gentle soothing warmth whenever you need it.
           </p>
 
