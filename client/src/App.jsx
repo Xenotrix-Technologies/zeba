@@ -1,10 +1,11 @@
-import React, { Suspense, lazy } from 'react';
-import { Routes, Route, Outlet, Link } from 'react-router-dom';
+import React, { Suspense, lazy, useEffect } from 'react';
+import { Routes, Route, Outlet, Link, useLocation } from 'react-router-dom';
 import ScrollToTop from './components/ScrollToTop';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import CartDrawer from './components/CartDrawer';
 import StickyMobileBar from './components/StickyMobileBar';
+import { trackPageView } from './utils/metaPixel';
 
 // Public Storefront Pages (Home loaded eagerly for immediate LCP, others lazy-loaded)
 import Home from './pages/Home';
@@ -60,10 +61,21 @@ function StorefrontLayout() {
   );
 }
 
+function MetaPixelRouteTracker() {
+  const location = useLocation();
+
+  useEffect(() => {
+    trackPageView();
+  }, [location.pathname, location.search]);
+
+  return null;
+}
+
 export default function App() {
   return (
     <>
       <ScrollToTop />
+      <MetaPixelRouteTracker />
       <Routes>
         {/* Public Storefront Routes */}
         <Route element={<StorefrontLayout />}>

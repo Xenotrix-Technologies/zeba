@@ -18,6 +18,7 @@ import settingsRoutes from './routes/settingsRoutes.js';
 import contentRoutes from './routes/contentRoutes.js';
 import faqRoutes from './routes/faqRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
+import metaCatalogRoutes from './routes/metaCatalogRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -71,7 +72,8 @@ app.use(helmet({
         "https://www.googletagmanager.com",
         "https://*.google-analytics.com",
         "https://checkout.razorpay.com",
-        "https://api.razorpay.com"
+        "https://api.razorpay.com",
+        "https://connect.facebook.net"
       ],
       frameSrc: [
         "'self'",
@@ -87,6 +89,9 @@ app.use(helmet({
         "https://*.google-analytics.com",
         "https://*.analytics.google.com",
         "https://*.googletagmanager.com",
+        "https://connect.facebook.net",
+        "https://www.facebook.com",
+        "https://graph.facebook.com",
         "wss://*.supabase.co"
       ],
       imgSrc: [
@@ -97,7 +102,9 @@ app.use(helmet({
         "https://*.supabase.co",
         "https://checkout.razorpay.com",
         "https://*.google-analytics.com",
-        "https://*.googletagmanager.com"
+        "https://*.googletagmanager.com",
+        "https://www.facebook.com",
+        "https://connect.facebook.net"
       ],
       styleSrc: [
         "'self'",
@@ -145,10 +152,16 @@ const mountRouters = (prefix = '') => {
   app.use(`${prefix}/payments`, checkoutLimiter, paymentRoutes);
   app.use(`${prefix}/contact`, contactLimiter, contactRoutes);
   app.use(`${prefix}/admin`, adminRoutes);
+  app.use(`${prefix}/meta-product-feed`, metaCatalogRoutes);
+  app.use(`${prefix}/meta-catalog`, metaCatalogRoutes);
 };
 
 mountRouters('/api');
 mountRouters('');
+
+// Direct Feed Route Aliases (supporting .xml and .csv extensions cleanly)
+app.use(['/api/meta-product-feed', '/api/meta-product-feed.xml', '/api/meta-product-feed.csv'], metaCatalogRoutes);
+app.use(['/meta-product-feed', '/meta-product-feed.xml', '/meta-product-feed.csv'], metaCatalogRoutes);
 
 // Health check
 app.get(['/api/health', '/health'], (req, res) => {

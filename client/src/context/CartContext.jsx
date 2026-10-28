@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from './ToastContext';
 import { useStoreSettings } from './StoreSettingsContext';
 import { getProductMainImage } from '../utils/imageUtils';
+import { trackAddToCart } from '../utils/metaPixel';
 
 const CartContext = createContext(null);
 
@@ -39,6 +40,11 @@ export function CartProvider({ children }) {
       quantity: Math.max(1, quantity)
     };
     setBuyNowItem(item);
+    try {
+      trackAddToCart(product, quantity);
+    } catch {
+      // ignore
+    }
     try {
       sessionStorage.setItem('zeba_buynow', JSON.stringify(item));
     } catch (e) {
@@ -112,6 +118,11 @@ export function CartProvider({ children }) {
     });
 
     addToast(`Added ${product.pack_size || product.name} to your bag!`, 'success');
+    try {
+      trackAddToCart(product, quantity);
+    } catch {
+      // ignore
+    }
     if (openDrawer) {
       setIsCartOpen(true);
     }

@@ -16,6 +16,8 @@ import {
   sendPaymentSuccessEmail,
   sendAdminNewOrderEmail
 } from '../services/emailService.js';
+import { invalidateMetaFeedCache } from '../services/metaFeedGenerator.js';
+import { sendMetaConversionsEvent } from '../services/metaConversionsService.js';
 
 /**
  * Generate a unique, recognizable order number (e.g., ZEBA-2026-8942)
@@ -318,6 +320,27 @@ export async function createPaymentOrder(req, res, next) {
         fullOrder = await fetchConsolidatedOrder(orderId);
         if (fullOrder) {
           await sendOrderConfirmationEmail({ order: fullOrder });
+          invalidateMetaFeedCache();
+          sendMetaConversionsEvent({
+            eventName: 'Purchase',
+            eventId: `order_${fullOrder.order_number}`,
+            userData: {
+              email: fullOrder.customer_email,
+              phone: fullOrder.customer_phone,
+              clientIp: req.ip || req.headers['x-forwarded-for'],
+              userAgent: req.headers['user-agent']
+            },
+            customData: {
+              currency: 'INR',
+              value: parseFloat(fullOrder.total_amount),
+              num_items: fullOrder.items?.reduce((s, i) => s + (i.quantity || 1), 0),
+              contents: fullOrder.items?.map(i => ({
+                id: String(i.product_id),
+                quantity: i.quantity,
+                item_price: parseFloat(i.unit_price)
+              }))
+            }
+          }).catch(e => console.warn('[Meta CAPI] Dispatch note:', e.message));
         }
       } catch (notifErr) {
         console.error('COD Order confirmation email dispatch note:', notifErr.message);
@@ -605,6 +628,33 @@ export async function verifyPayment(req, res, next) {
       ]);
     } catch (payNotifErr) {
       console.error('Payment/Order confirmation email dispatch note:', payNotifErr.message);
+    }
+
+    // Invalidate Meta feed cache to reflect inventory reduction
+    invalidateMetaFeedCache();
+
+    // Dispatch Meta Conversions API (server-side) event
+    if (fullOrder) {
+      sendMetaConversionsEvent({
+        eventName: 'Purchase',
+        eventId: `order_${fullOrder.order_number}`,
+        userData: {
+          email: fullOrder.customer_email,
+          phone: fullOrder.customer_phone,
+          clientIp: req.ip || req.headers['x-forwarded-for'],
+          userAgent: req.headers['user-agent']
+        },
+        customData: {
+          currency: 'INR',
+          value: parseFloat(fullOrder.total_amount),
+          num_items: fullOrder.items?.reduce((s, i) => s + (i.quantity || 1), 0),
+          contents: fullOrder.items?.map(i => ({
+            id: String(i.product_id),
+            quantity: i.quantity,
+            item_price: parseFloat(i.unit_price)
+          }))
+        }
+      }).catch(e => console.warn('[Meta CAPI] Dispatch note:', e.message));
     }
 
     res.json({

@@ -34,7 +34,8 @@ export function createRateLimiter(options = {}) {
 
     const ip = req.headers['x-forwarded-for']?.split(',')[0].trim() ||
                req.headers['x-real-ip'] ||
-               req.socket.remoteAddress ||
+               req.socket?.remoteAddress ||
+               req.ip ||
                '127.0.0.1';
 
     const now = Date.now();

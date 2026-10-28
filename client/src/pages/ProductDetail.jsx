@@ -23,6 +23,7 @@ import { useStoreSettings } from '../context/StoreSettingsContext';
 import { useToast } from '../context/ToastContext';
 import { parseProductImages, DEFAULT_PRODUCT_IMAGE, DEFAULT_DETAIL_IMAGE } from '../utils/imageUtils';
 import { DEFAULT_PRODUCTS, DEFAULT_PRODUCT_REVIEWS, DEFAULT_PRODUCT_FAQS } from '../utils/defaultProducts';
+import { trackViewContent } from '../utils/metaPixel';
 
 export function resolveProduct(prods, targetSlug, searchParams) {
   if (!prods || prods.length === 0) return null;
@@ -31,6 +32,15 @@ export function resolveProduct(prods, targetSlug, searchParams) {
   if (targetSlug) {
     const match = prods.find(p => p.slug === targetSlug);
     if (match) return match;
+
+    if (targetSlug.includes('1-pack')) {
+      const p1 = prods.find(p => p.pack_count === 1 || p.slug.includes('1-pack'));
+      if (p1) return p1;
+    }
+    if (targetSlug.includes('3-pack')) {
+      const p3 = prods.find(p => p.pack_count === 3 || p.slug.includes('3-pack'));
+      if (p3) return p3;
+    }
   }
 
   // 2. By pack count in query parameter (/products?pack=1 or /products?pack=3)
@@ -270,6 +280,13 @@ export default function ProductDetail() {
       }
     }
   }, [slug, searchParams, products, selectedProduct?.id]);
+
+  // Meta Pixel: Track ViewContent for dynamic product ads & catalog match
+  useEffect(() => {
+    if (selectedProduct && selectedProduct.id) {
+      trackViewContent(selectedProduct);
+    }
+  }, [selectedProduct?.id]);
 
   /**
    * 3. Independent Reviews Loader (Non-blocking: does not delay product hero)

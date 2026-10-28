@@ -18,6 +18,7 @@ import settingsRoutes from '../server/src/routes/settingsRoutes.js';
 import contentRoutes from '../server/src/routes/contentRoutes.js';
 import faqRoutes from '../server/src/routes/faqRoutes.js';
 import reviewRoutes from '../server/src/routes/reviewRoutes.js';
+import metaCatalogRoutes from '../server/src/routes/metaCatalogRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -155,10 +156,16 @@ const mountRouters = (prefix = '') => {
   app.use(`${prefix}/payments`, checkoutLimiter, paymentRoutes);
   app.use(`${prefix}/contact`, contactLimiter, contactRoutes);
   app.use(`${prefix}/admin`, adminRoutes);
+  app.use(`${prefix}/meta-product-feed`, metaCatalogRoutes);
+  app.use(`${prefix}/meta-catalog`, metaCatalogRoutes);
 };
 
 mountRouters('/api');
 mountRouters('');
+
+// Direct Feed Route Aliases (supporting .xml and .csv extensions cleanly)
+app.use(['/api/meta-product-feed', '/api/meta-product-feed.xml', '/api/meta-product-feed.csv'], metaCatalogRoutes);
+app.use(['/meta-product-feed', '/meta-product-feed.xml', '/meta-product-feed.csv'], metaCatalogRoutes);
 
 // Health check
 app.get(['/api/health', '/health'], (req, res) => {

@@ -14,6 +14,7 @@ import WhatsAppIcon from '../components/WhatsAppIcon';
 import api from '../services/api';
 import { useStoreSettings } from '../context/StoreSettingsContext';
 import { getProductMainImage } from '../utils/imageUtils';
+import { trackPurchase } from '../utils/metaPixel';
 
 const STATUS_STEPS = [
   { key: 'confirmed', label: 'Order Confirmed' },
@@ -51,6 +52,11 @@ export default function OrderSuccess() {
         const res = await api.get(`/orders/${orderNumber}`);
         if (res.success && res.order) {
           setOrder(res.order);
+          try {
+            trackPurchase(res.order, res.order.items, orderNumber);
+          } catch {
+            // ignore
+          }
         }
       } catch (err) {
         console.error('Failed to load order details', err);

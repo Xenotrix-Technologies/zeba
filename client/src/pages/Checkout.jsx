@@ -8,6 +8,7 @@ import { useStoreSettings } from '../context/StoreSettingsContext';
 import api from '../services/api';
 import RazorpayModal from '../components/RazorpayModal';
 import CustomerAuthModal from '../components/CustomerAuthModal';
+import { trackInitiateCheckout } from '../utils/metaPixel';
 
 const loadRazorpayScript = () => {
   return new Promise((resolve) => {
@@ -64,6 +65,13 @@ export default function Checkout() {
   useEffect(() => {
     loadRazorpayScript();
   }, []);
+
+  // Meta Pixel: Track InitiateCheckout
+  useEffect(() => {
+    if (checkoutItems && checkoutItems.length > 0) {
+      trackInitiateCheckout(checkoutItems, subtotal);
+    }
+  }, [checkoutItems?.length]);
 
   const [formData, setFormData] = useState({
     name: '',

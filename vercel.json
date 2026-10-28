@@ -102,7 +102,11 @@
       "destination": "/api/index.js"
     },
     {
-      "source": "/((?!api|images|videos|assets|favicon|robots\\.txt|sitemap\\.xml).*)",
+      "source": "/meta-product-feed(.*)",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/((?!api|images|videos|assets|favicon|robots\\.txt|sitemap\\.xml|meta-product-feed).*)",
       "destination": "/index.html"
     }
   ]

@@ -13,6 +13,7 @@ import {
   verifySmtpConnection,
   sendTestEmail
 } from '../services/emailService.js';
+import { invalidateMetaFeedCache } from '../services/metaFeedGenerator.js';
 
 
 /**
@@ -718,6 +719,7 @@ export async function updateOrderStatus(req, res, next) {
               [itm.quantity, itm.product_id]
             );
           }
+          invalidateMetaFeedCache();
         }
       }
     }
@@ -1151,6 +1153,7 @@ export async function updateAdminProduct(req, res, next) {
     }
 
     const updatedProd = result.rows[0];
+    invalidateMetaFeedCache();
     res.json({
       success: true,
       message: 'Product updated successfully.',
