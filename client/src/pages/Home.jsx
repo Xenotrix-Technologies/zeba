@@ -9,7 +9,6 @@ import {
   Heart,
   ChevronDown,
   ArrowRight,
-  MessageCircle,
   Star,
   Layers,
   Award,
@@ -22,6 +21,7 @@ import {
 } from 'lucide-react';
 import api from '../services/api';
 import ProductCard from '../components/ProductCard';
+import WhatsAppIcon from '../components/WhatsAppIcon';
 import { useStoreSettings } from '../context/StoreSettingsContext';
 import { DEFAULT_PRODUCTS } from '../utils/defaultProducts';
 
@@ -930,7 +930,7 @@ export default function Home() {
               rel="noreferrer"
               className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-xl shadow-emerald-900/30 flex items-center justify-center space-x-2 btn-tactile"
             >
-              <MessageCircle className="w-4 h-4" />
+              <WhatsAppIcon className="w-4 h-4" />
               <span>WhatsApp Us</span>
             </a>
           </div>

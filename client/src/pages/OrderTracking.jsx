@@ -6,13 +6,13 @@ import {
   CheckCircle2,
   Clock,
   Search,
-  MessageCircle,
   ShoppingBag,
   ArrowRight,
   ShieldCheck,
   XCircle,
   AlertCircle
 } from 'lucide-react';
+import WhatsAppIcon from '../components/WhatsAppIcon';
 import api from '../services/api';
 import { useStoreSettings } from '../context/StoreSettingsContext';
 import { getProductMainImage } from '../utils/imageUtils';
@@ -157,7 +157,7 @@ export default function OrderTracking() {
                 rel="noreferrer"
                 className="inline-flex items-center space-x-2 text-xs font-bold text-emerald-700 bg-white px-4 py-2 rounded-xl border border-emerald-300 hover:bg-emerald-50 transition-colors"
               >
-                <MessageCircle className="w-4 h-4 text-emerald-600" />
+                <WhatsAppIcon className="w-4 h-4 text-emerald-600" />
                 <span>Contact ZEBA WhatsApp Support</span>
               </a>
             </div>
@@ -307,7 +307,7 @@ export default function OrderTracking() {
                 rel="noreferrer"
                 className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-2 transition-all shadow-md btn-tactile"
               >
-                <MessageCircle className="w-4 h-4" />
+                <WhatsAppIcon className="w-4 h-4" />
                 <span>WhatsApp Care</span>
               </a>
             </div>

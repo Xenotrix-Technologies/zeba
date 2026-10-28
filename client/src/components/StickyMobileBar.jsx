@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, ArrowRight, MessageCircle } from 'lucide-react';
+import { ShoppingBag, ArrowRight } from 'lucide-react';
+import WhatsAppIcon from './WhatsAppIcon';
 import { useCart } from '../context/CartContext';
 import { useStoreSettings } from '../context/StoreSettingsContext';
 
@@ -28,7 +29,7 @@ export default function StickyMobileBar() {
         className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center flex-shrink-0"
         aria-label="WhatsApp Support"
       >
-        <MessageCircle className="w-5 h-5" />
+        <WhatsAppIcon className="w-5 h-5" />
       </a>
 
       {/* Cart Quick Button */}

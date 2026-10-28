@@ -10,7 +10,6 @@ import {
   Minus,
   ShoppingBag,
   Zap,
-  MessageCircle,
   CheckCircle,
   Send,
   RefreshCw,
@@ -18,6 +17,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import api from '../services/api';
+import WhatsAppIcon from '../components/WhatsAppIcon';
 import { useCart } from '../context/CartContext';
 import { useStoreSettings } from '../context/StoreSettingsContext';
 import { useToast } from '../context/ToastContext';
@@ -693,7 +693,7 @@ export default function ProductDetail() {
                 rel="noreferrer"
                 className="w-full py-3 px-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 font-bold text-xs flex items-center justify-center space-x-2 transition-colors"
               >
-                <MessageCircle className="w-4 h-4 text-emerald-600" />
+                <WhatsAppIcon className="w-4 h-4 text-emerald-600" />
                 <span>Need Advice? Chat with ZEBA Care on WhatsApp</span>
               </a>
             </div>

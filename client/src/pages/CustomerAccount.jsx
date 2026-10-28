@@ -6,7 +6,6 @@ import {
   LogOut,
   ShoppingBag,
   ArrowRight,
-  MessageCircle,
   Clock,
   CheckCircle2,
   XCircle,
@@ -15,6 +14,7 @@ import {
   ChevronUp
 } from 'lucide-react';
 import api from '../services/api';
+import WhatsAppIcon from '../components/WhatsAppIcon';
 import { useCustomerAuth } from '../context/CustomerAuthContext';
 import { useToast } from '../context/ToastContext';
 import { businessConfig } from '../config/businessConfig';
@@ -165,7 +165,7 @@ export default function CustomerAccount() {
               rel="noreferrer"
               className="text-xs font-bold text-emerald-600 hover:underline flex items-center space-x-1"
             >
-              <MessageCircle className="w-4 h-4" />
+              <WhatsAppIcon className="w-4 h-4" />
               <span>Need Help With An Order?</span>
             </a>
           </div>

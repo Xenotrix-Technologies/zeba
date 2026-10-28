@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Mail, Phone, MessageCircle, Instagram, Facebook, Send, CheckCircle2, MapPin, Briefcase } from 'lucide-react';
+import { Mail, Phone, Instagram, Facebook, Send, CheckCircle2, MapPin, Briefcase } from 'lucide-react';
+import WhatsAppIcon from '../components/WhatsAppIcon';
 import api from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { useStoreSettings } from '../context/StoreSettingsContext';
@@ -70,7 +71,7 @@ export default function Contact() {
             <div className="bg-emerald-50/90 p-6 rounded-3xl border border-emerald-200/80 space-y-3 shadow-sm">
               <div className="flex items-center space-x-3 text-emerald-800">
                 <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 shadow-md">
-                  <MessageCircle className="w-5 h-5" />
+                  <WhatsAppIcon className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="font-bold text-sm text-emerald-950">Instant WhatsApp Support</h3>

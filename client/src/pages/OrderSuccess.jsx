@@ -3,7 +3,6 @@ import { useSearchParams, Link } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import {
   CheckCircle2,
-  MessageCircle,
   ShieldCheck,
   ShoppingBag,
   Truck,
@@ -11,6 +10,7 @@ import {
   Clock,
   Package
 } from 'lucide-react';
+import WhatsAppIcon from '../components/WhatsAppIcon';
 import api from '../services/api';
 import { useStoreSettings } from '../context/StoreSettingsContext';
 import { getProductMainImage } from '../utils/imageUtils';
@@ -240,7 +240,7 @@ export default function OrderSuccess() {
               rel="noreferrer"
               className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-2 transition-all shadow-md btn-tactile"
             >
-              <MessageCircle className="w-4 h-4" />
+              <WhatsAppIcon className="w-4 h-4" />
               <span>WhatsApp Us</span>
             </a>
           </div>
