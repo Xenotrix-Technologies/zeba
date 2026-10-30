@@ -402,6 +402,15 @@ const INLINE_MIGRATIONS = [
       CREATE INDEX IF NOT EXISTS idx_reviews_approved_featured_created ON reviews (is_approved, is_featured DESC, created_at DESC);
       CREATE INDEX IF NOT EXISTS idx_faqs_active_sort ON faqs (is_active, sort_order ASC, id ASC);
     `
+  },
+  {
+    name: '013_customer_google_auth.sql',
+    sql: `
+      ALTER TABLE customers ADD COLUMN IF NOT EXISTS google_id VARCHAR(255);
+      ALTER TABLE customers ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+      ALTER TABLE customers ALTER COLUMN phone DROP NOT NULL;
+      CREATE INDEX IF NOT EXISTS idx_customers_google_id ON customers(google_id) WHERE google_id IS NOT NULL;
+    `
   }
 ];
 

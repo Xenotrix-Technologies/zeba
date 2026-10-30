@@ -75,6 +75,24 @@ export function CustomerAuthProvider({ children }) {
     }
   };
 
+  const loginWithGoogle = async (credential, userInfo) => {
+    try {
+      const res = await api.post('/customer/google', { credential, userInfo });
+      if (res.success && res.token) {
+        localStorage.setItem('zeba_customer_token', res.token);
+        setToken(res.token);
+        setCustomer(res.customer);
+        addToast(res.message || 'Signed in with Google!', 'success');
+        return { success: true, isNew: res.isNew, customer: res.customer };
+      }
+      return { success: false, message: res.message || 'Google sign-in failed.' };
+    } catch (err) {
+      const msg = err.message || 'Google sign-in failed.';
+      addToast(msg, 'error');
+      return { success: false, message: msg };
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('zeba_customer_token');
     setToken(null);
@@ -90,6 +108,7 @@ export function CustomerAuthProvider({ children }) {
       isCustomerAuthenticated: Boolean(token && customer),
       login,
       register,
+      loginWithGoogle,
       logout
     }}>
       {children}

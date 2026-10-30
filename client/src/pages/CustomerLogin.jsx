@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Lock, Mail, User, Phone, ArrowRight, Eye, EyeOff, Sparkles, CheckCircle2 } from 'lucide-react';
 import { useCustomerAuth } from '../context/CustomerAuthContext';
 import { useAuth } from '../context/AuthContext';
+import GoogleAuthButton from '../components/GoogleAuthButton';
 
 export default function CustomerLogin() {
   const [activeTab, setActiveTab] = useState('login'); // 'login' | 'register'
@@ -125,6 +126,23 @@ export default function CustomerLogin() {
               {errorMsg}
             </div>
           )}
+
+          {/* Google 1-Click Sign-In / Sign-Up */}
+          <div className="space-y-4">
+            <GoogleAuthButton
+              mode={activeTab}
+              onSuccess={() => navigate(redirectPath, { replace: true })}
+              onError={(err) => setErrorMsg(err)}
+            />
+
+            <div className="relative flex items-center justify-center">
+              <div className="border-t border-brand-primaryPink/25 w-full"></div>
+              <span className="bg-white px-3 text-[11px] font-semibold text-[#805A82] uppercase tracking-wider relative whitespace-nowrap">
+                or continue with email
+              </span>
+              <div className="border-t border-brand-primaryPink/25 w-full"></div>
+            </div>
+          </div>
 
           {activeTab === 'login' ? (
             /* Sign In Form */

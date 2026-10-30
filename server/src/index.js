@@ -73,12 +73,15 @@ app.use(helmet({
         "https://*.google-analytics.com",
         "https://checkout.razorpay.com",
         "https://api.razorpay.com",
-        "https://connect.facebook.net"
+        "https://connect.facebook.net",
+        "https://accounts.google.com",
+        "https://apis.google.com"
       ],
       frameSrc: [
         "'self'",
         "https://api.razorpay.com",
-        "https://checkout.razorpay.com"
+        "https://checkout.razorpay.com",
+        "https://accounts.google.com"
       ],
       connectSrc: [
         "'self'",
@@ -92,6 +95,8 @@ app.use(helmet({
         "https://connect.facebook.net",
         "https://www.facebook.com",
         "https://graph.facebook.com",
+        "https://accounts.google.com",
+        "https://oauth2.googleapis.com",
         "wss://*.supabase.co"
       ],
       imgSrc: [
@@ -104,7 +109,9 @@ app.use(helmet({
         "https://*.google-analytics.com",
         "https://*.googletagmanager.com",
         "https://www.facebook.com",
-        "https://connect.facebook.net"
+        "https://connect.facebook.net",
+        "https://*.googleusercontent.com",
+        "https://lh3.googleusercontent.com"
       ],
       styleSrc: [
         "'self'",

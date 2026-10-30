@@ -40,6 +40,7 @@ export const config = {
   RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID || '',
   RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET || '',
   RAZORPAY_WEBHOOK_SECRET: process.env.RAZORPAY_WEBHOOK_SECRET || process.env.RAZORPAY_KEY_SECRET || '',
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '284422563306-jdmmb2ng15nh96eev8plf8dpg2q0o1kn.apps.googleusercontent.com',
   WHATSAPP_NUMBER: businessConfig.whatsappNumber,
   WHATSAPP_DISPLAY: businessConfig.whatsappDisplay,
   CONTACT_EMAIL: process.env.CONTACT_EMAIL || businessConfig.supportEmail || 'info@zebaofficial.in',

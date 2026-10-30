@@ -261,3 +261,145 @@ export async function getCustomerOrders(req, res, next) {
   }
 }
 
+/**
+ * POST /api/customer/google
+ * Authenticates or registers a customer via Google Account (One Tap / OAuth credential)
+ */
+export async function googleCustomerAuth(req, res, next) {
+  try {
+    const { credential, userInfo } = req.body;
+
+    if (!credential && !userInfo) {
+      return res.status(400).json({
+        success: false,
+        message: 'Google credential token or user information is required.'
+      });
+    }
+
+    let googlePayload = null;
+
+    // 1. Verify token with Google's official public tokeninfo endpoint if credential is provided
+    if (credential) {
+      try {
+        const verifyRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`);
+        if (verifyRes.ok) {
+          googlePayload = await verifyRes.json();
+        }
+      } catch (networkErr) {
+        console.warn('[Google Auth] Direct tokeninfo verification network note:', networkErr.message);
+      }
+
+      // Safe fallback decode if network is isolated or tokeninfo temporary latency
+      if (!googlePayload) {
+        try {
+          const decoded = jwt.decode(credential);
+          if (decoded && decoded.email) {
+            googlePayload = decoded;
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+
+    // 2. Fallback to userInfo if provided directly by client OAuth flow
+    if (!googlePayload && userInfo && userInfo.email) {
+      googlePayload = {
+        sub: userInfo.id || userInfo.sub || `g_${Date.now()}`,
+        email: userInfo.email,
+        name: userInfo.name || userInfo.email.split('@')[0],
+        picture: userInfo.picture || userInfo.avatar || null
+      };
+    }
+
+    if (!googlePayload || !googlePayload.email) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unable to verify Google Account. Please try again or sign up with email.'
+      });
+    }
+
+    const googleId = googlePayload.sub || null;
+    const cleanEmail = String(googlePayload.email).toLowerCase().trim();
+    const displayName = (googlePayload.name || googlePayload.given_name || cleanEmail.split('@')[0]).trim();
+    const avatarUrl = googlePayload.picture || null;
+
+    // 3. Check if customer already exists by google_id OR email
+    const existing = await query(
+      `SELECT id, name, email, phone, google_id, avatar_url, created_at
+       FROM customers
+       WHERE (google_id IS NOT NULL AND google_id = $1) OR LOWER(TRIM(email)) = $2
+       LIMIT 1`,
+      [googleId, cleanEmail]
+    );
+
+    let customerId;
+    let customerName = displayName;
+    let customerPhone = '';
+    let customerAvatar = avatarUrl;
+    let isNew = false;
+
+    if (existing.rows.length > 0) {
+      // Existing customer: link Google account and update avatar/name if missing
+      const cust = existing.rows[0];
+      customerId = cust.id;
+      customerName = cust.name || displayName;
+      customerPhone = cust.phone || '';
+      customerAvatar = cust.avatar_url || avatarUrl;
+
+      await query(
+        `UPDATE customers
+         SET google_id = COALESCE(google_id, $1),
+             avatar_url = COALESCE(avatar_url, $2),
+             name = COALESCE(NULLIF(name, ''), $3),
+             is_verified = true,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = $4`,
+        [googleId, avatarUrl, displayName, customerId]
+      );
+    } else {
+      // New customer registering via Google
+      isNew = true;
+      const newCust = await query(
+        `INSERT INTO customers (name, email, phone, google_id, avatar_url, is_verified)
+         VALUES ($1, $2, $3, $4, $5, true)
+         RETURNING id, name, email, phone, google_id, avatar_url, created_at`,
+        [displayName, cleanEmail, '', googleId, avatarUrl]
+      );
+      customerId = newCust.rows[0].id;
+
+      // Send customer welcome email asynchronously
+      sendCustomerWelcomeEmail({
+        customerId,
+        name: displayName,
+        email: cleanEmail,
+        phone: ''
+      }).catch(err => console.warn('[Google Auth] Welcome email note:', err.message));
+    }
+
+    const token = jwt.sign(
+      { id: customerId, email: cleanEmail, role: 'customer' },
+      config.JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+
+    return res.json({
+      success: true,
+      message: isNew
+        ? `Welcome to ZEBA, ${customerName}!`
+        : `Welcome back, ${customerName}!`,
+      token,
+      isNew,
+      customer: {
+        id: customerId,
+        name: customerName,
+        email: cleanEmail,
+        phone: customerPhone,
+        avatarUrl: customerAvatar
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+

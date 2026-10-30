@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useCustomerAuth } from '../context/CustomerAuthContext';
 import { useAuth } from '../context/AuthContext';
+import GoogleAuthButton from './GoogleAuthButton';
 
 export default function CustomerAuthModal({
   isOpen,
@@ -233,6 +234,28 @@ export default function CustomerAuthModal({
               )}
             </div>
           )}
+
+          {/* Google 1-Click Sign-In / Sign-Up */}
+          <div className="space-y-2.5">
+            <GoogleAuthButton
+              mode={activeTab}
+              onSuccess={() => {
+                onClose();
+                if (onAuthenticatedAndProceed) {
+                  onAuthenticatedAndProceed();
+                }
+              }}
+              onError={(err) => setErrorMsg(err)}
+            />
+
+            <div className="relative flex items-center justify-center">
+              <div className="border-t border-brand-primaryPink/25 w-full"></div>
+              <span className="bg-white px-2.5 text-[10px] font-semibold text-[#805A82] uppercase tracking-wider relative whitespace-nowrap">
+                or continue with email
+              </span>
+              <div className="border-t border-brand-primaryPink/25 w-full"></div>
+            </div>
+          </div>
 
           {activeTab === 'register' ? (
             /* Compact Create Account Form */
