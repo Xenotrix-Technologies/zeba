@@ -35,7 +35,7 @@ export const config = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   APP_URL: process.env.APP_URL || businessConfig.websiteUrl,
   DATABASE_URL: process.env.DATABASE_URL || process.env.POSTGRES_URL || '',
-  JWT_SECRET: process.env.JWT_SECRET || (isProd ? '' : 'zeba_dev_jwt_secret_local_testing_only'),
+  JWT_SECRET: process.env.JWT_SECRET || process.env.SUPABASE_JWT_SECRET || 'zeba_super_secret_jwt_key_2026_wellness',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
   RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID || '',
   RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET || '',
