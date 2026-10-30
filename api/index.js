@@ -3,7 +3,13 @@ import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import '../server/src/config/env.js';
+import { config } from '../server/src/config/env.js';
+
+// Ensure critical auth secrets are always populated in serverless environment
+if (!process.env.JWT_SECRET) {
+  process.env.JWT_SECRET = config.JWT_SECRET || 'zeba_super_secret_jwt_key_2026_wellness';
+}
+
 import { seedDatabase } from '../server/database/seed.js';
 import { errorHandler } from '../server/src/middleware/errorHandler.js';
 
