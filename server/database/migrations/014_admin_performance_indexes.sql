@@ -24,3 +24,4 @@ CREATE INDEX IF NOT EXISTS idx_contact_messages_status_created ON contact_messag
 
 -- Composite index for item quantities and product summary lookups
 CREATE INDEX IF NOT EXISTS idx_order_items_order_qty ON order_items (order_id, quantity);
+
