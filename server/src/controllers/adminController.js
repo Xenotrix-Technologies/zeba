@@ -272,7 +272,7 @@ export async function getDashboardMetrics(req, res, next) {
     const customerStats = customerCountRes.rows[0] || {};
     const itemsStats = itemsSoldRes.rows[0] || {};
 
-    res.json({
+    const responseData = {
       success: true,
       range,
       sortBy,
