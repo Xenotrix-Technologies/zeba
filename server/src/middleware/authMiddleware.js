@@ -2,6 +2,18 @@ import jwt from 'jsonwebtoken';
 import { config } from '../config/env.js';
 import { query } from '../config/db.js';
 
+// Fast in-memory cache for validated admin identities to eliminate repetitive DB queries (2 min TTL)
+const adminAuthCache = new Map();
+const ADMIN_CACHE_TTL = 120000;
+
+export function invalidateAdminAuthCache(adminId) {
+  if (adminId) {
+    adminAuthCache.delete(`id_${adminId}`);
+  } else {
+    adminAuthCache.clear();
+  }
+}
+
 export async function requireAdminAuth(req, res, next) {
   try {
     const authHeader = req.headers.authorization;
@@ -22,6 +34,14 @@ export async function requireAdminAuth(req, res, next) {
         success: false,
         message: 'Forbidden. Administrative privileges required.'
       });
+    }
+
+    // Fast path: Check in-memory admin cache to avoid repeated roundtrip queries
+    const cacheKey = decoded.id ? `id_${decoded.id}` : `email_${decoded.email}`;
+    const cached = adminAuthCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < ADMIN_CACHE_TTL) {
+      req.admin = cached.admin;
+      return next();
     }
 
     let result;
@@ -65,6 +85,7 @@ export async function requireAdminAuth(req, res, next) {
           message: 'Forbidden. Account does not have administrative rights.'
         });
       }
+      adminAuthCache.set(cacheKey, { admin, timestamp: Date.now() });
       req.admin = admin;
       return next();
     }
@@ -72,12 +93,14 @@ export async function requireAdminAuth(req, res, next) {
     // Seamless fallback for verified JWT tokens if database is during cold start
     const configuredEmail = (config.ADMIN_DEFAULT_EMAIL || process.env.ADMIN_DEFAULT_EMAIL || 'zebaofficial2013@gmail.com').toLowerCase().trim();
     if (decoded.role === 'admin' || decoded.role === 'superadmin') {
-      req.admin = {
+      const fallbackAdmin = {
         id: decoded.id || 1,
         username: decoded.username || 'zeba_admin',
         email: decoded.email || configuredEmail,
         role: decoded.role || 'superadmin'
       };
+      adminAuthCache.set(cacheKey, { admin: fallbackAdmin, timestamp: Date.now() });
+      req.admin = fallbackAdmin;
       return next();
     }
 

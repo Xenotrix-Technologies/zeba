@@ -21,7 +21,7 @@ export default function AdminCustomers() {
   const { addToast } = useToast();
 
   const fetchCustomers = useCallback(async (isSilent = false) => {
-    if (!isSilent) setLoading(true);
+    if (!isSilent && customers.length === 0) setLoading(true);
     setRefreshing(true);
     try {
       const params = new URLSearchParams({
@@ -232,14 +232,14 @@ export default function AdminCustomers() {
 
       {/* Customers Table */}
       <div className="bg-white rounded-3xl border border-brand-primaryPink/20 overflow-hidden shadow-sm">
-        {loading ? (
+        {loading && customers.length === 0 ? (
           <div className="py-16 text-center text-xs text-brand-plum/70">Loading customers...</div>
         ) : customers.length === 0 ? (
           <div className="py-16 text-center text-xs text-brand-plum/60">
             No customers registered yet. Customer profiles are automatically created upon checkout.
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className={`overflow-x-auto transition-opacity duration-150 ${refreshing ? 'opacity-70' : 'opacity-100'}`}>
             <table className="w-full text-left text-xs text-brand-plum">
               <thead className="bg-brand-softPink/60 text-brand-deepPurple uppercase font-bold text-[10px] tracking-wider border-b border-brand-primaryPink/15">
                 <tr>

@@ -5,7 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { config } from '../server/src/config/env.js';
 
-// Ensure critical auth secrets are always populated in serverless environment
+// Ensure critical auth secrets are always populated in serverless environment (v1.0.2 - admin perf optimized)
 if (!process.env.JWT_SECRET) {
   process.env.JWT_SECRET = config.JWT_SECRET || 'zeba_super_secret_jwt_key_2026_wellness';
 }

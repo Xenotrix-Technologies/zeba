@@ -15,7 +15,13 @@ export function AuthProvider({ children }) {
     }
   });
   const [token, setToken] = useState(() => localStorage.getItem('zeba_admin_token') || null);
-  const [loading, setLoading] = useState(() => Boolean(localStorage.getItem('zeba_admin_token')));
+  const [loading, setLoading] = useState(() => {
+    const hasToken = Boolean(localStorage.getItem('zeba_admin_token'));
+    const hasUser = Boolean(localStorage.getItem('zeba_admin_user'));
+    // If we already have stored credentials, don't block the UI with a full-screen spinner;
+    // verify in background (stale-while-revalidate)
+    return hasToken && !hasUser;
+  });
   const freshlyLoggedInRef = useRef(false);
 
   useEffect(() => {

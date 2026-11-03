@@ -26,6 +26,7 @@ import api from '../../services/api';
 export default function AdminDashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [range, setRange] = useState('all'); // 'day' | 'month' | 'year' | 'all'
   const [chartTab, setChartTab] = useState('monthly'); // 'monthly' | 'daily' | 'yearly' | 'hourly'
   const [hoveredPoint, setHoveredPoint] = useState(null);
@@ -35,7 +36,11 @@ export default function AdminDashboard() {
   const [orderSortOrder, setOrderSortOrder] = useState('desc');
 
   const fetchDashboard = async (selectedRange = range) => {
-    setLoading(true);
+    if (!data) {
+      setLoading(true);
+    } else {
+      setIsUpdating(true);
+    }
     try {
       const res = await api.get(`/admin/dashboard?range=${selectedRange}`);
       if (res && res.success) {
@@ -45,6 +50,7 @@ export default function AdminDashboard() {
       console.error('Failed to load dashboard metrics', err);
     } finally {
       setLoading(false);
+      setIsUpdating(false);
     }
   };
 
@@ -314,15 +320,21 @@ export default function AdminDashboard() {
         <span className="text-[11px] text-[#805A82]">
           • Scoped overview for {rangeScopeText}
         </span>
+        {isUpdating && (
+          <span className="text-[11px] text-brand-brightPink font-semibold animate-pulse ml-2 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-brand-brightPink animate-ping" />
+            Updating metrics...
+          </span>
+        )}
       </div>
 
-      {loading ? (
+      {loading && !data ? (
         <div className="py-20 text-center">
           <div className="w-10 h-10 border-4 border-brand-brightPink border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-xs text-[#805A82]">Updating store metrics...</p>
+          <p className="text-xs text-[#805A82]">Loading store metrics...</p>
         </div>
       ) : (
-        <>
+        <div className={`transition-opacity duration-200 ${isUpdating ? 'opacity-80' : 'opacity-100'} space-y-8`}>
           {/* Main KPI Stat Cards - ALL 4 CARDS DYNAMICALLY UPDATED BY THE SELECTED SORT */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             
@@ -876,7 +888,7 @@ export default function AdminDashboard() {
             )}
 
           </div>
-        </>
+        </div>
       )}
 
     </div>

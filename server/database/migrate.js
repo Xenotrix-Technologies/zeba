@@ -411,6 +411,19 @@ const INLINE_MIGRATIONS = [
       ALTER TABLE customers ALTER COLUMN phone DROP NOT NULL;
       CREATE INDEX IF NOT EXISTS idx_customers_google_id ON customers(google_id) WHERE google_id IS NOT NULL;
     `
+  },
+  {
+    name: '014_admin_performance_indexes.sql',
+    sql: `
+      CREATE INDEX IF NOT EXISTS idx_orders_created_at_desc ON orders (created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_orders_status_created ON orders (status, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_orders_payment_created ON orders (payment_status, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_orders_customer_created ON orders (customer_id, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_payments_order_id_desc ON payments (order_id, id DESC);
+      CREATE INDEX IF NOT EXISTS idx_addresses_customer_id_desc ON addresses (customer_id, id DESC);
+      CREATE INDEX IF NOT EXISTS idx_contact_messages_status_created ON contact_messages (status, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_order_items_order_qty ON order_items (order_id, quantity);
+    `
   }
 ];
 

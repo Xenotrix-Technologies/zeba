@@ -19,6 +19,7 @@ export default function AdminOrders() {
   const [paymentFilter, setPaymentFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [selectedOrders, setSelectedOrders] = useState([]);
   const [showBatchPrintModal, setShowBatchPrintModal] = useState(false);
@@ -73,7 +74,11 @@ export default function AdminOrders() {
   };
 
   const fetchOrders = async () => {
-    setLoading(true);
+    if (orders.length === 0) {
+      setLoading(true);
+    } else {
+      setIsUpdating(true);
+    }
     try {
       const params = new URLSearchParams({
         page: page.toString(),
@@ -99,6 +104,7 @@ export default function AdminOrders() {
       console.error('Failed to load admin orders', err);
     } finally {
       setLoading(false);
+      setIsUpdating(false);
     }
   };
 
@@ -309,8 +315,9 @@ export default function AdminOrders() {
             <span>{exporting ? 'Exporting...' : 'Export Excel'}</span>
           </button>
 
-          <span className="text-xs font-bold text-brand-deepPurple bg-white border border-brand-primaryPink/30 px-3.5 py-1.5 rounded-full shadow-sm">
-            Total Orders: {total}
+          <span className="text-xs font-bold text-brand-deepPurple bg-white border border-brand-primaryPink/30 px-3.5 py-1.5 rounded-full shadow-sm flex items-center gap-1.5">
+            <span>Total Orders: {total}</span>
+            {isUpdating && <span className="w-2 h-2 rounded-full bg-brand-brightPink animate-ping" title="Updating..." />}
           </span>
         </div>
       </div>
@@ -451,7 +458,7 @@ export default function AdminOrders() {
 
       {/* Orders Table */}
       <div className="bg-white rounded-3xl border border-brand-primaryPink/25 overflow-hidden shadow-sm">
-        {loading ? (
+        {loading && orders.length === 0 ? (
           <div className="py-16 text-center text-xs text-[#805A82]">Loading orders...</div>
         ) : orders.length === 0 ? (
           <div className="py-16 text-center text-xs text-[#805A82] space-y-2">
@@ -471,7 +478,7 @@ export default function AdminOrders() {
             )}
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className={`overflow-x-auto transition-opacity duration-150 ${isUpdating ? 'opacity-70' : 'opacity-100'}`}>
             <table className="w-full text-left text-xs text-brand-darkPurple">
               <thead className="bg-[#FFF5FA] text-[#805A82] uppercase font-bold text-[10px] tracking-wider border-b border-brand-primaryPink/20">
                 <tr>

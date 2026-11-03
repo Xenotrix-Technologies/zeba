@@ -83,6 +83,9 @@ api.interceptors.response.use(
       if (url.includes('/settings')) api.invalidateCache('/settings');
       if (url.includes('/faqs')) api.invalidateCache('/faqs');
       if (url.includes('/content')) api.invalidateCache('/content');
+      if (url.includes('/admin')) {
+        api.invalidateCache('/admin');
+      }
     }
     return response.data;
   },
@@ -115,14 +118,19 @@ const responseCache = new Map();
 function isCacheable(url, config = {}) {
   if (config.cache === false || config.noCache) return false;
   const cleanUrl = url.split('?')[0];
-  // Strictly public storefront read endpoints only
   return (
     cleanUrl === '/products' ||
     cleanUrl.startsWith('/products/') ||
     cleanUrl === '/faqs' ||
     cleanUrl === '/content' ||
     cleanUrl === '/settings' ||
-    cleanUrl === '/reviews'
+    cleanUrl === '/reviews' ||
+    cleanUrl === '/admin/dashboard' ||
+    cleanUrl === '/admin/products' ||
+    cleanUrl === '/admin/customers' ||
+    cleanUrl === '/admin/messages' ||
+    cleanUrl === '/admin/settings' ||
+    cleanUrl === '/admin/offer-bar'
   );
 }
 
@@ -131,7 +139,13 @@ function getTtl(url) {
   if (cleanUrl === '/settings' || cleanUrl === '/content' || cleanUrl === '/faqs') {
     return 5 * 60 * 1000; // 5 minutes
   }
-  if (cleanUrl === '/reviews') {
+  if (cleanUrl === '/admin/dashboard' || cleanUrl === '/admin/customers') {
+    return 20 * 1000; // 20 seconds
+  }
+  if (cleanUrl === '/admin/products' || cleanUrl === '/admin/offer-bar' || cleanUrl === '/admin/settings') {
+    return 60 * 1000; // 1 minute
+  }
+  if (cleanUrl === '/reviews' || cleanUrl === '/admin/messages') {
     return 30 * 1000; // 30 seconds
   }
   return 60 * 1000; // 1 minute for products

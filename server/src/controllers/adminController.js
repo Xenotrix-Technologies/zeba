@@ -54,6 +54,14 @@ export function validateStatusTransition(currentStatus, targetStatus) {
   return { valid: true, isNoOp: false };
 }
 
+// In-memory cache for dashboard metrics to make repeated visits / tab switching instant (15s TTL)
+const dashboardCache = new Map();
+const DASHBOARD_CACHE_TTL = 15000;
+
+export function invalidateDashboardCache() {
+  dashboardCache.clear();
+}
+
 /**
  * GET /api/admin/dashboard
  * Live PostgreSQL KPIs & metrics
@@ -61,6 +69,13 @@ export function validateStatusTransition(currentStatus, targetStatus) {
 export async function getDashboardMetrics(req, res, next) {
   try {
     const { range = 'all', sortBy = 'created_at', sortOrder = 'desc' } = req.query; // 'day' | 'month' | 'year' | 'all'
+
+    // Check fast in-memory cache
+    const cacheKey = `${range}_${sortBy}_${sortOrder}`;
+    const cached = dashboardCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < DASHBOARD_CACHE_TTL) {
+      return res.json(cached.data);
+    }
 
     let dateCondition = '';
     let orderDateCondition = '';
@@ -89,35 +104,6 @@ export async function getDashboardMetrics(req, res, next) {
     const orderCol = sortFieldMap[sortBy] || 'o.created_at';
     const orderDir = (sortOrder && sortOrder.toUpperCase() === 'ASC') ? 'ASC' : 'DESC';
 
-    // 1. Order Status Counts & Revenue filtered by selected range (day/month/year/all)
-    const orderStatsRes = await query(`
-      SELECT 
-        COUNT(*) AS total_orders,
-        COUNT(*) FILTER (WHERE status = 'pending') AS pending_orders,
-        COUNT(*) FILTER (WHERE status = 'confirmed') AS confirmed_orders,
-        COUNT(*) FILTER (WHERE status = 'processing') AS processing_orders,
-        COUNT(*) FILTER (WHERE status = 'shipped') AS shipped_orders,
-        COUNT(*) FILTER (WHERE status = 'out_for_delivery') AS out_for_delivery_orders,
-        COUNT(*) FILTER (WHERE status = 'delivered') AS delivered_orders,
-        COUNT(*) FILTER (WHERE status = 'cancelled') AS cancelled_orders,
-        COUNT(*) FILTER (WHERE payment_status = 'paid') AS paid_orders,
-        COUNT(*) FILTER (WHERE payment_status = 'failed') AS failed_payments,
-        COALESCE(SUM(total_amount) FILTER (WHERE payment_status = 'paid'), 0) AS total_revenue,
-        COALESCE(SUM(total_amount), 0) AS total_booked_revenue,
-        COUNT(DISTINCT customer_id) AS active_buyers
-      FROM orders
-      ${dateCondition}
-    `);
-
-    // 2. All-time baseline totals
-    const allTimeStatsRes = await query(`
-      SELECT 
-        COUNT(*) AS all_time_orders,
-        COALESCE(SUM(total_amount) FILTER (WHERE payment_status = 'paid'), 0) AS all_time_revenue
-      FROM orders
-    `);
-
-    // 3. Units / Items Sold in selected period
     let itemsOrderCond = '';
     if (range === 'day') {
       itemsOrderCond = 'WHERE o.created_at >= CURRENT_DATE';
@@ -127,71 +113,6 @@ export async function getDashboardMetrics(req, res, next) {
       itemsOrderCond = "WHERE o.created_at >= DATE_TRUNC('year', CURRENT_DATE)";
     }
 
-    const itemsSoldRes = await query(`
-      SELECT 
-        COALESCE(SUM(oi.quantity), 0) AS total_units_sold,
-        COUNT(DISTINCT oi.product_id) AS distinct_products_sold
-      FROM order_items oi
-      JOIN orders o ON oi.order_id = o.id
-      ${itemsOrderCond}
-    `);
-
-    // 4. Monthly Revenue Analytics (Aggregated by Month for the Revenue Chart)
-    const monthlyRevenueRes = await query(`
-      SELECT 
-        TO_CHAR(created_at, 'YYYY-MM') AS month_key,
-        TO_CHAR(created_at, 'Mon YYYY') AS month_label,
-        TO_CHAR(created_at, 'Mon') AS short_month,
-        COALESCE(SUM(total_amount) FILTER (WHERE payment_status = 'paid'), 0) AS paid_revenue,
-        COALESCE(SUM(total_amount), 0) AS total_revenue,
-        COUNT(*) AS total_orders,
-        COUNT(*) FILTER (WHERE payment_status = 'paid') AS paid_orders
-      FROM orders
-      GROUP BY TO_CHAR(created_at, 'YYYY-MM'), TO_CHAR(created_at, 'Mon YYYY'), TO_CHAR(created_at, 'Mon')
-      ORDER BY month_key ASC
-    `);
-
-    // 5. Daily Revenue Analytics (Last 30 Days)
-    const dailyRevenueRes = await query(`
-      SELECT 
-        TO_CHAR(created_at, 'YYYY-MM-DD') AS day_key,
-        TO_CHAR(created_at, 'DD Mon') AS day_label,
-        COALESCE(SUM(total_amount) FILTER (WHERE payment_status = 'paid'), 0) AS paid_revenue,
-        COALESCE(SUM(total_amount), 0) AS total_revenue,
-        COUNT(*) AS total_orders
-      FROM orders
-      WHERE created_at >= NOW() - INTERVAL '30 days'
-      GROUP BY TO_CHAR(created_at, 'YYYY-MM-DD'), TO_CHAR(created_at, 'DD Mon')
-      ORDER BY day_key ASC
-    `);
-
-    // 5b. Hourly Revenue Analytics (for Today)
-    const hourlyRevenueRes = await query(`
-      SELECT 
-        TO_CHAR(created_at, 'HH24') AS hour_key,
-        TO_CHAR(created_at, 'HH12 AM') AS hour_label,
-        COALESCE(SUM(total_amount) FILTER (WHERE payment_status = 'paid'), 0) AS paid_revenue,
-        COALESCE(SUM(total_amount), 0) AS total_revenue,
-        COUNT(*) AS total_orders
-      FROM orders
-      WHERE created_at >= CURRENT_DATE
-      GROUP BY TO_CHAR(created_at, 'HH24'), TO_CHAR(created_at, 'HH12 AM')
-      ORDER BY hour_key ASC
-    `);
-
-    // 6. Yearly Revenue Analytics
-    const yearlyRevenueRes = await query(`
-      SELECT 
-        TO_CHAR(created_at, 'YYYY') AS year_key,
-        COALESCE(SUM(total_amount) FILTER (WHERE payment_status = 'paid'), 0) AS paid_revenue,
-        COALESCE(SUM(total_amount), 0) AS total_revenue,
-        COUNT(*) AS total_orders
-      FROM orders
-      GROUP BY TO_CHAR(created_at, 'YYYY')
-      ORDER BY year_key ASC
-    `);
-
-    // 7. Customers Count (scoped and all-time)
     let custCond = 'true';
     if (range === 'day') {
       custCond = 'created_at >= CURRENT_DATE';
@@ -201,41 +122,150 @@ export async function getDashboardMetrics(req, res, next) {
       custCond = "created_at >= DATE_TRUNC('year', CURRENT_DATE)";
     }
 
-    const customerCountRes = await query(`
-      SELECT 
-        COUNT(*) AS total_customers,
-        COUNT(*) FILTER (WHERE ${custCond}) AS period_customers,
-        COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE) AS new_customers_today
-      FROM customers
-    `);
+    // Execute all 11 dashboard metric queries concurrently via Promise.all
+    const [
+      orderStatsRes,
+      allTimeStatsRes,
+      itemsSoldRes,
+      monthlyRevenueRes,
+      dailyRevenueRes,
+      hourlyRevenueRes,
+      yearlyRevenueRes,
+      customerCountRes,
+      productCountRes,
+      recentOrdersRes,
+      msgStatsRes
+    ] = await Promise.all([
+      // 1. Order Status Counts & Revenue filtered by selected range (day/month/year/all)
+      query(`
+        SELECT 
+          COUNT(*) AS total_orders,
+          COUNT(*) FILTER (WHERE status = 'pending') AS pending_orders,
+          COUNT(*) FILTER (WHERE status = 'confirmed') AS confirmed_orders,
+          COUNT(*) FILTER (WHERE status = 'processing') AS processing_orders,
+          COUNT(*) FILTER (WHERE status = 'shipped') AS shipped_orders,
+          COUNT(*) FILTER (WHERE status = 'out_for_delivery') AS out_for_delivery_orders,
+          COUNT(*) FILTER (WHERE status = 'delivered') AS delivered_orders,
+          COUNT(*) FILTER (WHERE status = 'cancelled') AS cancelled_orders,
+          COUNT(*) FILTER (WHERE payment_status = 'paid') AS paid_orders,
+          COUNT(*) FILTER (WHERE payment_status = 'failed') AS failed_payments,
+          COALESCE(SUM(total_amount) FILTER (WHERE payment_status = 'paid'), 0) AS total_revenue,
+          COALESCE(SUM(total_amount), 0) AS total_booked_revenue,
+          COUNT(DISTINCT customer_id) AS active_buyers
+        FROM orders
+        ${dateCondition}
+      `),
 
-    // 8. Total Products Count & Low Stock Count
-    const productCountRes = await query(`
-      SELECT 
-        COUNT(*) AS total_products,
-        COUNT(*) FILTER (WHERE stock_quantity < 20) AS low_stock_products
-      FROM products
-      WHERE is_active = true
-    `);
+      // 2. All-time baseline totals
+      query(`
+        SELECT 
+          COUNT(*) AS all_time_orders,
+          COALESCE(SUM(total_amount) FILTER (WHERE payment_status = 'paid'), 0) AS all_time_revenue
+        FROM orders
+      `),
 
-    // 9. Recent Orders in selected period (disambiguated with table alias o.)
-    const recentOrdersRes = await query(`
-      SELECT o.id, o.order_number, o.status, o.payment_status, o.total_amount, o.created_at,
-             c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone
-      FROM orders o
-      LEFT JOIN customers c ON o.customer_id = c.id
-      ${orderDateCondition}
-      ORDER BY ${orderCol} ${orderDir}
-      LIMIT 15
-    `);
+      // 3. Units / Items Sold in selected period
+      query(`
+        SELECT 
+          COALESCE(SUM(oi.quantity), 0) AS total_units_sold,
+          COUNT(DISTINCT oi.product_id) AS distinct_products_sold
+        FROM order_items oi
+        JOIN orders o ON oi.order_id = o.id
+        ${itemsOrderCond}
+      `),
 
-    // 10. Contact Inquiries summary
-    const msgStatsRes = await query(`
-      SELECT 
-        COUNT(*) AS total_messages,
-        COUNT(*) FILTER (WHERE status = 'unread') AS unread_messages
-      FROM contact_messages
-    `);
+      // 4. Monthly Revenue Analytics (Aggregated by Month for the Revenue Chart)
+      query(`
+        SELECT 
+          TO_CHAR(created_at, 'YYYY-MM') AS month_key,
+          TO_CHAR(created_at, 'Mon YYYY') AS month_label,
+          TO_CHAR(created_at, 'Mon') AS short_month,
+          COALESCE(SUM(total_amount) FILTER (WHERE payment_status = 'paid'), 0) AS paid_revenue,
+          COALESCE(SUM(total_amount), 0) AS total_revenue,
+          COUNT(*) AS total_orders,
+          COUNT(*) FILTER (WHERE payment_status = 'paid') AS paid_orders
+        FROM orders
+        GROUP BY TO_CHAR(created_at, 'YYYY-MM'), TO_CHAR(created_at, 'Mon YYYY'), TO_CHAR(created_at, 'Mon')
+        ORDER BY month_key ASC
+      `),
+
+      // 5. Daily Revenue Analytics (Last 30 Days)
+      query(`
+        SELECT 
+          TO_CHAR(created_at, 'YYYY-MM-DD') AS day_key,
+          TO_CHAR(created_at, 'DD Mon') AS day_label,
+          COALESCE(SUM(total_amount) FILTER (WHERE payment_status = 'paid'), 0) AS paid_revenue,
+          COALESCE(SUM(total_amount), 0) AS total_revenue,
+          COUNT(*) AS total_orders
+        FROM orders
+        WHERE created_at >= NOW() - INTERVAL '30 days'
+        GROUP BY TO_CHAR(created_at, 'YYYY-MM-DD'), TO_CHAR(created_at, 'DD Mon')
+        ORDER BY day_key ASC
+      `),
+
+      // 5b. Hourly Revenue Analytics (for Today)
+      query(`
+        SELECT 
+          TO_CHAR(created_at, 'HH24') AS hour_key,
+          TO_CHAR(created_at, 'HH12 AM') AS hour_label,
+          COALESCE(SUM(total_amount) FILTER (WHERE payment_status = 'paid'), 0) AS paid_revenue,
+          COALESCE(SUM(total_amount), 0) AS total_revenue,
+          COUNT(*) AS total_orders
+        FROM orders
+        WHERE created_at >= CURRENT_DATE
+        GROUP BY TO_CHAR(created_at, 'HH24'), TO_CHAR(created_at, 'HH12 AM')
+        ORDER BY hour_key ASC
+      `),
+
+      // 6. Yearly Revenue Analytics
+      query(`
+        SELECT 
+          TO_CHAR(created_at, 'YYYY') AS year_key,
+          COALESCE(SUM(total_amount) FILTER (WHERE payment_status = 'paid'), 0) AS paid_revenue,
+          COALESCE(SUM(total_amount), 0) AS total_revenue,
+          COUNT(*) AS total_orders
+        FROM orders
+        GROUP BY TO_CHAR(created_at, 'YYYY')
+        ORDER BY year_key ASC
+      `),
+
+      // 7. Customers Count (scoped and all-time)
+      query(`
+        SELECT 
+          COUNT(*) AS total_customers,
+          COUNT(*) FILTER (WHERE ${custCond}) AS period_customers,
+          COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE) AS new_customers_today
+        FROM customers
+      `),
+
+      // 8. Total Products Count & Low Stock Count
+      query(`
+        SELECT 
+          COUNT(*) AS total_products,
+          COUNT(*) FILTER (WHERE stock_quantity < 20) AS low_stock_products
+        FROM products
+        WHERE is_active = true
+      `),
+
+      // 9. Recent Orders in selected period (disambiguated with table alias o.)
+      query(`
+        SELECT o.id, o.order_number, o.status, o.payment_status, o.total_amount, o.created_at,
+               c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone
+        FROM orders o
+        LEFT JOIN customers c ON o.customer_id = c.id
+        ${orderDateCondition}
+        ORDER BY ${orderCol} ${orderDir}
+        LIMIT 15
+      `),
+
+      // 10. Contact Inquiries summary
+      query(`
+        SELECT 
+          COUNT(*) AS total_messages,
+          COUNT(*) FILTER (WHERE status = 'unread') AS unread_messages
+        FROM contact_messages
+      `)
+    ]);
 
     const stats = orderStatsRes.rows[0];
     const allTimeStats = allTimeStatsRes.rows[0];
@@ -309,7 +339,14 @@ export async function getDashboardMetrics(req, res, next) {
         }))
       },
       recentOrders: recentOrdersRes.rows
+    };
+
+    dashboardCache.set(cacheKey, {
+      data: responseData,
+      timestamp: Date.now()
     });
+
+    res.json(responseData);
   } catch (err) {
     next(err);
   }
@@ -434,8 +471,6 @@ export async function getAdminOrders(req, res, next) {
       LEFT JOIN customers c ON o.customer_id = c.id
       ${whereClause}
     `;
-    const countRes = await query(countQuery, params);
-    const total = parseInt(countRes.rows[0]?.total || 0, 10);
 
     const ordersQuery = `
       SELECT o.id, o.order_number, o.status, o.payment_status, o.refund_status, o.subtotal,
@@ -455,10 +490,7 @@ export async function getAdminOrders(req, res, next) {
       LIMIT $${paramIndex++} OFFSET $${paramIndex++}
     `;
 
-    const ordersRes = await query(ordersQuery, [...params, limitNum, offset]);
-
-    // Also fetch available months with order counts for the admin dropdown
-    const monthsRes = await query(`
+    const monthsQuery = `
       SELECT 
         TO_CHAR(created_at, 'YYYY-MM') AS month_key,
         TO_CHAR(created_at, 'FMMonth YYYY') AS month_label,
@@ -466,8 +498,16 @@ export async function getAdminOrders(req, res, next) {
       FROM orders
       GROUP BY TO_CHAR(created_at, 'YYYY-MM'), TO_CHAR(created_at, 'FMMonth YYYY')
       ORDER BY month_key DESC
-    `);
+    `;
 
+    // Concurrently execute count, paginated orders, and available months queries in parallel
+    const [countRes, ordersRes, monthsRes] = await Promise.all([
+      query(countQuery, params),
+      query(ordersQuery, [...params, limitNum, offset]),
+      query(monthsQuery)
+    ]);
+
+    const total = parseInt(countRes.rows[0]?.total || 0, 10);
     const totalPages = Math.max(1, Math.ceil(total / limitNum));
 
     res.json({
@@ -789,6 +829,9 @@ export async function updateOrderStatus(req, res, next) {
     const result = await query(updateQuery, params);
     const updatedOrder = result.rows[0];
 
+    // Invalidate dashboard metrics cache so metrics immediately reflect the state change
+    invalidateDashboardCache();
+
     // 5. Append to order_status_history if status changed or notes provided
     if (isStatusChange) {
       await query(
@@ -974,8 +1017,6 @@ export async function getAdminCustomers(req, res, next) {
       FROM customers c
       ${whereClause}
     `;
-    const countRes = await query(countQuery, params);
-    const total = parseInt(countRes.rows[0]?.total || 0, 10);
 
     // 2. Paginated Data Query
     const customersQuery = `
@@ -994,8 +1035,14 @@ export async function getAdminCustomers(req, res, next) {
       ORDER BY c.created_at DESC
       LIMIT $${paramIndex++} OFFSET $${paramIndex++}
     `;
-    const customersRes = await query(customersQuery, [...params, limitNum, offset]);
 
+    // Concurrently execute count and paginated customers queries
+    const [countRes, customersRes] = await Promise.all([
+      query(countQuery, params),
+      query(customersQuery, [...params, limitNum, offset])
+    ]);
+
+    const total = parseInt(countRes.rows[0]?.total || 0, 10);
     const totalPages = Math.max(1, Math.ceil(total / limitNum));
 
     res.json({

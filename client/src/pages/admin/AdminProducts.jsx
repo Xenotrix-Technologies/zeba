@@ -31,7 +31,7 @@ export default function AdminProducts() {
   const [productImageUrlInput, setProductImageUrlInput] = useState('');
 
   const fetchProducts = async () => {
-    setLoading(true);
+    if (products.length === 0) setLoading(true);
     try {
       const res = await api.get('/admin/products');
       if (res.success && res.products) {
@@ -253,7 +253,7 @@ export default function AdminProducts() {
         </span>
       </div>
 
-      {loading ? (
+      {loading && products.length === 0 ? (
         <div className="py-20 text-center text-xs text-[#805A82]">Loading products...</div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

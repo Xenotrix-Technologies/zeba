@@ -55,9 +55,7 @@ export async function getDb() {
         console.error('Unexpected PostgreSQL client pool error:', err.message);
       });
 
-      // Verify connection with health check query
-      await pool.query('SELECT 1');
-      console.log('✅ Connected to Supabase / PostgreSQL database successfully');
+      // Pool created - queries will connect on-demand without blocking cold start with a dummy query
       return { query: (text, params) => pool.query(text, params), isPGlite: false };
     } catch (err) {
       if (isProduction) {
