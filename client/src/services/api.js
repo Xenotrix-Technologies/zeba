@@ -100,7 +100,7 @@ api.interceptors.response.use(
       if (error.response?.status === 404) {
         message = 'The requested service endpoint was not found (404).';
       } else if (error.response?.status === 500 && (!error.response.data || typeof error.response.data === 'string')) {
-        message = 'Backend API is unreachable. Please verify that the backend server is running on port 5000.';
+        message = 'Backend API is unreachable. Please verify that the backend server is running.';
       } else if (error.code === 'ERR_NETWORK' || !error.response) {
         message = 'Unable to connect to the backend server. Please check your connection and ensure the server is running.';
       } else {

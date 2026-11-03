@@ -20,11 +20,23 @@ export default defineConfig(({ mode }) => {
       '__APP_ENV__': JSON.stringify(mergedEnv)
     },
     server: {
-      port: 5173,
+      port: 5000,
+      strictPort: true,
       host: true,
       proxy: {
         '/api': {
-          target: 'http://localhost:5000',
+          target: process.env.VITE_BACKEND_URL || 'http://localhost:5001',
+          changeOrigin: true
+        }
+      }
+    },
+    preview: {
+      port: 5000,
+      strictPort: true,
+      host: true,
+      proxy: {
+        '/api': {
+          target: process.env.VITE_BACKEND_URL || 'http://localhost:5001',
           changeOrigin: true
         }
       }

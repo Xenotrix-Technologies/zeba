@@ -31,7 +31,7 @@ if (isProd) {
 }
 
 export const config = {
-  PORT: process.env.PORT || 5000,
+  PORT: process.env.PORT || 5001,
   NODE_ENV: process.env.NODE_ENV || 'development',
   APP_URL: process.env.APP_URL || businessConfig.websiteUrl,
   DATABASE_URL: process.env.DATABASE_URL || process.env.POSTGRES_URL || '',
