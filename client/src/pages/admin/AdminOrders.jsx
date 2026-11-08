@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Search, Eye, Calendar, ArrowUpDown, X, FileSpreadsheet, Loader2, Printer, CheckSquare, Trash2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import api from '../../services/api';
@@ -8,6 +8,7 @@ import BatchShippingSlipsModal from '../../components/BatchShippingSlipsModal';
 import { useToast } from '../../context/ToastContext';
 
 export default function AdminOrders() {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -520,7 +521,8 @@ export default function AdminOrders() {
                   return (
                     <tr
                       key={order.id}
-                      className={`transition-colors border-b border-brand-primaryPink/15 ${
+                      onClick={() => navigate(`/admin/orders/${order.id}`)}
+                      className={`transition-colors border-b border-brand-primaryPink/15 cursor-pointer ${
                         isSelected
                           ? 'bg-brand-softPink/80 hover:bg-brand-softPink'
                           : isPaymentCancelled
@@ -529,7 +531,7 @@ export default function AdminOrders() {
                           ? 'bg-[#FFE9F2] hover:bg-[#FFDFEE] border-l-4 border-l-brand-brightPink'
                           : isConfirmed
                           ? 'bg-[#F0FDF4] hover:bg-[#DCFCE7] border-l-4 border-l-emerald-500'
-                          : 'bg-white hover:bg-brand-softPink/30'
+                          : 'bg-white hover:bg-brand-softPink/40'
                       }`}
                     >
                       <td className="p-4 w-10 text-center" onClick={(e) => e.stopPropagation()}>
@@ -546,12 +548,12 @@ export default function AdminOrders() {
                           {order.order_number}
                         </Link>
                       </td>
-                      <td className="p-4 font-bold text-brand-deepPurple">{order.customer_name}</td>
-                      <td className="p-4 text-[#805A82]">{order.customer_phone}</td>
+                      <td className="p-4 font-bold text-brand-deepPurple">{order.customer_name || 'Customer'}</td>
+                      <td className="p-4 text-[#805A82]">{order.customer_phone || 'N/A'}</td>
                       <td className="p-4 max-w-xs truncate text-brand-darkPurple">
-                        {order.products_summary || `${order.total_items} item(s)`}
+                        {order.products_summary || `${order.total_items || 1} item(s)`}
                       </td>
-                      <td className="p-4 font-extrabold text-brand-deepPurple">₹{parseFloat(order.total_amount).toFixed(2)}</td>
+                      <td className="p-4 font-extrabold text-brand-deepPurple">₹{parseFloat(order.total_amount || 0).toFixed(2)}</td>
                       <td className="p-4">
                         <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
                           order.payment_status === 'paid'
@@ -560,7 +562,7 @@ export default function AdminOrders() {
                             ? 'bg-rose-50 text-rose-800 border border-rose-200 ring-1 ring-rose-200'
                             : 'bg-amber-50 text-amber-800 border border-amber-200'
                         }`}>
-                          {order.payment_status}
+                          {order.payment_status || 'pending'}
                         </span>
                       </td>
                       <td className="p-4" onClick={(e) => e.stopPropagation()}>
@@ -594,13 +596,13 @@ export default function AdminOrders() {
                         </select>
                       </td>
                       <td className="p-4 text-[#805A82] whitespace-nowrap">
-                        {new Date(order.created_at).toLocaleDateString('en-IN', {
+                        {order.created_at ? new Date(order.created_at).toLocaleDateString('en-IN', {
                           day: 'numeric',
                           month: 'short',
                           year: 'numeric'
-                        })}
+                        }) : 'N/A'}
                       </td>
-                      <td className="p-4 text-right">
+                      <td className="p-4 text-right" onClick={(e) => e.stopPropagation()}>
                         <Link
                           to={`/admin/orders/${order.id}`}
                           className="inline-flex items-center space-x-1 text-xs font-bold text-brand-brightPink hover:text-white px-3 py-1.5 rounded-xl bg-brand-softPink hover:bg-brand-brightPink transition-colors border border-brand-primaryPink/25"

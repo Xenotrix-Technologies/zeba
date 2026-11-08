@@ -538,24 +538,36 @@ export async function getAdminOrderDetail(req, res, next) {
           `SELECT o.*,
                   c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone,
                   a.house_building, a.street, a.area, a.city, a.state, a.pincode, a.country,
-                  p.razorpay_order_id, p.razorpay_payment_id, p.payment_method, p.status AS payment_record_status
+                  (SELECT p.razorpay_order_id FROM payments p WHERE p.order_id = o.id ORDER BY p.id DESC LIMIT 1) AS razorpay_order_id,
+                  (SELECT p.razorpay_payment_id FROM payments p WHERE p.order_id = o.id ORDER BY p.id DESC LIMIT 1) AS razorpay_payment_id,
+                  COALESCE(
+                    (SELECT p.payment_method FROM payments p WHERE p.order_id = o.id ORDER BY p.id DESC LIMIT 1),
+                    o.payment_method,
+                    'Razorpay Online'
+                  ) AS payment_method,
+                  (SELECT p.status FROM payments p WHERE p.order_id = o.id ORDER BY p.id DESC LIMIT 1) AS payment_record_status
            FROM orders o
            LEFT JOIN customers c ON o.customer_id = c.id
            LEFT JOIN addresses a ON o.address_id = a.id
-           LEFT JOIN payments p ON o.id = p.order_id
-           WHERE o.id = $1`,
+           WHERE o.id = $1 LIMIT 1`,
           [parseInt(id, 10)]
         )
       : await query(
           `SELECT o.*,
                   c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone,
                   a.house_building, a.street, a.area, a.city, a.state, a.pincode, a.country,
-                  p.razorpay_order_id, p.razorpay_payment_id, p.payment_method, p.status AS payment_record_status
+                  (SELECT p.razorpay_order_id FROM payments p WHERE p.order_id = o.id ORDER BY p.id DESC LIMIT 1) AS razorpay_order_id,
+                  (SELECT p.razorpay_payment_id FROM payments p WHERE p.order_id = o.id ORDER BY p.id DESC LIMIT 1) AS razorpay_payment_id,
+                  COALESCE(
+                    (SELECT p.payment_method FROM payments p WHERE p.order_id = o.id ORDER BY p.id DESC LIMIT 1),
+                    o.payment_method,
+                    'Razorpay Online'
+                  ) AS payment_method,
+                  (SELECT p.status FROM payments p WHERE p.order_id = o.id ORDER BY p.id DESC LIMIT 1) AS payment_record_status
            FROM orders o
            LEFT JOIN customers c ON o.customer_id = c.id
            LEFT JOIN addresses a ON o.address_id = a.id
-           LEFT JOIN payments p ON o.id = p.order_id
-           WHERE o.order_number = $1`,
+           WHERE o.order_number = $1 LIMIT 1`,
           [id]
         );
 
@@ -568,13 +580,26 @@ export async function getAdminOrderDetail(req, res, next) {
 
     const order = orderRes.rows[0];
 
-    const itemsRes = await query(
-      `SELECT oi.*, p.images, p.slug, p.barcode, p.barcode_image
-       FROM order_items oi
-       LEFT JOIN products p ON (oi.product_id = p.id OR oi.product_name = p.name)
-       WHERE oi.order_id = $1`,
-      [order.id]
-    );
+    // Query order items cleanly without 70KB barcode base64 bloat and without duplicate joins
+    let items = [];
+    try {
+      const itemsRes = await query(
+        `SELECT oi.*, p.images, p.slug, p.barcode
+         FROM order_items oi
+         LEFT JOIN products p ON oi.product_id = p.id
+         WHERE oi.order_id = $1
+         ORDER BY oi.id ASC`,
+        [order.id]
+      );
+      items = itemsRes.rows;
+    } catch (itemErr) {
+      console.warn('Fallback order items query:', itemErr.message);
+      const fallbackRes = await query(
+        `SELECT * FROM order_items WHERE order_id = $1 ORDER BY id ASC`,
+        [order.id]
+      );
+      items = fallbackRes.rows;
+    }
 
     // Fetch status history timeline
     let statusHistory = [];
@@ -588,11 +613,14 @@ export async function getAdminOrderDetail(req, res, next) {
       statusHistory = [];
     }
 
-    // Fetch notification history
+    // Fetch notification history excluding massive raw HTML messages
     let notifications = [];
     try {
       const notifRes = await query(
-        `SELECT * FROM order_notifications WHERE order_id = $1 ORDER BY created_at DESC`,
+        `SELECT id, order_id, notification_type, recipient, status_sent, created_at
+         FROM order_notifications
+         WHERE order_id = $1
+         ORDER BY created_at DESC`,
         [order.id]
       );
       notifications = notifRes.rows;
@@ -666,7 +694,7 @@ export async function getAdminOrderDetail(req, res, next) {
       success: true,
       order: {
         ...order,
-        items: itemsRes.rows,
+        items,
         statusHistory,
         notifications,
         emailNotifications,
@@ -862,12 +890,19 @@ export async function updateOrderStatus(req, res, next) {
     );
 
     const fullOrderRow = orderRes.rows[0] || updatedOrder;
-    const itemsRes = await query(
-      `SELECT oi.*, p.images FROM order_items oi
-       LEFT JOIN products p ON (oi.product_id = p.id OR oi.product_name = p.name)
-       WHERE oi.order_id = $1`,
-      [updatedOrder.id]
-    );
+    let itemsForEmail = [];
+    try {
+      const itemsRes = await query(
+        `SELECT oi.*, p.images FROM order_items oi
+         LEFT JOIN products p ON oi.product_id = p.id
+         WHERE oi.order_id = $1`,
+        [updatedOrder.id]
+      );
+      itemsForEmail = itemsRes.rows || [];
+    } catch (_) {
+      const fallbackRes = await query(`SELECT * FROM order_items WHERE order_id = $1`, [updatedOrder.id]);
+      itemsForEmail = fallbackRes.rows || [];
+    }
 
     const customer = {
       name: fullOrderRow.customer_name || 'Valued Customer',
@@ -887,7 +922,7 @@ export async function updateOrderStatus(req, res, next) {
         pincode: fullOrderRow.pincode,
         country: fullOrderRow.country || 'India'
       },
-      items: itemsRes.rows || []
+      items: itemsForEmail
     };
 
     let notificationResult = null;
@@ -896,6 +931,10 @@ export async function updateOrderStatus(req, res, next) {
     const isShippingUpdate = (
       (tracking_number !== undefined && tracking_number !== currentOrder.tracking_number) ||
       (courier_partner !== undefined && courier_partner !== currentOrder.courier_partner)
+    );
+
+    const isNotesUpdate = (
+      notes !== undefined && notes !== currentOrder.notes && String(notes).trim().length > 0
     );
 
     const isPaymentPaidUpdate = (
@@ -924,8 +963,8 @@ export async function updateOrderStatus(req, res, next) {
               forceResend: true
             });
           }
-        } else if (isShippingUpdate) {
-          // 2. Shipping / Tracking details were updated without status change
+        } else if (isShippingUpdate || isNotesUpdate) {
+          // 2. Shipping / Tracking details or notes updated without status change
           notificationResult = await sendOrderStatusUpdateEmail({
             order: fullOrderForEmail,
             newStatus: targetStatus,
@@ -1357,7 +1396,14 @@ export async function resendAdminOrderEmail(req, res, next) {
     }
 
     const orderRow = orderRes.rows[0];
-    const itemsRes = await query(`SELECT oi.*, p.images FROM order_items oi LEFT JOIN products p ON (oi.product_id = p.id OR oi.product_name = p.name) WHERE oi.order_id = $1`, [orderRow.id]);
+    let itemsRows = [];
+    try {
+      const itemsRes = await query(`SELECT oi.*, p.images FROM order_items oi LEFT JOIN products p ON oi.product_id = p.id WHERE oi.order_id = $1`, [orderRow.id]);
+      itemsRows = itemsRes.rows || [];
+    } catch (_) {
+      const fallbackItems = await query(`SELECT * FROM order_items WHERE order_id = $1`, [orderRow.id]);
+      itemsRows = fallbackItems.rows || [];
+    }
     const addrRes = orderRow.address_id
       ? await query(`SELECT * FROM addresses WHERE id = $1`, [orderRow.address_id])
       : { rows: [] };
@@ -1370,7 +1416,7 @@ export async function resendAdminOrderEmail(req, res, next) {
         phone: orderRow.customer_phone || ''
       },
       address: addrRes.rows[0] || {},
-      items: itemsRes.rows
+      items: itemsRows
     };
 
     let result = null;

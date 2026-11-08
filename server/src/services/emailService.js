@@ -52,7 +52,10 @@ export function getAdminEmailList() {
     process.env.ADMIN_EMAIL,
     process.env.OWNER_EMAIL,
     config.ADMIN_DEFAULT_EMAIL,
-    config.EMAIL_USER
+    config.EMAIL_USER,
+    config.CONTACT_EMAIL,
+    'zebaofficial2013@gmail.com',
+    'info@zebaofficial.in'
   ];
 
   const emails = rawList
@@ -62,7 +65,7 @@ export function getAdminEmailList() {
     .filter(isValidEmail);
 
   const unique = Array.from(new Set(emails));
-  return unique.length > 0 ? unique : ['zebaofficial2013@gmail.com'];
+  return unique.length > 0 ? unique : ['zebaofficial2013@gmail.com', 'info@zebaofficial.in'];
 }
 
 

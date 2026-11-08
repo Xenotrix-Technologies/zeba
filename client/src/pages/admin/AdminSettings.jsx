@@ -14,9 +14,7 @@ import {
   Sparkles,
   Info,
   Save,
-  RefreshCw,
-  Send,
-  AlertTriangle
+  RefreshCw
 } from 'lucide-react';
 import api from '../../services/api';
 import { useToast } from '../../context/ToastContext';
@@ -28,35 +26,6 @@ export default function AdminSettings() {
   const [copiedSection, setCopiedSection] = useState(null);
   const [savingKey, setSavingKey] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  // SMTP Diagnostics state
-  const [testingSmtp, setTestingSmtp] = useState(false);
-  const [smtpResult, setSmtpResult] = useState(null);
-  const [testEmailAddress, setTestEmailAddress] = useState('zebaofficial2013@gmail.com');
-  const [sendingTestMail, setSendingTestMail] = useState(false);
-
-  const handleTestSmtp = async (sendTest = false) => {
-    if (sendTest) setSendingTestMail(true);
-    else setTestingSmtp(true);
-    try {
-      const res = await api.post('/admin/emails/test-smtp', {
-        to: testEmailAddress,
-        sendTest
-      });
-      setSmtpResult(res);
-      if (res.connection?.connected) {
-        addToast(sendTest ? `Live test email dispatched to ${testEmailAddress}!` : 'SMTP Server Connected Successfully!', 'success');
-      } else {
-        addToast(`SMTP Issue: ${res.connection?.message || 'Connection failed'}`, 'error');
-      }
-    } catch (err) {
-      addToast(err.message || 'SMTP check failed', 'error');
-      setSmtpResult({ connection: { connected: false, message: err.message } });
-    } finally {
-      setTestingSmtp(false);
-      setSendingTestMail(false);
-    }
-  };
 
   // Form states for sections
   const [brandForm, setBrandForm] = useState({
@@ -484,117 +453,6 @@ export default function AdminSettings() {
               </button>
             </div>
           </div>
-        </div>
-
-        {/* Transactional Email & SMTP Diagnostics */}
-        <div className="bg-white rounded-3xl p-6 border border-brand-primaryPink/20 shadow-sm space-y-4 md:col-span-2">
-          <div className="flex items-center justify-between border-b border-brand-primaryPink/15 pb-3">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-xl bg-brand-softPink flex items-center justify-center text-brand-brightPink">
-                <Mail className="w-4 h-4" />
-              </div>
-              <div>
-                <h3 className="font-display font-bold text-sm text-brand-dark">Transactional Email & SMTP Engine</h3>
-                <p className="text-[11px] text-brand-plum/60">Automated notifications for order confirmation, status updates, and admin alerts</p>
-              </div>
-            </div>
-            <button
-              onClick={() => handleTestSmtp(false)}
-              disabled={testingSmtp || sendingTestMail}
-              className="px-3 py-1.5 rounded-xl bg-brand-softPink hover:bg-brand-primaryPink/25 text-brand-deepPurple font-bold text-xs flex items-center space-x-1.5 transition-all shadow-sm disabled:opacity-50"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${testingSmtp ? 'animate-spin' : ''}`} />
-              <span>{testingSmtp ? 'Verifying...' : 'Verify SMTP Connection'}</span>
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-            <div className="p-3.5 rounded-2xl bg-[#FAF8FA] border border-brand-primaryPink/15 space-y-1">
-              <span className="text-[10px] font-bold text-brand-plum/60 uppercase tracking-wider block">SMTP Server</span>
-              <p className="font-bold text-brand-dark">smtp.gmail.com : 465 (SSL)</p>
-              <span className="text-[11px] text-brand-plum/70 block">IPv4 Enforced &bull; Secure TLS</span>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-[#FAF8FA] border border-brand-primaryPink/15 space-y-1">
-              <span className="text-[10px] font-bold text-brand-plum/60 uppercase tracking-wider block">Sender Account</span>
-              <p className="font-bold text-brand-dark truncate">zebaofficial2013@gmail.com</p>
-              <span className="text-[11px] text-brand-plum/70 block">Display Name: ZEBA</span>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-[#FAF8FA] border border-brand-primaryPink/15 space-y-1">
-              <span className="text-[10px] font-bold text-brand-plum/60 uppercase tracking-wider block">Admin Alerts Dest.</span>
-              <p className="font-bold text-brand-dark truncate">info@zebaofficial.in</p>
-              <span className="text-[11px] text-brand-plum/70 block">+ zebaofficial2013@gmail.com</span>
-            </div>
-          </div>
-
-          {/* Test Email Dispatcher */}
-          <div className="pt-2 border-t border-brand-primaryPink/15 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <div className="flex-1">
-              <label className="text-[11px] font-bold text-brand-plum/80 block mb-1">Send Live Test Email To:</label>
-              <input
-                type="email"
-                value={testEmailAddress}
-                onChange={(e) => setTestEmailAddress(e.target.value)}
-                placeholder="name@domain.com"
-                className="w-full px-3 py-2 rounded-xl border border-brand-primaryPink/30 text-xs focus:outline-none focus:border-brand-brightPink font-medium"
-              />
-            </div>
-            <button
-              onClick={() => handleTestSmtp(true)}
-              disabled={testingSmtp || sendingTestMail || !testEmailAddress}
-              className="sm:self-end px-4 py-2 rounded-xl bg-gradient-to-r from-brand-brightPink to-brand-deepPink hover:from-brand-deepPink hover:to-brand-brightPink text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center space-x-1.5 transition-all shadow-md shadow-brand-brightPink/20 disabled:opacity-50"
-            >
-              <Send className={`w-3.5 h-3.5 ${sendingTestMail ? 'animate-spin' : ''}`} />
-              <span>{sendingTestMail ? 'Sending Test...' : 'Send Live Test Email'}</span>
-            </button>
-          </div>
-
-          {/* Diagnostic Result Box */}
-          {smtpResult && (
-            <div className={`p-3.5 rounded-2xl border text-xs ${
-              smtpResult.connection?.connected
-                ? 'bg-emerald-50/70 border-emerald-200 text-emerald-900'
-                : 'bg-rose-50/80 border-rose-200 text-rose-900'
-            }`}>
-              <div className="flex items-start space-x-2">
-                {smtpResult.connection?.connected ? (
-                  <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                ) : (
-                  <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-                )}
-                <div className="space-y-1 min-w-0 flex-1">
-                  <p className="font-bold">
-                    {smtpResult.connection?.connected
-                      ? '✓ SMTP Server Connection Live & Authenticated'
-                      : '✕ SMTP Authentication or Connection Issue'}
-                  </p>
-                  <p className="text-[11px] opacity-90 break-words">
-                    {smtpResult.connection?.message || smtpResult.connection?.error}
-                  </p>
-                  {smtpResult.testSend && (
-                    <p className="text-[11px] pt-1 border-t border-black/10 font-medium">
-                      Test Send Result: {smtpResult.testSend.success ? `✓ Delivered (ID: ${smtpResult.testSend.providerMessageId || 'OK'})` : `✕ Failed: ${smtpResult.testSend.error}`}
-                    </p>
-                  )}
-                  {!smtpResult.connection?.connected && (
-                    <p className="text-[11px] text-rose-700 pt-1">
-                      💡 <strong>Action Required:</strong> If Google reports <em>BadCredentials (535-5.7.8)</em>, generate a fresh 16-character App Password at{' '}
-                      <a
-                        href="https://myaccount.google.com/apppasswords"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="underline font-bold"
-                      >
-                        myaccount.google.com/apppasswords
-                      </a>{' '}
-                      for <strong>zebaofficial2013@gmail.com</strong>.
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
       </div>

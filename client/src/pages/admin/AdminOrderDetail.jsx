@@ -53,17 +53,20 @@ export default function AdminOrderDetail() {
       if (res.success && res.order) {
         const o = res.order;
         setOrder(o);
-        setSelectedStatus(o.status);
-        setSelectedPaymentStatus(o.payment_status);
+        setSelectedStatus(o.status || 'pending');
+        setSelectedPaymentStatus(o.payment_status || 'pending');
         setSelectedRefundStatus(o.refund_status || 'not_applicable');
         setCourierPartner(o.courier_partner || '');
         setTrackingNumber(o.tracking_number || '');
-        setEstimatedDeliveryDate(o.estimated_delivery_date ? o.estimated_delivery_date.split('T')[0] : '');
+        setEstimatedDeliveryDate(o.estimated_delivery_date ? String(o.estimated_delivery_date).split('T')[0] : '');
         setOrderNotes(o.notes || '');
         setCancellationReason(o.cancellation_reason || '');
+      } else {
+        setOrder(null);
       }
     } catch (err) {
       console.error('Failed to load order', err);
+      addToast(err.message || 'Failed to load order details.', 'error');
     } finally {
       setLoading(false);
     }
@@ -173,7 +176,7 @@ export default function AdminOrderDetail() {
   const cleanPhone = (order.customer_phone || '').replace(/[^0-9]/g, '');
   const directWhatsAppPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
   const directWhatsAppUrl = `https://wa.me/${directWhatsAppPhone}?text=${encodeURIComponent(
-    `Hi ${order.customer_name}, your ZEBA Order #${order.order_number} status is now: ${order.status.toUpperCase()}.\nTotal: ₹${parseFloat(order.total_amount).toFixed(2)}\n${order.notes ? `Tracking: ${order.notes}\n` : ''}Thank you for choosing ZEBA Periods Pain Relief!`
+    `Hi ${order.customer_name || 'Customer'}, your ZEBA Order #${order.order_number} status is now: ${(order.status || 'pending').toUpperCase()}.\nTotal: ₹${parseFloat(order.total_amount || 0).toFixed(2)}\n${order.notes ? `Tracking: ${order.notes}\n` : ''}Thank you for choosing ZEBA Periods Pain Relief!`
   )}`;
 
   return (
@@ -198,11 +201,11 @@ export default function AdminOrderDetail() {
                   ? 'bg-rose-50 text-rose-800 border-rose-300'
                   : 'bg-brand-softPink text-brand-plum border-brand-primaryPink/30'
               }`}>
-                {order.status}
+                {order.status || 'pending'}
               </span>
             </div>
             <p className="text-xs text-brand-plum/70 mt-0.5">
-              Placed on {new Date(order.created_at).toLocaleString('en-IN')}
+              Placed on {order.created_at ? new Date(order.created_at).toLocaleString('en-IN') : 'Recently'}
             </p>
           </div>
         </div>
@@ -291,16 +294,16 @@ export default function AdminOrderDetail() {
             <div className="pt-4 border-t border-brand-primaryPink/15 space-y-2 text-xs text-brand-plum/80">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span className="text-brand-dark font-bold">₹{parseFloat(order.subtotal).toFixed(2)}</span>
+                <span className="text-brand-dark font-bold">₹{parseFloat(order.subtotal || 0).toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Shipping Fee</span>
-                <span className="text-brand-dark font-bold">₹{parseFloat(order.shipping_fee).toFixed(2)}</span>
+                <span className="text-brand-dark font-bold">₹{parseFloat(order.shipping_fee || 0).toFixed(2)}</span>
               </div>
               <div className="pt-2 border-t border-brand-primaryPink/15 flex justify-between text-sm font-bold text-brand-dark">
                 <span>Total Amount</span>
                 <span className="font-display font-black text-brand-brightPink text-base">
-                  ₹{parseFloat(order.total_amount).toFixed(2)}
+                  ₹{parseFloat(order.total_amount || 0).toFixed(2)}
                 </span>
               </div>
             </div>
@@ -316,14 +319,14 @@ export default function AdminOrderDetail() {
                 <span>Customer Info</span>
               </h3>
               <div className="text-xs text-brand-plum space-y-1.5">
-                <p className="font-bold text-brand-dark text-sm">{order.customer_name}</p>
+                <p className="font-bold text-brand-dark text-sm">{order.customer_name || 'Customer'}</p>
                 <p className="flex items-center space-x-1.5 text-brand-plum/80">
                   <Phone className="w-3.5 h-3.5 text-brand-primaryPink" />
-                  <span>{order.customer_phone}</span>
+                  <span>{order.customer_phone || 'N/A'}</span>
                 </p>
                 <p className="flex items-center space-x-1.5 text-brand-plum/80">
                   <Mail className="w-3.5 h-3.5 text-brand-primaryPink" />
-                  <span>{order.customer_email}</span>
+                  <span>{order.customer_email || 'N/A'}</span>
                 </p>
               </div>
             </div>
@@ -335,12 +338,14 @@ export default function AdminOrderDetail() {
                 <span>Shipping Address</span>
               </h3>
               <div className="text-xs text-brand-plum space-y-1">
-                <p>{order.house_building}</p>
+                {order.house_building && <p>{order.house_building}</p>}
                 {order.street && <p>{order.street}</p>}
                 {order.area && <p>{order.area}</p>}
-                <p className="font-semibold text-brand-dark">
-                  {order.city}, {order.state} - {order.pincode}
-                </p>
+                {(order.city || order.state || order.pincode) && (
+                  <p className="font-semibold text-brand-dark">
+                    {[order.city, order.state].filter(Boolean).join(', ')}{order.pincode ? ` - ${order.pincode}` : ''}
+                  </p>
+                )}
                 <p className="text-[11px] text-brand-plum/60">{order.country || 'India'}</p>
               </div>
             </div>
