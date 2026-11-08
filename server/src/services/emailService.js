@@ -256,27 +256,42 @@ export async function sendEmail({
 
       console.log(`Email sent: [${cleanRecipient}] (Event: ${notifType}, Provider ID: ${info.messageId})`);
 
-      // Update email_notifications to sent
+      // Update email_notifications to sent (upsert to ensure records are always created/updated)
       if (safeOrderId && notifType) {
         try {
           await query(
-            `UPDATE email_notifications
-             SET status = 'sent', provider_message_id = $1, error_message = NULL, sent_at = CURRENT_TIMESTAMP
-             WHERE order_id = $2 AND notification_type = $3 AND recipient_email = $4`,
-            [info.messageId, safeOrderId, notifType, cleanRecipient]
+            `INSERT INTO email_notifications (order_id, notification_type, recipient_email, subject, status, provider_message_id, error_message, sent_at, payload)
+             VALUES ($1, $2, $3, $4, 'sent', $5, NULL, CURRENT_TIMESTAMP, $6)
+             ON CONFLICT (order_id, notification_type, recipient_email)
+             DO UPDATE SET
+               subject = EXCLUDED.subject,
+               status = 'sent',
+               provider_message_id = EXCLUDED.provider_message_id,
+               error_message = NULL,
+               sent_at = CURRENT_TIMESTAMP,
+               payload = COALESCE(EXCLUDED.payload, email_notifications.payload)`,
+            [safeOrderId, notifType, cleanRecipient, subject, info.messageId, payload ? JSON.stringify(payload) : null]
           );
 
           await query(
-            `UPDATE email_events
-             SET status = 'sent', provider_message_id = $1, error_message = NULL, sent_at = CURRENT_TIMESTAMP
-             WHERE order_id = $2 AND event_type = $3`,
-            [info.messageId, safeOrderId, notifType]
+            `INSERT INTO email_events (order_id, event_type, recipient, status, provider_message_id, error_message, sent_at, payload)
+             VALUES ($1, $2, $3, 'sent', $4, NULL, CURRENT_TIMESTAMP, $5)
+             ON CONFLICT (order_id, event_type)
+             DO UPDATE SET
+               recipient = EXCLUDED.recipient,
+               status = 'sent',
+               provider_message_id = EXCLUDED.provider_message_id,
+               error_message = NULL,
+               sent_at = CURRENT_TIMESTAMP,
+               payload = COALESCE(EXCLUDED.payload, email_events.payload)`,
+            [safeOrderId, notifType, cleanRecipient, info.messageId, payload ? JSON.stringify(payload) : null]
           );
 
           await query(
             `INSERT INTO order_notifications (order_id, notification_type, recipient, status_sent, message)
              VALUES ($1, $2, $3, 'sent', $4)
-             ON CONFLICT (order_id, notification_type) DO NOTHING`,
+             ON CONFLICT (order_id, notification_type)
+             DO UPDATE SET status_sent = 'sent', message = EXCLUDED.message`,
             [safeOrderId, `email_${notifType}`, cleanRecipient, `${subject}\n\n${html}`]
           );
         } catch (_) {}
@@ -292,21 +307,34 @@ export async function sendEmail({
     } catch (sendErr) {
       console.error(`Email failed to [${cleanRecipient}] (${notifType}):`, sendErr.message);
 
-      // Record failure for safe retry
+      // Record failure for safe retry (upsert into email_notifications)
       if (safeOrderId && notifType) {
         try {
           await query(
-            `UPDATE email_notifications
-             SET status = 'failed', error_message = $1, retry_count = retry_count + 1, failed_at = CURRENT_TIMESTAMP
-             WHERE order_id = $2 AND notification_type = $3 AND recipient_email = $4`,
-            [sendErr.message, safeOrderId, notifType, cleanRecipient]
+            `INSERT INTO email_notifications (order_id, notification_type, recipient_email, subject, status, error_message, failed_at, retry_count, payload)
+             VALUES ($1, $2, $3, $4, 'failed', $5, CURRENT_TIMESTAMP, 1, $6)
+             ON CONFLICT (order_id, notification_type, recipient_email)
+             DO UPDATE SET
+               subject = EXCLUDED.subject,
+               status = 'failed',
+               error_message = EXCLUDED.error_message,
+               failed_at = CURRENT_TIMESTAMP,
+               retry_count = email_notifications.retry_count + 1,
+               payload = COALESCE(EXCLUDED.payload, email_notifications.payload)`,
+            [safeOrderId, notifType, cleanRecipient, subject, sendErr.message, payload ? JSON.stringify(payload) : null]
           );
 
           await query(
-            `UPDATE email_events
-             SET status = 'failed', error_message = $1, retry_count = retry_count + 1
-             WHERE order_id = $2 AND event_type = $3`,
-            [sendErr.message, safeOrderId, notifType]
+            `INSERT INTO email_events (order_id, event_type, recipient, status, error_message, retry_count, payload)
+             VALUES ($1, $2, $3, 'failed', $4, 1, $5)
+             ON CONFLICT (order_id, event_type)
+             DO UPDATE SET
+               recipient = EXCLUDED.recipient,
+               status = 'failed',
+               error_message = EXCLUDED.error_message,
+               retry_count = email_events.retry_count + 1,
+               payload = COALESCE(EXCLUDED.payload, email_events.payload)`,
+            [safeOrderId, notifType, cleanRecipient, sendErr.message, payload ? JSON.stringify(payload) : null]
           );
         } catch (_) {}
       }
@@ -330,23 +358,36 @@ export async function sendEmail({
     if (safeOrderId && notifType) {
       try {
         await query(
-          `UPDATE email_notifications
-           SET status = 'sent', provider_message_id = 'SIMULATED_SUCCESS', sent_at = CURRENT_TIMESTAMP
-           WHERE order_id = $1 AND notification_type = $2 AND recipient_email = $3`,
-          [safeOrderId, notifType, cleanRecipient]
+          `INSERT INTO email_notifications (order_id, notification_type, recipient_email, subject, status, provider_message_id, sent_at, payload)
+           VALUES ($1, $2, $3, $4, 'simulated', 'SIMULATED_SUCCESS', CURRENT_TIMESTAMP, $5)
+           ON CONFLICT (order_id, notification_type, recipient_email)
+           DO UPDATE SET
+             subject = EXCLUDED.subject,
+             status = 'simulated',
+             provider_message_id = 'SIMULATED_SUCCESS',
+             sent_at = CURRENT_TIMESTAMP,
+             payload = COALESCE(EXCLUDED.payload, email_notifications.payload)`,
+          [safeOrderId, notifType, cleanRecipient, subject, payload ? JSON.stringify(payload) : null]
         );
 
         await query(
-          `UPDATE email_events
-           SET status = 'sent', provider_message_id = 'SIMULATED_SUCCESS', sent_at = CURRENT_TIMESTAMP
-           WHERE order_id = $1 AND event_type = $2`,
-          [safeOrderId, notifType]
+          `INSERT INTO email_events (order_id, event_type, recipient, status, provider_message_id, sent_at, payload)
+           VALUES ($1, $2, $3, 'simulated', 'SIMULATED_SUCCESS', CURRENT_TIMESTAMP, $4)
+           ON CONFLICT (order_id, event_type)
+           DO UPDATE SET
+             recipient = EXCLUDED.recipient,
+             status = 'simulated',
+             provider_message_id = 'SIMULATED_SUCCESS',
+             sent_at = CURRENT_TIMESTAMP,
+             payload = COALESCE(EXCLUDED.payload, email_events.payload)`,
+          [safeOrderId, notifType, cleanRecipient, payload ? JSON.stringify(payload) : null]
         );
 
         await query(
           `INSERT INTO order_notifications (order_id, notification_type, recipient, status_sent, message)
            VALUES ($1, $2, $3, 'simulated', $4)
-           ON CONFLICT (order_id, notification_type) DO NOTHING`,
+           ON CONFLICT (order_id, notification_type)
+           DO UPDATE SET status_sent = 'simulated', message = EXCLUDED.message`,
           [safeOrderId, `email_${notifType}`, cleanRecipient, `${subject}\n\n${html}`]
         );
       } catch (_) {}

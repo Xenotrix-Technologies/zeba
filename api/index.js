@@ -5,7 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { config } from '../server/src/config/env.js';
 
-// Ensure critical secrets are always populated in serverless environment (v1.0.4 - razorpay live)
+// Ensure critical secrets are always populated in serverless environment (v1.0.5 - live razorpay & email alerts)
 if (!process.env.JWT_SECRET) {
   process.env.JWT_SECRET = config.JWT_SECRET || 'zeba_super_secret_jwt_key_2026_wellness';
 }
@@ -14,6 +14,12 @@ if (!process.env.RAZORPAY_KEY_ID) {
 }
 if (!process.env.RAZORPAY_KEY_SECRET) {
   process.env.RAZORPAY_KEY_SECRET = config.RAZORPAY_KEY_SECRET || 'WnHRxVtx08vPTI5YT1o82NU1';
+}
+if (!process.env.EMAIL_USER) {
+  process.env.EMAIL_USER = config.EMAIL_USER || 'zebaofficial2013@gmail.com';
+}
+if (!process.env.EMAIL_PASSWORD) {
+  process.env.EMAIL_PASSWORD = config.EMAIL_PASSWORD || 'ylrmdpzviyrttpqi';
 }
 
 import { seedDatabase } from '../server/database/seed.js';

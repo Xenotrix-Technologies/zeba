@@ -89,12 +89,16 @@ export default function AdminOrderDetail() {
       });
 
       if (res.success) {
-        addToast(
-          notifyCustomer && selectedStatus !== order.status
-            ? `Order updated to "${selectedStatus}" & notification dispatched to customer!`
-            : 'Order details saved successfully.',
-          'success'
-        );
+        if (notifyCustomer && selectedStatus !== order.status) {
+          const emailSent = res.notification?.success !== false;
+          if (emailSent) {
+            addToast(`Order updated to "${selectedStatus}" & notification dispatched to customer and admin!`, 'success');
+          } else {
+            addToast(`Order updated to "${selectedStatus}". Email notice: ${res.notification?.error || 'Check SMTP credentials'}`, 'warning');
+          }
+        } else {
+          addToast('Order details saved successfully.', 'success');
+        }
         if (res.whatsappLink) {
           setWhatsappLink(res.whatsappLink);
         }
@@ -114,11 +118,13 @@ export default function AdminOrderDetail() {
     setSendingType(emailType);
     try {
       const res = await api.post(`/admin/orders/${order.id}/resend-email`, { emailType });
-      if (res.success) {
+      if (res.success && res.emailDispatched !== false && (res.result?.success || res.result?.customer?.success || res.result?.admin?.success)) {
         addToast(`Email [${emailType}] successfully sent to customer and admin!`, 'success');
         await fetchOrderDetail();
       } else {
-        addToast(res.message || 'Failed to send email.', 'error');
+        const failureMsg = res.result?.customer?.error || res.result?.admin?.error || res.result?.error || res.message || 'SMTP delivery failed';
+        addToast(`Email [${emailType}] dispatch failed: ${failureMsg}`, 'error');
+        await fetchOrderDetail();
       }
     } catch (err) {
       addToast(err.message || 'Failed to send email.', 'error');

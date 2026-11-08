@@ -847,44 +847,74 @@ export async function updateOrderStatus(req, res, next) {
       );
     }
 
-    // 6. Fetch customer details to dispatch notification
-    const custRes = await query(
-      'SELECT name, email, phone FROM customers WHERE id = $1',
-      [updatedOrder.customer_id]
+    // 6. Fetch complete consolidated order details (customer, address, items) for email notifications
+    const orderRes = await query(
+      `SELECT o.*,
+              c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone,
+              a.house_building, a.street, a.area, a.city, a.state, a.pincode, a.country,
+              COALESCE(o.payment_method, p.payment_method, 'Razorpay Online') AS payment_method
+       FROM orders o
+       LEFT JOIN customers c ON o.customer_id = c.id
+       LEFT JOIN addresses a ON o.address_id = a.id
+       LEFT JOIN payments p ON o.id = p.order_id
+       WHERE o.id = $1 LIMIT 1`,
+      [updatedOrder.id]
     );
+
+    const fullOrderRow = orderRes.rows[0] || updatedOrder;
+    const itemsRes = await query(
+      `SELECT oi.*, p.images FROM order_items oi
+       LEFT JOIN products p ON (oi.product_id = p.id OR oi.product_name = p.name)
+       WHERE oi.order_id = $1`,
+      [updatedOrder.id]
+    );
+
+    const customer = {
+      name: fullOrderRow.customer_name || 'Valued Customer',
+      email: fullOrderRow.customer_email || '',
+      phone: fullOrderRow.customer_phone || ''
+    };
+
+    const fullOrderForEmail = {
+      ...fullOrderRow,
+      customer,
+      address: {
+        houseBuilding: fullOrderRow.house_building,
+        street: fullOrderRow.street,
+        area: fullOrderRow.area,
+        city: fullOrderRow.city,
+        state: fullOrderRow.state,
+        pincode: fullOrderRow.pincode,
+        country: fullOrderRow.country || 'India'
+      },
+      items: itemsRes.rows || []
+    };
 
     let notificationResult = null;
     let whatsappLink = '';
 
-    if (custRes.rows.length > 0) {
-      const customer = custRes.rows[0];
+    const isShippingUpdate = (
+      (tracking_number !== undefined && tracking_number !== currentOrder.tracking_number) ||
+      (courier_partner !== undefined && courier_partner !== currentOrder.courier_partner)
+    );
 
-      const fullOrderForEmail = {
-        ...updatedOrder,
-        customer
-      };
+    const isPaymentPaidUpdate = (
+      payment_status && payment_status === 'paid' && currentOrder.payment_status !== 'paid'
+    );
 
-      const isShippingUpdate = (
-        (tracking_number !== undefined && tracking_number !== currentOrder.tracking_number) ||
-        (courier_partner !== undefined && courier_partner !== currentOrder.courier_partner)
-      );
-
-      const isPaymentPaidUpdate = (
-        payment_status && payment_status === 'paid' && currentOrder.payment_status !== 'paid'
-      );
-
-      if (notify_customer) {
+    if (notify_customer) {
+      try {
         // 1. Order Status Changed
         if (isStatusChange) {
           if (targetStatus === 'cancelled') {
-            sendOrderCancelledEmail({
+            notificationResult = await sendOrderCancelledEmail({
               order: fullOrderForEmail,
               reason: cancellation_reason || notes || 'Cancelled by store administrator',
               refundStatus: updatedOrder.refund_status,
               forceResend: true
-            }).catch(cancelErr => console.error('Admin cancellation email dispatch note:', cancelErr.message));
+            });
           } else {
-            sendOrderStatusUpdateEmail({
+            notificationResult = await sendOrderStatusUpdateEmail({
               order: fullOrderForEmail,
               newStatus: targetStatus,
               previousStatus: currentOrder.status,
@@ -892,11 +922,11 @@ export async function updateOrderStatus(req, res, next) {
               courierPartner: updatedOrder.courier_partner,
               trackingNumber: updatedOrder.tracking_number,
               forceResend: true
-            }).catch(statusErr => console.error('Admin order status update email dispatch note:', statusErr.message));
+            });
           }
         } else if (isShippingUpdate) {
           // 2. Shipping / Tracking details were updated without status change
-          sendOrderStatusUpdateEmail({
+          notificationResult = await sendOrderStatusUpdateEmail({
             order: fullOrderForEmail,
             newStatus: targetStatus,
             previousStatus: currentOrder.status,
@@ -904,33 +934,34 @@ export async function updateOrderStatus(req, res, next) {
             courierPartner: updatedOrder.courier_partner,
             trackingNumber: updatedOrder.tracking_number,
             forceResend: true
-          }).catch(shipErr => console.error('Admin shipping update email dispatch note:', shipErr.message));
+          });
         }
 
         // 3. Payment Status Updated to 'paid'
         if (isPaymentPaidUpdate) {
-          sendPaymentConfirmationEmail({
+          await sendPaymentConfirmationEmail({
             order: fullOrderForEmail,
             transactionId: updatedOrder.razorpay_payment_id || 'ADMIN_CONFIRMED',
             paymentMethod: updatedOrder.payment_method || 'Confirmed by Store Admin',
             forceResend: true
-          }).catch(payErr => console.error('Admin payment paid email dispatch note:', payErr.message));
+          });
         }
 
         // 4. Refund Status Updated
         if (refund_status && refund_status !== currentOrder.refund_status && ['requested', 'processing', 'completed', 'failed'].includes(refund_status)) {
-          try {
-            await sendRefundEmail({
-              order: fullOrderForEmail,
-              refundStatus: refund_status,
-              reason: notes || cancellation_reason || 'Admin processed refund update'
-            });
-          } catch (refundErr) {
-            console.error('Admin refund email dispatch note:', refundErr.message);
-          }
+          await sendRefundEmail({
+            order: fullOrderForEmail,
+            refundStatus: refund_status,
+            reason: notes || cancellation_reason || 'Admin processed refund update'
+          });
         }
+      } catch (notifErr) {
+        console.error('Error during order status notifications dispatch:', notifErr.message);
+        notificationResult = { success: false, error: notifErr.message };
+      }
 
-        // Record WhatsApp notification log
+      // Record WhatsApp notification log if customer phone exists
+      if (customer.phone) {
         try {
           const whatsappMessage = generateWhatsAppMessage(
             {
@@ -948,23 +979,12 @@ export async function updateOrderStatus(req, res, next) {
              ON CONFLICT (order_id, notification_type) DO NOTHING`,
             [updatedOrder.id, `whatsapp_status_${targetStatus}`, customer.phone, targetStatus, whatsappMessage]
           );
+
+          const cleanPhone = customer.phone.replace(/[^0-9]/g, '');
+          const fullPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
+          whatsappLink = `https://wa.me/${fullPhone}?text=${encodeURIComponent(whatsappMessage)}`;
         } catch (_) {}
       }
-
-      // Generate WhatsApp Direct Send Link
-      const msg = generateWhatsAppMessage(
-        {
-          order_number: updatedOrder.order_number,
-          customer_name: customer.name,
-          total_amount: updatedOrder.total_amount
-        },
-        targetStatus,
-        notes || updatedOrder.notes
-      );
-
-      const cleanPhone = customer.phone.replace(/[^0-9]/g, '');
-      const fullPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
-      whatsappLink = `https://wa.me/${fullPhone}?text=${encodeURIComponent(msg)}`;
     }
 
     // Fetch updated status history
@@ -1329,23 +1349,25 @@ export async function resendAdminOrderEmail(req, res, next) {
 
     const isNumeric = /^\d+$/.test(id);
     const orderRes = isNumeric
-      ? await query(`SELECT o.*, c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone FROM orders o JOIN customers c ON o.customer_id = c.id WHERE o.id = $1`, [parseInt(id, 10)])
-      : await query(`SELECT o.*, c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone FROM orders o JOIN customers c ON o.customer_id = c.id WHERE o.order_number = $1`, [id]);
+      ? await query(`SELECT o.*, c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone FROM orders o LEFT JOIN customers c ON o.customer_id = c.id WHERE o.id = $1`, [parseInt(id, 10)])
+      : await query(`SELECT o.*, c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone FROM orders o LEFT JOIN customers c ON o.customer_id = c.id WHERE o.order_number = $1`, [id]);
 
     if (orderRes.rows.length === 0) {
       return res.status(404).json({ success: false, message: 'Order not found.' });
     }
 
     const orderRow = orderRes.rows[0];
-    const itemsRes = await query(`SELECT * FROM order_items WHERE order_id = $1`, [orderRow.id]);
-    const addrRes = await query(`SELECT * FROM addresses WHERE id = $1`, [orderRow.address_id]);
+    const itemsRes = await query(`SELECT oi.*, p.images FROM order_items oi LEFT JOIN products p ON (oi.product_id = p.id OR oi.product_name = p.name) WHERE oi.order_id = $1`, [orderRow.id]);
+    const addrRes = orderRow.address_id
+      ? await query(`SELECT * FROM addresses WHERE id = $1`, [orderRow.address_id])
+      : { rows: [] };
 
     const fullOrder = {
       ...orderRow,
       customer: {
-        name: orderRow.customer_name,
-        email: orderRow.customer_email,
-        phone: orderRow.customer_phone
+        name: orderRow.customer_name || 'Valued Customer',
+        email: orderRow.customer_email || '',
+        phone: orderRow.customer_phone || ''
       },
       address: addrRes.rows[0] || {},
       items: itemsRes.rows
@@ -1375,9 +1397,15 @@ export async function resendAdminOrderEmail(req, res, next) {
       return res.status(400).json({ success: false, message: 'Invalid emailType specified.' });
     }
 
+    const isSent = Boolean(result?.success || result?.customer?.success || result?.admin?.success);
+    const failureDetail = result?.customer?.error || result?.admin?.error || result?.error || null;
+
     res.json({
       success: true,
-      message: `Email [${emailType}] dispatched to customer and admin.`,
+      emailDispatched: isSent,
+      message: isSent
+        ? `Email [${emailType}] dispatched to customer and admin.`
+        : `Email [${emailType}] dispatch failed: ${failureDetail || 'SMTP connection could not be established'}`,
       result
     });
   } catch (err) {
