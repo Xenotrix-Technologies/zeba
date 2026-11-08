@@ -259,6 +259,15 @@ export default function Checkout() {
         throw new Error('Unable to create secure Razorpay order. Please refresh and try again or select Cash on Delivery.');
       }
 
+      const cleanDigits = (formData.phone || '').replace(/[^0-9]/g, '');
+      const formattedContact = cleanDigits.length === 10
+        ? `+91${cleanDigits}`
+        : cleanDigits.length === 12 && cleanDigits.startsWith('91')
+        ? `+${cleanDigits}`
+        : cleanDigits.length > 10
+        ? `+91${cleanDigits.slice(-10)}`
+        : `+91${cleanDigits}`;
+
       const options = {
         key: activeRazorpayKey,
         amount: res.amount,
@@ -267,6 +276,17 @@ export default function Checkout() {
         description: `Order ${res.orderNumber} - Period Pain Relief Heating Pads`,
         image: '/images/zeba-logo.png',
         order_id: res.razorpayOrderId,
+        prefill: {
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          contact: formattedContact
+        },
+        readonly: {
+          name: true,
+          email: true,
+          contact: true
+        },
+        send_sms_hash: false,
         handler: async (response) => {
           await handlePaymentVerification({
             razorpay_order_id: response.razorpay_order_id,
@@ -277,6 +297,7 @@ export default function Checkout() {
           });
         },
         modal: {
+          confirm_close: true,
           ondismiss: async () => {
             setLoading(false);
             addToast('Payment was cancelled. Your order has not been confirmed. You can retry anytime.', 'info');
@@ -290,11 +311,6 @@ export default function Checkout() {
               // Non-blocking
             }
           }
-        },
-        prefill: {
-          name: formData.name.trim(),
-          email: formData.email.trim(),
-          contact: formData.phone.trim()
         },
         theme: {
           color: '#E84FA5'
