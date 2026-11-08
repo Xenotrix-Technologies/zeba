@@ -6,7 +6,6 @@ import { useToast } from '../context/ToastContext';
 import { useCustomerAuth } from '../context/CustomerAuthContext';
 import { useStoreSettings } from '../context/StoreSettingsContext';
 import api from '../services/api';
-import RazorpayModal from '../components/RazorpayModal';
 import CustomerAuthModal from '../components/CustomerAuthModal';
 import { trackInitiateCheckout } from '../utils/metaPixel';
 
@@ -90,7 +89,6 @@ export default function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState('razorpay'); // 'razorpay' | 'cod'
   const [loading, setLoading] = useState(false);
   const [razorpayOrder, setRazorpayOrder] = useState(null);
-  const [showSimulatedModal, setShowSimulatedModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
@@ -251,71 +249,75 @@ export default function Checkout() {
         await loadRazorpayScript();
       }
 
-      // Check if real window.Razorpay is available and keys are live
-      if (window.Razorpay && res.keyId && !res.keyId.includes('placeholder') && !res.razorpayOrderId.startsWith('order_zeba_')) {
-        const options = {
-          key: res.keyId,
-          amount: res.amount,
-          currency: res.currency || 'INR',
-          name: 'ZEBA Period Care',
-          description: `Order ${res.orderNumber} - Period Pain Relief Heating Pads`,
-          image: '/images/zeba-logo.png',
-          order_id: res.razorpayOrderId,
-          handler: async (response) => {
-            await handlePaymentVerification({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              order_id: res.orderId,
-              is_test_mode: false
-            });
-          },
-          modal: {
-            ondismiss: async () => {
-              setLoading(false);
-              addToast('Payment was cancelled. Your order has not been confirmed. You can retry anytime.', 'info');
-              try {
-                await api.post('/payments/cancel', {
-                  razorpay_order_id: res.razorpayOrderId,
-                  order_id: res.orderId,
-                  reason: 'Customer closed the Razorpay payment window.'
-                });
-              } catch (e) {
-                // Non-blocking
-              }
-            }
-          },
-          prefill: {
-            name: formData.name.trim(),
-            email: formData.email.trim(),
-            contact: formData.phone.trim()
-          },
-          theme: {
-            color: '#E84FA5'
-          }
-        };
+      const activeRazorpayKey = res.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_TlKuhbruLAqyod';
 
-        const rzp = new window.Razorpay(options);
-        rzp.on('payment.failed', async (failRes) => {
-          setLoading(false);
-          const errorDesc = failRes.error?.description || 'Payment was not completed. Your order has not been confirmed. You can retry the payment.';
-          addToast(errorDesc, 'error');
-          try {
-            await api.post('/payments/fail', {
-              razorpay_order_id: res.razorpayOrderId,
-              order_id: res.orderId,
-              error_code: failRes.error?.code || 'PAYMENT_FAILED',
-              error_description: failRes.error?.description || errorDesc
-            });
-          } catch (e) {
-            // Non-blocking
-          }
-        });
-        rzp.open();
-      } else {
-        // Show interactive test/preview checkout modal
-        setShowSimulatedModal(true);
+      if (!window.Razorpay) {
+        throw new Error('Secure payment gateway could not be loaded. Please check your internet connection or disable ad-blockers and try again.');
       }
+
+      if (!res.razorpayOrderId || res.razorpayOrderId.startsWith('order_zeba_')) {
+        throw new Error('Unable to create secure Razorpay order. Please refresh and try again or select Cash on Delivery.');
+      }
+
+      const options = {
+        key: activeRazorpayKey,
+        amount: res.amount,
+        currency: res.currency || 'INR',
+        name: 'ZEBA Period Care',
+        description: `Order ${res.orderNumber} - Period Pain Relief Heating Pads`,
+        image: '/images/zeba-logo.png',
+        order_id: res.razorpayOrderId,
+        handler: async (response) => {
+          await handlePaymentVerification({
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            order_id: res.orderId,
+            is_test_mode: false
+          });
+        },
+        modal: {
+          ondismiss: async () => {
+            setLoading(false);
+            addToast('Payment was cancelled. Your order has not been confirmed. You can retry anytime.', 'info');
+            try {
+              await api.post('/payments/cancel', {
+                razorpay_order_id: res.razorpayOrderId,
+                order_id: res.orderId,
+                reason: 'Customer closed the Razorpay payment window.'
+              });
+            } catch (e) {
+              // Non-blocking
+            }
+          }
+        },
+        prefill: {
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          contact: formData.phone.trim()
+        },
+        theme: {
+          color: '#E84FA5'
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', async (failRes) => {
+        setLoading(false);
+        const errorDesc = failRes.error?.description || 'Payment was not completed. Your order has not been confirmed. You can retry the payment.';
+        addToast(errorDesc, 'error');
+        try {
+          await api.post('/payments/fail', {
+            razorpay_order_id: res.razorpayOrderId,
+            order_id: res.orderId,
+            error_code: failRes.error?.code || 'PAYMENT_FAILED',
+            error_description: failRes.error?.description || errorDesc
+          });
+        } catch (e) {
+          // Non-blocking
+        }
+      });
+      rzp.open();
 
     } catch (err) {
       addToast(err.message || 'Payment initialization failed.', 'error');
@@ -351,7 +353,6 @@ export default function Checkout() {
       addToast(err.message || 'Payment verification failed. If your account was debited, our team will confirm your order shortly.', 'error');
     } finally {
       setLoading(false);
-      setShowSimulatedModal(false);
     }
   };
 
@@ -755,21 +756,6 @@ export default function Checkout() {
         </form>
 
       </div>
-
-      {/* Simulated / Test Razorpay Modal */}
-      <RazorpayModal
-        isOpen={showSimulatedModal}
-        onClose={() => setShowSimulatedModal(false)}
-        orderData={{
-          ...razorpayOrder,
-          customer: { name: formData.name, email: formData.email, phone: formData.phone }
-        }}
-        onSuccess={handlePaymentVerification}
-        onError={(err) => {
-          addToast(err.message || 'Payment was cancelled.', 'error');
-          setShowSimulatedModal(false);
-        }}
-      />
 
       {/* Customer Account / Sign In Modal for Order Tracking */}
       <CustomerAuthModal

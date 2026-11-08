@@ -364,17 +364,19 @@ export async function createPaymentOrder(req, res, next) {
 
     // --- RAZORPAY ONLINE GATEWAY WORKFLOW ---
     // 6. Initialize Razorpay Order with authoritative amount in paise
-    const amountInPaise = Math.round(totalAmount * 100);
+    const amountInPaise = Math.round(Number(totalAmount) * 100);
     const receipt = orderNumber;
+    const activeKeyId = config.RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || 'rzp_live_TlKuhbruLAqyod';
+    const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
 
     let razorpayOrder = null;
 
-    if (razorpayInstance && !config.RAZORPAY_KEY_ID.includes('placeholder')) {
+    if (razorpayInstance && activeKeyId && !activeKeyId.includes('placeholder')) {
       try {
         razorpayOrder = await razorpayInstance.orders.create({
           amount: amountInPaise,
           currency: 'INR',
-          receipt,
+          receipt: receipt.slice(0, 40),
           notes: {
             brand: 'ZEBA Period Care',
             order_id: String(orderId),
@@ -385,12 +387,21 @@ export async function createPaymentOrder(req, res, next) {
           }
         });
       } catch (rzpErr) {
-        console.warn('Razorpay API initialization notice (creating fallback test order):', rzpErr.message);
+        console.error('Razorpay API live order creation error:', rzpErr.message || rzpErr);
       }
     }
 
-    // Fallback sandbox order ID if Razorpay keys are not yet configured or in test mode
+    // Never generate fake/free orders in production - strictly enforce real payment gateway
     if (!razorpayOrder) {
+      if (isProduction) {
+        console.error('CRITICAL: Razorpay live order initialization failed in production for order:', orderNumber);
+        return res.status(502).json({
+          success: false,
+          message: 'Unable to initialize online payment with Razorpay. Please verify your connection or try again in a moment.'
+        });
+      }
+
+      // ONLY allowed in local offline development if explicitly not production
       razorpayOrder = {
         id: `order_zeba_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         entity: 'order',
@@ -443,7 +454,7 @@ export async function createPaymentOrder(req, res, next) {
       razorpayOrderId: razorpayOrder.id,
       amount: razorpayOrder.amount,
       currency: razorpayOrder.currency,
-      keyId: config.RAZORPAY_KEY_ID,
+      keyId: activeKeyId,
       breakdown: {
         subtotal,
         shippingFee,
@@ -511,7 +522,16 @@ export async function verifyPayment(req, res, next) {
 
     // 3. Cryptographic Signature Verification
     let isValidSignature = false;
+    const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
+
     if (is_test_mode || razorpay_order_id.startsWith('order_zeba_')) {
+      if (isProduction) {
+        console.error('🚨 SECURITY ALERT: Rejected simulation payment in production for order ID:', order.id);
+        return res.status(403).json({
+          success: false,
+          message: 'Payment simulation is strictly forbidden in production. Orders must be verified with Razorpay.'
+        });
+      }
       isValidSignature = true;
     } else {
       isValidSignature = verifyRazorpaySignature(razorpay_order_id, razorpay_payment_id, razorpay_signature);
@@ -533,18 +553,27 @@ export async function verifyPayment(req, res, next) {
 
     // 4. Verify Payment Amount & Capture details from Razorpay SDK (if live)
     let paymentMethod = 'Razorpay Online';
-    if (razorpayInstance && !config.RAZORPAY_KEY_ID.includes('placeholder') && !is_test_mode) {
+    if (razorpayInstance && !is_test_mode) {
       try {
         const paymentDetails = await razorpayInstance.payments.fetch(razorpay_payment_id);
         if (paymentDetails) {
           const expectedPaise = Math.round(parseFloat(order.total_amount) * 100);
           if (paymentDetails.amount < expectedPaise) {
-            throw new Error(`Paid amount (${paymentDetails.amount}) is less than required order amount (${expectedPaise}).`);
+            throw new Error(`Paid amount (₹${paymentDetails.amount / 100}) is less than required order amount (₹${expectedPaise / 100}).`);
+          }
+          if (paymentDetails.status !== 'captured' && paymentDetails.status !== 'authorized') {
+            throw new Error(`Razorpay payment is not confirmed. Payment status is "${paymentDetails.status}".`);
           }
           paymentMethod = paymentDetails.method ? `Razorpay (${paymentDetails.method.toUpperCase()})` : 'Razorpay Online';
         }
       } catch (rzpFetchErr) {
-        console.warn('Razorpay payment fetch notice:', rzpFetchErr.message);
+        console.error('Razorpay payment fetch error:', rzpFetchErr.message);
+        if (isProduction) {
+          return res.status(400).json({
+            success: false,
+            message: `Could not verify payment capture with Razorpay: ${rzpFetchErr.message}`
+          });
+        }
       }
     }
 

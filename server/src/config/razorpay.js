@@ -5,10 +5,13 @@ import { config } from './env.js';
 export let razorpayInstance = null;
 
 try {
-  if (config.RAZORPAY_KEY_ID && config.RAZORPAY_KEY_SECRET && !config.RAZORPAY_KEY_ID.includes('placeholder')) {
+  const keyId = config.RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || 'rzp_live_TlKuhbruLAqyod';
+  const keySecret = config.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET || 'WnHRxVtx08vPTI5YT1o82NU1';
+
+  if (keyId && keySecret && !keyId.includes('placeholder')) {
     razorpayInstance = new Razorpay({
-      key_id: config.RAZORPAY_KEY_ID,
-      key_secret: config.RAZORPAY_KEY_SECRET
+      key_id: keyId,
+      key_secret: keySecret
     });
   }
 } catch (err) {
@@ -30,7 +33,8 @@ function safeCompare(a, b) {
  * Verify Razorpay payment signature (standard checkout callback)
  */
 export function verifyRazorpaySignature(razorpayOrderId, razorpayPaymentId, signature) {
-  if (!config.RAZORPAY_KEY_SECRET || !signature || !razorpayOrderId || !razorpayPaymentId) {
+  const secret = config.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET || 'WnHRxVtx08vPTI5YT1o82NU1';
+  if (!secret || !signature || !razorpayOrderId || !razorpayPaymentId) {
     return false;
   }
   
