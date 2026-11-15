@@ -14,7 +14,8 @@ import {
   Send,
   RefreshCw,
   AlertCircle,
-  ArrowLeft
+  ArrowLeft,
+  ExternalLink
 } from 'lucide-react';
 import api from '../services/api';
 import WhatsAppIcon from '../components/WhatsAppIcon';

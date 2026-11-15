@@ -81,6 +81,8 @@ export default function App() {
         <Route element={<StorefrontLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
+          <Route path="/shop" element={<ProductDetail />} />
+          <Route path="/shop/:slug" element={<ProductDetail />} />
           <Route path="/products" element={<ProductDetail />} />
           <Route path="/products/:slug" element={<ProductDetail />} />
           <Route path="/cart" element={<CartPage />} />

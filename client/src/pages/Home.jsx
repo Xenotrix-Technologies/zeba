@@ -17,11 +17,13 @@ import {
   CheckCircle2,
   Mail,
   ThumbsUp,
-  ThumbsDown
+  ThumbsDown,
+  ExternalLink
 } from 'lucide-react';
 import api from '../services/api';
 import ProductCard from '../components/ProductCard';
 import WhatsAppIcon from '../components/WhatsAppIcon';
+import { AmazonIcon, FlipkartIcon, AMAZON_URL, FLIPKART_URL } from '../components/MarketplaceButtons';
 import { useStoreSettings } from '../context/StoreSettingsContext';
 import { DEFAULT_PRODUCTS } from '../utils/defaultProducts';
 
@@ -372,6 +374,38 @@ export default function Home() {
               >
                 How It Works
               </a>
+            </div>
+
+            {/* Amazon (3-Pack) & Flipkart (1-Pack) Purchase Buttons */}
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-2.5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#805A82]">
+                Also Available On:
+              </span>
+              <div className="flex items-center gap-2">
+                <a
+                  href={FLIPKART_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-[#2874F0] hover:bg-[#1a5bc9] text-white text-xs font-bold transition-all shadow-sm hover:shadow active:scale-95 border border-blue-400/30 group"
+                  title="Buy ZEBA 1-Pack on Flipkart"
+                >
+                  <FlipkartIcon className="w-4 h-4 flex-shrink-0" />
+                  <span>Flipkart (1-Pack)</span>
+                  <ExternalLink className="w-3 h-3 opacity-70 group-hover:opacity-100 transition-opacity" />
+                </a>
+
+                <a
+                  href={AMAZON_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-[#131921] hover:bg-[#232F3E] text-white text-xs font-bold transition-all shadow-sm hover:shadow active:scale-95 border border-white/10 group"
+                  title="Buy ZEBA 3-Pack on Amazon"
+                >
+                  <AmazonIcon className="w-4 h-4 flex-shrink-0" />
+                  <span>Amazon (3-Pack)</span>
+                  <ExternalLink className="w-3 h-3 opacity-70 group-hover:opacity-100 transition-opacity" />
+                </a>
+              </div>
             </div>
 
 

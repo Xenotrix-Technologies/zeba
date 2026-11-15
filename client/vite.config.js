@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: 5000,
-      strictPort: true,
+      strictPort: false,
       host: true,
       proxy: {
         '/api': {
@@ -32,7 +32,7 @@ export default defineConfig(({ mode }) => {
     },
     preview: {
       port: 5000,
-      strictPort: true,
+      strictPort: false,
       host: true,
       proxy: {
         '/api': {

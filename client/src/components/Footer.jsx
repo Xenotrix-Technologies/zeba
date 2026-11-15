@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Phone, Mail, Instagram, Facebook, MapPin } from 'lucide-react';
+import { Phone, Mail, Instagram, Facebook, MapPin, ExternalLink } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
+import { AmazonIcon, FlipkartIcon, AMAZON_URL, FLIPKART_URL } from './MarketplaceButtons';
 import { useStoreSettings } from '../context/StoreSettingsContext';
 
 export default function Footer() {
@@ -58,6 +59,38 @@ export default function Footer() {
               >
                 <WhatsAppIcon className="w-4 h-4" />
               </a>
+            </div>
+
+            {/* Also Available On Marketplaces */}
+            <div className="pt-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-brand-lightGold block mb-2">
+                Also Available On:
+              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <a
+                  href={FLIPKART_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#2874F0] hover:bg-[#1a5bc9] text-white text-xs font-bold transition-all shadow-sm border border-blue-400/30 group active:scale-95"
+                  title="Buy ZEBA 1-Pack on Flipkart"
+                >
+                  <FlipkartIcon className="w-4 h-4 flex-shrink-0" />
+                  <span>Flipkart (1-Pack)</span>
+                  <ExternalLink className="w-3 h-3 opacity-70 group-hover:opacity-100 transition-opacity" />
+                </a>
+
+                <a
+                  href={AMAZON_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#131921] hover:bg-[#232F3E] text-white text-xs font-bold transition-all shadow-sm border border-white/10 group active:scale-95"
+                  title="Buy ZEBA 3-Pack on Amazon"
+                >
+                  <AmazonIcon className="w-4 h-4 flex-shrink-0" />
+                  <span>Amazon (3-Pack)</span>
+                  <ExternalLink className="w-3 h-3 opacity-70 group-hover:opacity-100 transition-opacity" />
+                </a>
+              </div>
             </div>
           </div>
 
@@ -154,11 +187,40 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Secure Payments & Copyright */}
-        <div className="pt-8 mt-4 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-6">
-          {/* Secure Payments Icons */}
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 text-xs">
-            <span className="text-pink-100/70 font-semibold text-xs sm:text-sm mr-1">Secure Payments:</span>
+        {/* Marketplace Stores, Secure Payments & Copyright */}
+        <div className="pt-8 mt-4 border-t border-white/10 flex flex-col lg:flex-row items-center justify-between gap-6">
+          {/* Marketplace Badges & Secure Payments */}
+          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4 text-xs">
+            {/* Also on Flipkart & Amazon */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-pink-100/70 font-semibold text-xs sm:text-sm mr-0.5">Also on:</span>
+              <a
+                href={FLIPKART_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 text-white transition-all shadow-sm select-none"
+                title="ZEBA on Flipkart"
+              >
+                <FlipkartIcon className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="font-bold text-[12px]">Flipkart</span>
+              </a>
+              <a
+                href={AMAZON_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 text-white transition-all shadow-sm select-none"
+                title="ZEBA on Amazon"
+              >
+                <AmazonIcon className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="font-bold text-[12px]">Amazon</span>
+              </a>
+            </div>
+
+            <span className="hidden sm:inline-block w-px h-4 bg-white/20" />
+
+            {/* Secure Payments Icons */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-pink-100/70 font-semibold text-xs sm:text-sm mr-1">Secure Payments:</span>
             
             {/* Razorpay */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-white/[0.06] border border-white/15 text-white shadow-sm hover:border-white/30 transition-all select-none">
@@ -190,6 +252,7 @@ export default function Footer() {
               <span className="font-bold text-[13px] tracking-tight text-white">RuPay</span>
             </div>
           </div>
+        </div>
 
           <div className="text-center md:text-right text-xs text-pink-200/60 space-y-1">
             <p>© {new Date().getFullYear()} {settings.legalEntityName}. All rights reserved.</p>

@@ -62,6 +62,12 @@ export const businessConfig = {
     linkedin: process.env.LINKEDIN_URL || 'https://linkedin.com/company/zeba-care'
   },
 
+  // Official Verified Marketplace Store Links
+  marketplaces: {
+    amazon: 'https://www.amazon.in/dp/B0HQ5D3NBT',
+    flipkart: 'https://www.flipkart.com/zeba-period-pain-relif-patch-plaster/p/itm9ca5d6d579d66?pid=BPRHSHKNEHHETAMX'
+  },
+
   // Shipping & Pricing Rules
   commerce: {
     currency: '₹',
