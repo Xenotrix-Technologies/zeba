@@ -197,9 +197,29 @@ async function startServer() {
   try {
     await seedDatabase();
     
-    app.listen(config.PORT, () => {
+    const server = app.listen(config.PORT, () => {
       console.log(`🚀 ZEBA Backend API running at http://localhost:${config.PORT}`);
     });
+
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        console.error(`❌ Port ${config.PORT} is already in use by another running instance.`);
+        console.error(`💡 Run in PowerShell to free port ${config.PORT}:`);
+        console.error(`   Stop-Process -Id (Get-NetTCPConnection -LocalPort ${config.PORT}).OwningProcess -Force`);
+      } else {
+        console.error('❌ Server error:', err.message || err);
+      }
+      process.exit(1);
+    });
+
+    // Graceful termination handlers to release port immediately
+    const cleanExit = () => {
+      server.close(() => {
+        process.exit(0);
+      });
+    };
+    process.on('SIGINT', cleanExit);
+    process.on('SIGTERM', cleanExit);
   } catch (err) {
     console.error('Failed to start server:', err);
     process.exit(1);

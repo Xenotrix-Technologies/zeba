@@ -28,6 +28,81 @@ function generateOrderNumber() {
   return `ZEBA-2026-${timestamp}${random}`.slice(0, 16);
 }
 
+let isCodSchemaReady = false;
+
+/**
+ * Self-healing database schema verification.
+ * Automatically provisions cod_otp_verifications and necessary order columns on ANY connected database.
+ */
+export async function ensureCodSchema() {
+  if (isCodSchemaReady) return;
+  try {
+    // 1. Ensure required COD columns on orders table
+    await query(`
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_method VARCHAR(100) DEFAULT 'Razorpay Online';
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS cod_handling_fee NUMERIC(10, 2) DEFAULT 0.00;
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMP WITH TIME ZONE;
+    `);
+
+    // 2. Ensure cod_otp_verifications table and indexes
+    await query(`
+      CREATE TABLE IF NOT EXISTS cod_otp_verifications (
+          id SERIAL PRIMARY KEY,
+          email VARCHAR(255) NOT NULL,
+          otp_hash VARCHAR(255) NOT NULL,
+          salt VARCHAR(64) NOT NULL,
+          attempts INTEGER NOT NULL DEFAULT 0,
+          max_attempts INTEGER NOT NULL DEFAULT 5,
+          expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+          verified BOOLEAN NOT NULL DEFAULT FALSE,
+          verified_at TIMESTAMP WITH TIME ZONE,
+          verification_token VARCHAR(255) UNIQUE,
+          token_expires_at TIMESTAMP WITH TIME ZONE,
+          used BOOLEAN NOT NULL DEFAULT FALSE,
+          order_number VARCHAR(100),
+          cart_hash VARCHAR(100),
+          ip_address VARCHAR(100),
+          user_agent TEXT,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_cod_otp_email ON cod_otp_verifications(email);
+      CREATE INDEX IF NOT EXISTS idx_cod_otp_token ON cod_otp_verifications(verification_token);
+      CREATE INDEX IF NOT EXISTS idx_cod_otp_expires ON cod_otp_verifications(expires_at);
+    `);
+
+    isCodSchemaReady = true;
+    console.log('✅ [COD] Self-healing schema verified successfully.');
+  } catch (err) {
+    console.warn('⚠️ [COD] Schema auto-creation note:', err.message);
+  }
+}
+
+/**
+ * Robust database query wrapper for COD operations that automatically catches
+ * missing relation/column errors, provisions the schema on the fly, and transparently retries.
+ */
+async function codQuery(sql, params) {
+  try {
+    return await query(sql, params);
+  } catch (err) {
+    const isMissingRelation =
+      err.code === '42P01' || // undefined_table
+      err.code === '42703' || // undefined_column
+      (err.message && (err.message.includes('does not exist') || err.message.includes('cod_otp_verifications')));
+
+    if (isMissingRelation) {
+      console.warn('⚠️ [COD] Missing relation/column detected during query execution. Running self-healing migration...');
+      isCodSchemaReady = false;
+      await ensureCodSchema();
+      // Retry query
+      return await query(sql, params);
+    }
+    throw err;
+  }
+}
+
 /**
  * POST /api/orders/cod/send-otp
  *
@@ -44,6 +119,8 @@ function generateOrderNumber() {
  */
 export async function sendCodOtp(req, res, next) {
   try {
+    await ensureCodSchema();
+
     const { items, customer, address } = req.body;
 
     // 1. Basic validation
@@ -95,7 +172,7 @@ export async function sendCodOtp(req, res, next) {
     const userAgent = req.headers['user-agent'] || '';
 
     // 3. Rate Limiting & Cooldown Check (Applies only to unverified & unused OTPs)
-    const recentOtpRes = await query(
+    const recentOtpRes = await codQuery(
       `SELECT id, created_at
        FROM cod_otp_verifications
        WHERE email = $1 AND used = false AND verified = false AND created_at > NOW() - INTERVAL '50 seconds'
@@ -114,7 +191,7 @@ export async function sendCodOtp(req, res, next) {
     }
 
     // 4. Abuse Prevention: Max 10 active OTP requests per email in 15 minutes
-    const abuseRes = await query(
+    const abuseRes = await codQuery(
       `SELECT COUNT(*) AS total
        FROM cod_otp_verifications
        WHERE email = $1 AND used = false AND created_at > NOW() - INTERVAL '15 minutes'`,
@@ -130,7 +207,7 @@ export async function sendCodOtp(req, res, next) {
     }
 
     // 5. Invalidate previous unconfirmed OTP sessions for this email address
-    await query(
+    await codQuery(
       `UPDATE cod_otp_verifications
        SET expires_at = NOW(), token_expires_at = NOW(), updated_at = NOW()
        WHERE email = $1 AND used = false`,
@@ -144,7 +221,7 @@ export async function sendCodOtp(req, res, next) {
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes validity
 
     // Store secure record
-    await query(
+    await codQuery(
       `INSERT INTO cod_otp_verifications (
          email, otp_hash, salt, expires_at, ip_address, user_agent
        ) VALUES ($1, $2, $3, $4, $5, $6)`,
@@ -190,6 +267,8 @@ export async function sendCodOtp(req, res, next) {
  */
 export async function verifyCodOtp(req, res, next) {
   try {
+    await ensureCodSchema();
+
     const { email, otp } = req.body;
 
     if (!email || !isValidEmail(email)) {
@@ -210,7 +289,7 @@ export async function verifyCodOtp(req, res, next) {
     const cleanEmail = email.toLowerCase().trim();
 
     // 1. Fetch latest active verification record
-    const otpRes = await query(
+    const otpRes = await codQuery(
       `SELECT *
        FROM cod_otp_verifications
        WHERE email = $1 AND used = false
@@ -262,7 +341,7 @@ export async function verifyCodOtp(req, res, next) {
       const updatedAttempts = record.attempts + 1;
       const remaining = Math.max(0, record.max_attempts - updatedAttempts);
 
-      await query(
+      await codQuery(
         `UPDATE cod_otp_verifications
          SET attempts = $1, updated_at = NOW()
          WHERE id = $2`,
@@ -288,7 +367,7 @@ export async function verifyCodOtp(req, res, next) {
     const verificationToken = crypto.randomBytes(32).toString('hex');
     const tokenExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
-    await query(
+    await codQuery(
       `UPDATE cod_otp_verifications
        SET verified = true,
            verified_at = NOW(),
@@ -325,6 +404,8 @@ export async function verifyCodOtp(req, res, next) {
  */
 export async function confirmCodOrder(req, res, next) {
   try {
+    await ensureCodSchema();
+
     const { items, customer, address, notes, verificationToken } = req.body;
 
     // 1. Validation
@@ -352,7 +433,7 @@ export async function confirmCodOrder(req, res, next) {
     const cleanEmail = customer.email.toLowerCase().trim();
 
     // 2. Validate Verification Token
-    const tokenRes = await query(
+    const tokenRes = await codQuery(
       `SELECT *
        FROM cod_otp_verifications
        WHERE verification_token = $1
@@ -398,7 +479,7 @@ export async function confirmCodOrder(req, res, next) {
     }
 
     // 3. Atomic Token Invalidation (Prevents race-conditions and duplicate order creation)
-    const consumeRes = await query(
+    const consumeRes = await codQuery(
       `UPDATE cod_otp_verifications
        SET used = true, updated_at = NOW()
        WHERE id = $1 AND used = false
@@ -448,19 +529,19 @@ export async function confirmCodOrder(req, res, next) {
     const cleanPhone = customer.phone.trim();
     const cleanName = customer.name.trim();
 
-    const existingCust = await query(
+    const existingCust = await codQuery(
       'SELECT id FROM customers WHERE email = $1 OR phone = $2 LIMIT 1',
       [cleanEmail, cleanPhone]
     );
 
     if (existingCust.rows.length > 0) {
       customerId = existingCust.rows[0].id;
-      await query(
+      await codQuery(
         'UPDATE customers SET name = $1, email = $2, phone = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4',
         [cleanName, cleanEmail, cleanPhone, customerId]
       );
     } else {
-      const newCust = await query(
+      const newCust = await codQuery(
         'INSERT INTO customers (name, email, phone) VALUES ($1, $2, $3) RETURNING id',
         [cleanName, cleanEmail, cleanPhone]
       );
@@ -468,7 +549,7 @@ export async function confirmCodOrder(req, res, next) {
     }
 
     // 7. Insert Delivery Address
-    const newAddr = await query(
+    const newAddr = await codQuery(
       `INSERT INTO addresses (customer_id, house_building, street, area, city, state, pincode, country)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
       [customerId, houseBuilding, street, area, city, state, cleanPincode, country]
@@ -477,7 +558,7 @@ export async function confirmCodOrder(req, res, next) {
 
     // 8. Deduct Product Stock Quantity
     for (const itm of verifiedItems) {
-      await query(
+      await codQuery(
         'UPDATE products SET stock_quantity = GREATEST(0, stock_quantity - $1), updated_at = CURRENT_TIMESTAMP WHERE id = $2',
         [itm.quantity, itm.productId]
       );
@@ -487,7 +568,7 @@ export async function confirmCodOrder(req, res, next) {
     const orderNumber = generateOrderNumber();
     const rzpOrderId = `COD_${orderNumber}`;
 
-    const newOrder = await query(
+    const newOrder = await codQuery(
       `INSERT INTO orders (
          order_number, customer_id, address_id, status, payment_status,
          subtotal, shipping_fee, cod_handling_fee, total_amount, currency, notes,
@@ -511,7 +592,7 @@ export async function confirmCodOrder(req, res, next) {
 
     // 10. Insert Line Items
     for (const itm of verifiedItems) {
-      await query(
+      await codQuery(
         `INSERT INTO order_items (order_id, product_id, product_name, pack_size, unit_price, quantity, subtotal_price)
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
         [orderId, itm.productId, itm.productName, itm.packSize, itm.unitPrice, itm.quantity, itm.subtotalPrice]
@@ -519,7 +600,7 @@ export async function confirmCodOrder(req, res, next) {
     }
 
     // 11. Insert Initial Payment Record
-    await query(
+    await codQuery(
       `INSERT INTO payments (
          order_id, razorpay_order_id, amount, currency, status, payment_method
        ) VALUES ($1, $2, $3, $4, 'pending', 'Cash on Delivery')`,
@@ -528,7 +609,7 @@ export async function confirmCodOrder(req, res, next) {
 
     // 12. Insert Status History Audit Trail
     try {
-      await query(
+      await codQuery(
         `INSERT INTO order_status_history (order_id, previous_status, new_status, changed_by, notes)
          VALUES ($1, NULL, 'confirmed', 'customer', 'Order placed with Cash on Delivery (OTP Verified)')`,
         [orderId]
@@ -538,7 +619,7 @@ export async function confirmCodOrder(req, res, next) {
     }
 
     // 13. Bind Verification Record with Order Number
-    await query(
+    await codQuery(
       `UPDATE cod_otp_verifications SET order_number = $1 WHERE id = $2`,
       [orderNumber, verificationRecord.id]
     );
