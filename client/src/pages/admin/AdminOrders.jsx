@@ -555,15 +555,20 @@ export default function AdminOrders() {
                       </td>
                       <td className="p-4 font-extrabold text-brand-deepPurple">₹{parseFloat(order.total_amount || 0).toFixed(2)}</td>
                       <td className="p-4">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
-                          order.payment_status === 'paid'
-                            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                            : isPaymentCancelled
-                            ? 'bg-rose-50 text-rose-800 border border-rose-200 ring-1 ring-rose-200'
-                            : 'bg-amber-50 text-amber-800 border border-amber-200'
-                        }`}>
-                          {order.payment_status || 'pending'}
-                        </span>
+                        <div className="space-y-0.5">
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase inline-block ${
+                            order.payment_status === 'paid'
+                              ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                              : isPaymentCancelled
+                              ? 'bg-rose-50 text-rose-800 border border-rose-200 ring-1 ring-rose-200'
+                              : 'bg-amber-50 text-amber-800 border border-amber-200'
+                          }`}>
+                            {order.payment_status || 'pending'}
+                          </span>
+                          <span className="text-[10px] text-[#805A82] block font-semibold truncate max-w-[120px]">
+                            {order.payment_method || (order.payment_status === 'paid' ? 'Online' : 'COD')}
+                          </span>
+                        </div>
                       </td>
                       <td className="p-4" onClick={(e) => e.stopPropagation()}>
                         <select

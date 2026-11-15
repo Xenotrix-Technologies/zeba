@@ -31,6 +31,32 @@ export async function seedDatabase() {
     console.log(`🔄 Default admin credentials synchronized: ${adminEmail}`);
   }
 
+  // Seed testadmin
+  const testAdminUsername = 'testadmin';
+  const testAdminEmail = 'testadmin@zebaoffical.in';
+  const testAdminPassword = 'testadmin';
+  const testAdminSalt = await bcrypt.genSalt(10);
+  const testAdminHash = await bcrypt.hash(testAdminPassword, testAdminSalt);
+
+  const existingTestAdmin = await query(
+    'SELECT id FROM admins WHERE LOWER(username) = $1 OR LOWER(email) = $2 LIMIT 1',
+    [testAdminUsername.toLowerCase(), testAdminEmail.toLowerCase()]
+  );
+  if (existingTestAdmin.rows.length === 0) {
+    await query(
+      `INSERT INTO admins (username, email, password_hash, role)
+       VALUES ($1, $2, $3, $4)`,
+      [testAdminUsername, testAdminEmail, testAdminHash, 'superadmin']
+    );
+    console.log(`✅ Test admin created: ${testAdminUsername}`);
+  } else {
+    await query(
+      `UPDATE admins SET email = $1, password_hash = $2, username = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4`,
+      [testAdminEmail, testAdminHash, testAdminUsername, existingTestAdmin.rows[0].id]
+    );
+    console.log(`🔄 Test admin credentials synchronized: ${testAdminUsername}`);
+  }
+
 // 2. Seed / Upsert the exact authentic ZEBA Products
   const products = [
     {

@@ -150,7 +150,13 @@ export async function loginCustomer(req, res, next) {
     const cleanId = identifier.toLowerCase().trim();
 
     const result = await query(
-      'SELECT id, name, email, phone, password_hash, created_at FROM customers WHERE email = $1 OR phone = $1 LIMIT 1',
+      `SELECT id, name, email, phone, password_hash, created_at 
+       FROM customers 
+       WHERE LOWER(TRIM(email)) = $1 
+          OR phone = $1 
+          OR LOWER(TRIM(name)) = $1 
+          OR LOWER(SPLIT_PART(email, '@', 1)) = $1 
+       LIMIT 1`,
       [cleanId]
     );
 

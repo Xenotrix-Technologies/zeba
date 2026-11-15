@@ -17,7 +17,6 @@ import {
   Send,
   History,
   Calendar,
-  RefreshCw,
   XCircle,
   Printer,
   FileText
@@ -113,46 +112,6 @@ export default function AdminOrderDetail() {
       setSaving(false);
     }
   };
-
-  const [retrying, setRetrying] = useState(false);
-  const [sendingType, setSendingType] = useState(null);
-
-  const handleResendEmail = async (emailType) => {
-    setSendingType(emailType);
-    try {
-      const res = await api.post(`/admin/orders/${order.id}/resend-email`, { emailType });
-      if (res.success && res.emailDispatched !== false && (res.result?.success || res.result?.customer?.success || res.result?.admin?.success)) {
-        addToast(`Email [${emailType}] successfully sent to customer and admin!`, 'success');
-        await fetchOrderDetail();
-      } else {
-        const failureMsg = res.result?.customer?.error || res.result?.admin?.error || res.result?.error || res.message || 'SMTP delivery failed';
-        addToast(`Email [${emailType}] dispatch failed: ${failureMsg}`, 'error');
-        await fetchOrderDetail();
-      }
-    } catch (err) {
-      addToast(err.message || 'Failed to send email.', 'error');
-    } finally {
-      setSendingType(null);
-    }
-  };
-
-  const handleRetryEmails = async () => {
-    setRetrying(true);
-    try {
-      const res = await api.post('/admin/emails/retry', { limit: 5 });
-      if (res.success) {
-        addToast(`Email retry completed (${res.processedCount || 0} processed).`, 'success');
-        await fetchOrderDetail();
-      } else {
-        addToast(res.error || 'Email retry failed.', 'error');
-      }
-    } catch (err) {
-      addToast(err.message || 'Failed to retry emails.', 'error');
-    } finally {
-      setRetrying(false);
-    }
-  };
-
 
   if (loading) {
     return (
@@ -300,6 +259,12 @@ export default function AdminOrderDetail() {
                 <span>Shipping Fee</span>
                 <span className="text-brand-dark font-bold">₹{parseFloat(order.shipping_fee || 0).toFixed(2)}</span>
               </div>
+              {parseFloat(order.cod_handling_fee || order.codHandlingFee || 0) > 0 && (
+                <div className="flex justify-between text-brand-dark font-medium">
+                  <span>COD Handling Fee</span>
+                  <span className="text-brand-dark font-bold">₹{parseFloat(order.cod_handling_fee || order.codHandlingFee || 0).toFixed(2)}</span>
+                </div>
+              )}
               <div className="pt-2 border-t border-brand-primaryPink/15 flex justify-between text-sm font-bold text-brand-dark">
                 <span>Total Amount</span>
                 <span className="font-display font-black text-brand-brightPink text-base">
@@ -358,7 +323,7 @@ export default function AdminOrderDetail() {
               <CreditCard className="w-3.5 h-3.5 text-emerald-600" />
               <span>Payment & Gateway Status</span>
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs text-brand-plum">
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 text-xs text-brand-plum">
               <div>
                 <span className="text-[11px] text-brand-plum/60 block">Payment Mode</span>
                 <span className="font-bold text-brand-dark">{order.payment_method || 'Razorpay Gateway'}</span>
@@ -368,12 +333,25 @@ export default function AdminOrderDetail() {
                 <span className="font-bold uppercase text-emerald-700">{order.payment_status}</span>
               </div>
               <div>
+                <span className="text-[11px] text-brand-plum/60 block">OTP Verification</span>
+                <span className="font-bold">
+                  {order.email_verified_at || order.emailVerifiedAt ? (
+                    <span className="text-emerald-700 flex items-center space-x-1">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 inline" />
+                      <span>Verified</span>
+                    </span>
+                  ) : (
+                    <span className="text-slate-400">N/A (Online)</span>
+                  )}
+                </span>
+              </div>
+              <div>
                 <span className="text-[11px] text-brand-plum/60 block">Refund Status</span>
                 <span className="font-bold uppercase text-purple-700">{order.refund_status || 'NOT_APPLICABLE'}</span>
               </div>
               <div>
-                <span className="text-[11px] text-brand-plum/60 block">Razorpay Payment ID</span>
-                <span className="font-mono text-emerald-600 font-semibold text-[11px]">{order.razorpay_payment_id || 'N/A'}</span>
+                <span className="text-[11px] text-brand-plum/60 block">Reference / ID</span>
+                <span className="font-mono text-emerald-600 font-semibold text-[11px] truncate block">{order.razorpay_payment_id || order.payment_method || 'N/A'}</span>
               </div>
             </div>
           </div>
@@ -413,174 +391,6 @@ export default function AdminOrderDetail() {
                     </div>
                   </div>
                 ))}
-              </div>
-            )}
-          </div>
-
-          {/* Email Notifications Status Matrix (Section 10) */}
-          <div className="bg-white rounded-3xl p-6 border border-brand-primaryPink/20 shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-display font-bold text-base text-brand-dark flex items-center space-x-2">
-                <Mail className="w-4 h-4 text-brand-brightPink" />
-                <span>Email Notifications</span>
-              </h3>
-              {order.emailNotifications?.some(e => e.status === 'failed') && (
-                <button
-                  onClick={handleRetryEmails}
-                  disabled={retrying}
-                  className="px-3 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-xs font-bold flex items-center space-x-1.5 transition-colors"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${retrying ? 'animate-spin' : ''}`} />
-                  <span>Retry Failed</span>
-                </button>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {/* Order Confirmation */}
-              <div className="p-3.5 rounded-2xl bg-[#FAF8FA] border border-brand-primaryPink/15 flex flex-col justify-between gap-2.5">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <span className="text-xs font-bold text-brand-dark block">Order Confirmation</span>
-                    <span className="text-[10px] text-brand-plum/60">Sent to customer & admin</span>
-                  </div>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border shrink-0 ${
-                    order.emailStatusSummary?.orderConfirmation === 'sent' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
-                    order.emailStatusSummary?.orderConfirmation === 'failed' ? 'bg-rose-50 text-rose-800 border-rose-300' :
-                    'bg-brand-softPink text-brand-plum border-brand-primaryPink/30'
-                  }`}>
-                    {order.emailStatusSummary?.orderConfirmation || 'Not Sent'}
-                  </span>
-                </div>
-                <div className="flex justify-end pt-1 border-t border-brand-primaryPink/10">
-                  <button
-                    onClick={() => handleResendEmail('order_confirmation')}
-                    disabled={sendingType === 'order_confirmation'}
-                    className="px-2.5 py-1 rounded-lg bg-brand-softPink hover:bg-brand-primaryPink/20 text-brand-deepPurple text-[11px] font-bold flex items-center space-x-1.5 transition-colors disabled:opacity-50"
-                  >
-                    <Send className={`w-3 h-3 ${sendingType === 'order_confirmation' ? 'animate-spin' : ''}`} />
-                    <span>{sendingType === 'order_confirmation' ? 'Sending...' : 'Send / Resend'}</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Payment Confirmation */}
-              <div className="p-3.5 rounded-2xl bg-[#FAF8FA] border border-brand-primaryPink/15 flex flex-col justify-between gap-2.5">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <span className="text-xs font-bold text-brand-dark block">Payment Confirmation</span>
-                    <span className="text-[10px] text-brand-plum/60">Sent to customer & admin</span>
-                  </div>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border shrink-0 ${
-                    order.emailStatusSummary?.paymentConfirmation === 'sent' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
-                    order.emailStatusSummary?.paymentConfirmation === 'failed' ? 'bg-rose-50 text-rose-800 border-rose-300' :
-                    'bg-brand-softPink text-brand-plum border-brand-primaryPink/30'
-                  }`}>
-                    {order.emailStatusSummary?.paymentConfirmation || 'Not Sent'}
-                  </span>
-                </div>
-                <div className="flex justify-end pt-1 border-t border-brand-primaryPink/10">
-                  <button
-                    onClick={() => handleResendEmail('payment_confirmation')}
-                    disabled={sendingType === 'payment_confirmation'}
-                    className="px-2.5 py-1 rounded-lg bg-brand-softPink hover:bg-brand-primaryPink/20 text-brand-deepPurple text-[11px] font-bold flex items-center space-x-1.5 transition-colors disabled:opacity-50"
-                  >
-                    <Send className={`w-3 h-3 ${sendingType === 'payment_confirmation' ? 'animate-spin' : ''}`} />
-                    <span>{sendingType === 'payment_confirmation' ? 'Sending...' : 'Send / Resend'}</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Status Update */}
-              <div className="p-3.5 rounded-2xl bg-[#FAF8FA] border border-brand-primaryPink/15 flex flex-col justify-between gap-2.5">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <span className="text-xs font-bold text-brand-dark block">Status Update</span>
-                    <span className="text-[10px] text-brand-plum/60">Sent upon status change</span>
-                  </div>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border shrink-0 ${
-                    order.emailStatusSummary?.statusUpdate === 'sent' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
-                    order.emailStatusSummary?.statusUpdate === 'failed' ? 'bg-rose-50 text-rose-800 border-rose-300' :
-                    'bg-brand-softPink text-brand-plum border-brand-primaryPink/30'
-                  }`}>
-                    {order.emailStatusSummary?.statusUpdate || 'Not Sent'}
-                  </span>
-                </div>
-                <div className="flex justify-end pt-1 border-t border-brand-primaryPink/10">
-                  <button
-                    onClick={() => handleResendEmail('status_update')}
-                    disabled={sendingType === 'status_update'}
-                    className="px-2.5 py-1 rounded-lg bg-brand-softPink hover:bg-brand-primaryPink/20 text-brand-deepPurple text-[11px] font-bold flex items-center space-x-1.5 transition-colors disabled:opacity-50"
-                  >
-                    <Send className={`w-3 h-3 ${sendingType === 'status_update' ? 'animate-spin' : ''}`} />
-                    <span>{sendingType === 'status_update' ? 'Sending...' : 'Send / Resend'}</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Cancellation */}
-              <div className="p-3.5 rounded-2xl bg-[#FAF8FA] border border-brand-primaryPink/15 flex flex-col justify-between gap-2.5">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <span className="text-xs font-bold text-brand-dark block">Order Cancellation</span>
-                    <span className="text-[10px] text-brand-plum/60">Sent if cancelled</span>
-                  </div>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border shrink-0 ${
-                    order.emailStatusSummary?.cancellation === 'sent' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
-                    order.emailStatusSummary?.cancellation === 'failed' ? 'bg-rose-50 text-rose-800 border-rose-300' :
-                    'bg-brand-softPink text-brand-plum border-brand-primaryPink/30'
-                  }`}>
-                    {order.emailStatusSummary?.cancellation || 'Not Applicable'}
-                  </span>
-                </div>
-                {order.status === 'cancelled' && (
-                  <div className="flex justify-end pt-1 border-t border-brand-primaryPink/10">
-                    <button
-                      onClick={() => handleResendEmail('cancellation')}
-                      disabled={sendingType === 'cancellation'}
-                      className="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-bold flex items-center space-x-1.5 transition-colors disabled:opacity-50"
-                    >
-                      <Send className={`w-3 h-3 ${sendingType === 'cancellation' ? 'animate-spin' : ''}`} />
-                      <span>{sendingType === 'cancellation' ? 'Sending...' : 'Resend Cancellation'}</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Individual Email Event Logs */}
-            {order.emailNotifications && order.emailNotifications.length > 0 && (
-              <div className="pt-2 border-t border-brand-primaryPink/15 space-y-2">
-                <span className="text-[11px] font-bold text-brand-plum block uppercase tracking-wider">Email Dispatch Logs</span>
-                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                  {order.emailNotifications.map(evt => (
-                    <div key={evt.id} className="p-2.5 rounded-xl bg-brand-softPink/30 border border-brand-primaryPink/15 text-xs flex items-center justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center space-x-2">
-                          <strong className="text-brand-dark truncate">{evt.notification_type || evt.event_type}</strong>
-                          <span className="text-[10px] text-brand-plum/60">&bull; {evt.recipient_email}</span>
-                        </div>
-                        {evt.error_message && (
-                          <p className="text-[11px] text-rose-600 mt-0.5 break-words">
-                            ⚠️ {evt.error_message}
-                          </p>
-                        )}
-                      </div>
-                      <div className="text-right shrink-0">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                          evt.status === 'sent' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                          evt.status === 'failed' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
-                          'bg-amber-50 text-amber-700 border border-amber-200'
-                        }`}>
-                          {evt.status}
-                        </span>
-                        <span className="text-[10px] text-brand-plum/50 block mt-0.5">
-                          {new Date(evt.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
               </div>
             )}
           </div>
@@ -727,7 +537,7 @@ export default function AdminOrderDetail() {
               />
               <label htmlFor="notifyCust" className="text-[11px] text-brand-plum font-medium cursor-pointer">
                 <strong className="text-brand-dark block">Notify Customer Automatically</strong>
-                Send email & WhatsApp status update to {order.customer_name}
+                Send email status update to {order.customer_name}
               </label>
             </div>
 

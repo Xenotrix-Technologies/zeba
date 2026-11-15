@@ -107,6 +107,7 @@ export async function getOrderByNumber(req, res, next) {
         refundStatus: order.refund_status || 'not_applicable',
         subtotal: parseFloat(order.subtotal),
         shippingFee: parseFloat(order.shipping_fee),
+        codHandlingFee: parseFloat(order.cod_handling_fee || 0),
         totalAmount: parseFloat(order.total_amount),
         currency: order.currency || 'INR',
         notes: order.notes,
@@ -116,6 +117,7 @@ export async function getOrderByNumber(req, res, next) {
         deliveredAt: order.delivered_at,
         cancelledAt: order.cancelled_at,
         cancellationReason: order.cancellation_reason,
+        emailVerifiedAt: order.email_verified_at,
         createdAt: order.created_at,
         customer: {
           name: order.customer_name,
@@ -136,6 +138,7 @@ export async function getOrderByNumber(req, res, next) {
           razorpayPaymentId: order.razorpay_payment_id,
           method: order.payment_method || 'Razorpay Online'
         },
+        paymentMethod: order.payment_method || 'Razorpay Online',
         items: itemsRes.rows.map(item => ({
           id: item.id,
           productId: item.product_id,

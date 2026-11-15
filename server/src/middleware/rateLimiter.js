@@ -84,6 +84,12 @@ export const checkoutLimiter = createRateLimiter({
   message: 'Too many checkout or payment creation attempts. Please wait a few moments.'
 });
 
+export const otpLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 15,
+  message: 'Too many OTP verification requests. Please wait a few minutes before trying again.'
+});
+
 export const contactLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
   max: 20,

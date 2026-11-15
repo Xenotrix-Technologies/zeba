@@ -240,12 +240,19 @@ export async function createPaymentOrder(req, res, next) {
                   String(req.body.paymentMethod || '').toLowerCase() === 'cash' ||
                   String(req.body.paymentMethod || '').toLowerCase() === 'cash on delivery';
 
+    if (isCod) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cash on Delivery orders require email OTP verification. Please complete OTP verification before placing your order.'
+      });
+    }
+
     // 4. Create Internal Order in PostgreSQL
     const orderNumber = generateOrderNumber();
-    const initialStatus = isCod ? 'confirmed' : 'pending';
+    const initialStatus = 'pending';
     const initialPaymentStatus = 'pending';
-    const paymentMethodLabel = isCod ? 'Cash on Delivery' : 'Razorpay Online';
-    const rzpOrderIdForOrder = isCod ? `COD_${orderNumber}` : null;
+    const paymentMethodLabel = 'Razorpay Online';
+    const rzpOrderIdForOrder = null;
 
     const newOrder = await query(
       `INSERT INTO orders (
@@ -283,83 +290,10 @@ export async function createPaymentOrder(req, res, next) {
       await query(
         `INSERT INTO order_status_history (order_id, previous_status, new_status, changed_by, notes)
          VALUES ($1, NULL, $2, 'customer', $3)`,
-        [orderId, initialStatus, isCod ? 'Order placed with Cash on Delivery' : 'Order created at checkout (Pending Payment)']
+        [orderId, initialStatus, 'Order created at checkout (Pending Payment)']
       );
     } catch (e) {
       // Non-blocking
-    }
-
-    // --- CASH ON DELIVERY WORKFLOW ---
-    if (isCod) {
-      // 6a. Deduct Inventory Stock immediately for confirmed COD order
-      for (const itm of verifiedItems) {
-        await query(
-          'UPDATE products SET stock_quantity = GREATEST(0, stock_quantity - $1), updated_at = CURRENT_TIMESTAMP WHERE id = $2',
-          [itm.quantity, itm.productId]
-        );
-      }
-
-      // 6b. Insert Payment Record for Cash on Delivery
-      await query(
-        `INSERT INTO payments (
-          order_id, razorpay_order_id, amount, currency, status, payment_method
-        ) VALUES ($1, $2, $3, $4, $5, $6)`,
-        [
-          orderId,
-          rzpOrderIdForOrder,
-          totalAmount,
-          currency,
-          'pending',
-          'Cash on Delivery'
-        ]
-      );
-
-      // 6c. Dispatch Confirmation & Alert Emails to Customer and Admin simultaneously
-      let fullOrder = null;
-      try {
-        fullOrder = await fetchConsolidatedOrder(orderId);
-        if (fullOrder) {
-          await sendOrderConfirmationEmail({ order: fullOrder });
-          invalidateMetaFeedCache();
-          sendMetaConversionsEvent({
-            eventName: 'Purchase',
-            eventId: `order_${fullOrder.order_number}`,
-            userData: {
-              email: fullOrder.customer_email,
-              phone: fullOrder.customer_phone,
-              clientIp: req.ip || req.headers['x-forwarded-for'],
-              userAgent: req.headers['user-agent']
-            },
-            customData: {
-              currency: 'INR',
-              value: parseFloat(fullOrder.total_amount),
-              num_items: fullOrder.items?.reduce((s, i) => s + (i.quantity || 1), 0),
-              contents: fullOrder.items?.map(i => ({
-                id: String(i.product_id),
-                quantity: i.quantity,
-                item_price: parseFloat(i.unit_price)
-              }))
-            }
-          }).catch(e => console.warn('[Meta CAPI] Dispatch note:', e.message));
-        }
-      } catch (notifErr) {
-        console.error('COD Order confirmation email dispatch note:', notifErr.message);
-      }
-
-      return res.status(201).json({
-        success: true,
-        isCod: true,
-        orderId,
-        orderNumber,
-        order: fullOrder || { id: orderId, orderNumber, totalAmount, currency, paymentMethod: 'Cash on Delivery' },
-        breakdown: {
-          subtotal,
-          shippingFee,
-          totalAmount,
-          currency,
-          items: verifiedItems
-        }
-      });
     }
 
     // --- RAZORPAY ONLINE GATEWAY WORKFLOW ---
@@ -975,13 +909,13 @@ export async function handleRazorpayWebhook(req, res, next) {
 /**
  * Helper to fetch complete order with joined customer, address, and item records
  */
-async function fetchConsolidatedOrder(orderId) {
+export async function fetchConsolidatedOrder(orderId) {
   const orderRes = await query(
     `SELECT o.id, o.order_number, o.status, o.payment_status, o.refund_status, o.subtotal,
-            o.shipping_fee, o.total_amount, o.currency, o.notes, o.created_at,
+            o.shipping_fee, o.cod_handling_fee, o.total_amount, o.currency, o.notes, o.created_at,
             o.razorpay_order_id, o.razorpay_payment_id,
             o.tracking_number, o.courier_partner, o.estimated_delivery_date,
-            o.delivered_at, o.cancelled_at, o.cancellation_reason,
+            o.delivered_at, o.cancelled_at, o.cancellation_reason, o.email_verified_at,
             c.name AS customer_name, c.email AS customer_email, c.phone AS customer_phone,
             a.house_building, a.street, a.area, a.city, a.state, a.pincode, a.country,
             COALESCE(o.payment_method, p.payment_method, 'Razorpay Online') AS payment_method
@@ -1014,6 +948,7 @@ async function fetchConsolidatedOrder(orderId) {
     refundStatus: o.refund_status || 'not_applicable',
     subtotal: parseFloat(o.subtotal),
     shippingFee: parseFloat(o.shipping_fee),
+    codHandlingFee: parseFloat(o.cod_handling_fee || 0),
     totalAmount: parseFloat(o.total_amount),
     currency: o.currency || 'INR',
     notes: o.notes,
@@ -1023,6 +958,7 @@ async function fetchConsolidatedOrder(orderId) {
     deliveredAt: o.delivered_at,
     cancelledAt: o.cancelled_at,
     cancellationReason: o.cancellation_reason,
+    emailVerifiedAt: o.email_verified_at,
     createdAt: o.created_at,
     razorpayOrderId: o.razorpay_order_id,
     razorpayPaymentId: o.razorpay_payment_id,

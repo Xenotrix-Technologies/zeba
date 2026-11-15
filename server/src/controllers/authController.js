@@ -26,6 +26,8 @@ export async function login(req, res, next) {
          FROM admins 
          WHERE LOWER(email) = $1 
             OR LOWER(username) = $1 
+            OR LOWER(SPLIT_PART(email, '@', 1)) = $1
+            OR ($1 LIKE '%@%' AND LOWER(username) = SPLIT_PART($1, '@', 1))
             OR ($1 IN ('admin', 'zeba', 'info@zebaofficial.in') AND (LOWER(username) = 'zeba_admin' OR LOWER(email) = $2))
          LIMIT 1`,
         [cleanId, configuredEmail]
@@ -40,6 +42,8 @@ export async function login(req, res, next) {
            FROM admins 
            WHERE LOWER(email) = $1 
               OR LOWER(username) = $1 
+              OR LOWER(SPLIT_PART(email, '@', 1)) = $1
+              OR ($1 LIKE '%@%' AND LOWER(username) = SPLIT_PART($1, '@', 1))
               OR ($1 IN ('admin', 'zeba', 'info@zebaofficial.in') AND (LOWER(username) = 'zeba_admin' OR LOWER(email) = $2))
            LIMIT 1`,
           [cleanId, configuredEmail]

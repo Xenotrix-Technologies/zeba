@@ -17,5 +17,6 @@ export { renderRefundEmail } from './refund.js';
 export { renderAdminNewOrderEmail } from './adminNewOrder.js';
 export { renderWelcomeEmail, renderAdminNewCustomerAlert } from './welcome.js';
 export { renderContactAdminAlert, renderContactCustomerConfirmation } from './contactInquiry.js';
+export { renderCodOtpEmail } from './codOtp.js';
 
 

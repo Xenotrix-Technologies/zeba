@@ -13,10 +13,25 @@ import {
   renderAdminNewCustomerAlert,
   renderContactAdminAlert,
   renderContactCustomerConfirmation,
+  renderCodOtpEmail,
   renderEmailLayout
 } from '../templates/emails/index.js';
 
 let cachedTransporter = null;
+
+/**
+ * Close any active pooled transporter connections (e.g. on shutdown/tests)
+ */
+export function closeEmailTransporter() {
+  if (cachedTransporter) {
+    try {
+      cachedTransporter.close();
+    } catch (e) {
+      // ignore
+    }
+    cachedTransporter = null;
+  }
+}
 
 /**
  * Validate email address format strictly
@@ -70,7 +85,8 @@ export function getAdminEmailList() {
 
 
 /**
- * Get or create Nodemailer SMTP transporter (optimized for serverless and long-running Node)
+ * Get or create Nodemailer SMTP transporter
+ * Note: Gmail actively closes pooled sockets after single delivery; fresh connections guarantee reliability.
  */
 export function getEmailTransporter() {
   const host = (config.EMAIL_HOST || config.SMTP_HOST || process.env.EMAIL_HOST || process.env.SMTP_HOST || 'smtp.gmail.com').trim();
@@ -92,7 +108,7 @@ export function getEmailTransporter() {
       return nodemailer.createTransport({
         service: 'gmail',
         auth: { user, pass },
-        family: 4, // Force IPv4 to prevent 20-second IPv6 connection timeout on Windows/cloud
+        family: 4, // Force IPv4 to prevent IPv6 DNS hangs on Windows/cloud
         connectionTimeout: 10000,
         greetingTimeout: 10000,
         socketTimeout: 15000,
@@ -456,6 +472,7 @@ export async function sendOrderConfirmationEmail({ order, forceResend = false })
   };
 }
 
+
 /**
  * 2.B Payment Confirmation Email
  * Trigger: Payment is successfully verified on backend.
@@ -528,6 +545,7 @@ export async function sendPaymentConfirmationEmail({ order, transactionId, razor
     ...results
   };
 }
+
 
 /**
  * 2.C Order Status Update Email
@@ -617,6 +635,7 @@ export async function sendOrderStatusUpdateEmail({
   };
 }
 
+
 /**
  * 2.D Order Cancellation Email
  * Trigger: Order is cancelled (by customer or admin).
@@ -688,6 +707,7 @@ export async function sendOrderCancelledEmail({ order, reason, cancellationReaso
     ...results
   };
 }
+
 
 /**
  * 3. Admin New Order Alert Email
@@ -835,6 +855,7 @@ export async function sendPaymentFailedEmail({ order, errorMessage, retryUrl, fo
   };
 }
 
+
 /**
  * Refund Status Email
  * Send to: BOTH Customer AND Admin at the same time
@@ -915,6 +936,7 @@ export async function sendRefundEmail({
   };
 }
 
+
 /**
  * Customer Welcome Email
  * Send to: BOTH Customer AND Admin at the same time
@@ -984,6 +1006,7 @@ export async function sendCustomerWelcomeEmail({ customerId, name, email, phone 
     ...results
   };
 }
+
 
 /**
  * Send Test Email from Admin Portal
@@ -1265,3 +1288,22 @@ export async function getEmailNotifications({ page = 1, limit = 20, orderId, sta
 }
 
 export const getEmailEvents = getEmailNotifications;
+
+/**
+ * Send Cash on Delivery (COD) Email OTP Verification
+ * Uses the existing configured Nodemailer transporter
+ */
+export async function sendCodOtpEmail({ to, otp, customerName = '' }) {
+  const { subject, html, text } = renderCodOtpEmail({ otp, customerName });
+
+  return sendEmail({
+    to,
+    subject,
+    html,
+    text,
+    eventType: 'cod_otp',
+    notificationType: 'cod_otp',
+    forceResend: true
+  });
+}
+

@@ -207,6 +207,39 @@ export default function OrderSuccess() {
                 ))}
               </div>
 
+              {/* Price Breakdown */}
+              <div className="pt-3 border-t border-brand-primaryPink/20 space-y-1.5 text-xs text-[#805A82]">
+                <div className="flex items-center justify-between">
+                  <span>Subtotal</span>
+                  <span className="font-semibold text-brand-deepPurple">₹{parseFloat(order.subtotal || 0).toFixed(2)}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Shipping Fee</span>
+                  <span className="font-semibold text-brand-deepPurple">
+                    {parseFloat(order.shippingFee || 0) === 0 ? (
+                      <span className="text-emerald-700 font-bold uppercase">FREE</span>
+                    ) : (
+                      `₹${parseFloat(order.shippingFee || 0).toFixed(2)}`
+                    )}
+                  </span>
+                </div>
+                {parseFloat(order.codHandlingFee || order.cod_handling_fee || 0) > 0 && (
+                  <div className="flex items-center justify-between text-brand-deepPurple font-medium">
+                    <span>COD Handling Fee</span>
+                    <span className="font-bold">₹{parseFloat(order.codHandlingFee || order.cod_handling_fee || 0).toFixed(2)}</span>
+                  </div>
+                )}
+                {(order.emailVerifiedAt || order.email_verified_at) && (
+                  <div className="flex items-center justify-between text-[11px] text-emerald-700">
+                    <span>Email OTP Verification</span>
+                    <span className="font-bold flex items-center space-x-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Verified</span>
+                    </span>
+                  </div>
+                )}
+              </div>
+
               <div className="pt-3 border-t border-brand-primaryPink/20 flex items-center justify-between text-sm">
                 <span className="font-bold text-brand-deepPurple">
                   {(order.payment?.method || order.paymentMethod || '').toLowerCase().includes('cash')
