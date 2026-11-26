@@ -482,7 +482,7 @@ export default function Checkout() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Payment Method Selection */}
-        <div className="mb-8 max-w-2xl mx-auto">
+        <div className="mb-8 max-w-4xl mx-auto">
           <div className="text-center mb-5 space-y-1">
             <h1 className="font-display font-black text-2xl sm:text-3xl text-brand-deepPurple tracking-tight">
               Select Payment Method
@@ -492,17 +492,27 @@ export default function Checkout() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Option 1: Razorpay Online Payment */}
             <div
               role="button"
               tabIndex={0}
               onClick={() => setPaymentMethod('razorpay')}
-              className="rounded-3xl p-5 border-2 cursor-pointer transition-all relative border-brand-brightPink bg-white shadow-lg ring-4 ring-brand-pink/20"
+              className={`rounded-3xl p-5 border-2 cursor-pointer transition-all relative ${
+                paymentMethod === 'razorpay'
+                  ? 'border-brand-brightPink bg-white shadow-lg ring-4 ring-brand-pink/20'
+                  : 'border-brand-primaryPink/25 bg-white/70 hover:bg-white hover:border-brand-primaryPink/50 shadow-xs'
+              }`}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center space-x-3.5">
-                  <div className="w-11 h-11 rounded-2xl flex items-center justify-center transition-all bg-gradient-to-br from-brand-brightPink to-brand-deepPink text-white shadow-md shadow-brand-pink/30">
+                  <div
+                    className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all ${
+                      paymentMethod === 'razorpay'
+                        ? 'bg-gradient-to-br from-brand-brightPink to-brand-deepPink text-white shadow-md shadow-brand-pink/30'
+                        : 'bg-brand-softPink/60 text-brand-deepPurple'
+                    }`}
+                  >
                     <CreditCard className="w-5 h-5" />
                   </div>
                   <div>
@@ -521,8 +531,14 @@ export default function Checkout() {
                   </div>
                 </div>
 
-                <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center mt-1 flex-shrink-0 transition-all border-brand-brightPink bg-brand-brightPink text-white">
-                  <div className="w-2 h-2 rounded-full bg-white" />
+                <div
+                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-1 flex-shrink-0 transition-all ${
+                    paymentMethod === 'razorpay'
+                      ? 'border-brand-brightPink bg-brand-brightPink text-white'
+                      : 'border-slate-300 bg-white'
+                  }`}
+                >
+                  {paymentMethod === 'razorpay' && <div className="w-2 h-2 rounded-full bg-white" />}
                 </div>
               </div>
 
@@ -537,7 +553,7 @@ export default function Checkout() {
               </div>
             </div>
 
-            {/* Option 2: Cash on Delivery (COD) - Temporarily commented out
+            {/* Option 2: Cash on Delivery (COD) */}
             <div
               role="button"
               tabIndex={0}
@@ -600,7 +616,6 @@ export default function Checkout() {
                 </span>
               </div>
             </div>
-            */}
           </div>
         </div>
 
@@ -958,7 +973,7 @@ export default function Checkout() {
         }}
       />
 
-      {/* Cash on Delivery Email OTP Verification Modal - Temporarily commented out
+      {/* Cash on Delivery Email OTP Verification Modal */}
       <CodOtpModal
         isOpen={showCodOtpModal}
         onClose={() => setShowCodOtpModal(false)}
@@ -988,7 +1003,6 @@ export default function Checkout() {
         }}
         onVerifySuccess={handleCodConfirmOrder}
       />
-      */}
 
     </div>
   );
